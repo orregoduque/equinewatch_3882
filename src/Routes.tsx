@@ -3,8 +3,9 @@ import { BrowserRouter, Routes as RouterRoutes, Route } from "react-router-dom";
 import ScrollToTop from "components/ScrollToTop";
 import ErrorBoundary from "components/ErrorBoundary";
 import NotFound from "pages/NotFound";
-import Login from './pages/login';
+import Landing from './pages/landing';
 
+const Login = lazy(() => import('./pages/login'));
 const DailySummary = lazy(() => import('./pages/daily-summary'));
 const HorseTimeline = lazy(() => import('./pages/horse-timeline'));
 const HorseList = lazy(() => import('./pages/horse-list'));
@@ -24,9 +25,9 @@ const Routes: React.FC = () => {
         <ScrollToTop />
         <Suspense fallback={<PageLoader />}>
           <RouterRoutes>
-            <Route path="/" element={<Login />} />
-            <Route path="/daily-summary" element={<DailySummary />} />
+            <Route path="/" element={<Landing />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/daily-summary" element={<DailySummary />} />
             <Route path="/horse-timeline" element={<HorseTimeline />} />
             <Route path="/horse-list" element={<HorseList />} />
             <Route path="/world-map" element={<WorldMap />} />
