@@ -1,9 +1,21 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Helmet } from 'react-helmet';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import Icon from '../../components/AppIcon';
 
 const Landing: React.FC = () => {
+  const location = useLocation();
+
+  useEffect(() => {
+    if (!location.hash) {
+      window.location.hash = 'team';
+    } else {
+      const element = document.getElementById(location.hash.slice(1));
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  }, [location]);
   const features = [
     { icon: 'Package', title: 'Portable', description: 'Lightweight and easy to move, perfect for monitoring horses in any location.' },
     { icon: 'Eye', title: 'Non-Intrusive', description: "Works quietly in the background without disturbing your horses' natural behavior." },
