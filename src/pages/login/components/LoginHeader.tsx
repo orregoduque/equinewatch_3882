@@ -2,20 +2,27 @@ import React from 'react';
 
 const LoginHeader: React.FC = () => {
   return (
-    <div className="text-center mb-8">
-      <div className="flex justify-center mb-6">
-        <img 
-          src="/assets/images/HQ_logo-1765539668496.png" 
-          alt="Stable Eye - Professional horse head logo with camera aperture symbol representing equine monitoring and photography excellence" 
-          className="h-20 w-auto transition-smooth hover:opacity-80"
-        />
+    <div className="text-center mb-10">
+      <div className="flex justify-center mb-8">
+        <div className="relative">
+          <div className="absolute inset-0 bg-[#c9a962]/20 rounded-full blur-2xl scale-150" />
+          <img 
+            src="/assets/images/HQ_logo-1765539668496.png" 
+            alt="Stable Eye" 
+            className="h-24 w-auto relative z-10 drop-shadow-2xl"
+          />
+        </div>
       </div>
 
-      <h1 className="text-3xl md:text-4xl font-semibold text-text-primary mb-3">
-        Welcome to Stable Eye
+      <h1 className="font-serif text-4xl md:text-5xl font-light text-[#faf9f6] mb-4 tracking-wide">
+        Welcome to{' '}
+        <span className="gradient-text font-medium">Stable Eye</span>
       </h1>
-      <p className="text-base text-secondary max-w-md mx-auto">
-        Premium equine health monitoring through continuous photographic observation
+      
+      <div className="divider-luxury w-24 mx-auto my-6" />
+      
+      <p className="text-lg text-[#a8a8a8] font-light tracking-wide leading-relaxed max-w-sm mx-auto">
+        Premium equine health monitoring for the discerning owner
       </p>
     </div>
   );

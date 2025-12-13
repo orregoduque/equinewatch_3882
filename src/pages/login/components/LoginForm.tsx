@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Input from '../../../components/ui/Input';
-import Button from '../../../components/ui/Button';
 import type { LoginFormData, LoginFormErrors } from '../types';
 import { sanitizeEmail, sanitizeText, checkRateLimit } from '../../../utils/security';
 import { initializeCsrfToken, getCsrfToken } from '../../../utils/secureStorage';
+import Icon from '../../../components/AppIcon';
 
 interface LoginFormProps {
   onSubmit: (data: LoginFormData) => Promise<void>;
@@ -18,8 +17,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSubmit, isLoading }) => {
     password: '',
   });
   const [errors, setErrors] = useState<LoginFormErrors>({});
+  const [focusedField, setFocusedField] = useState<string | null>(null);
 
-  // Initialize CSRF token on component mount
   useEffect(() => {
     initializeCsrfToken();
   }, []);
@@ -27,7 +26,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSubmit, isLoading }) => {
   const validateForm = (): boolean => {
     const newErrors: LoginFormErrors = {};
 
-    // Sanitize and validate email
     try {
       const sanitizedEmail = sanitizeEmail(formData.email);
       if (!sanitizedEmail) {
@@ -37,7 +35,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSubmit, isLoading }) => {
       newErrors.email = error instanceof Error ? error.message : 'Invalid email format';
     }
 
-    // Validate password
     const sanitizedPassword = sanitizeText(formData.password);
     if (!sanitizedPassword.trim()) {
       newErrors.password = 'Password is required';
@@ -52,7 +49,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSubmit, isLoading }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Rate limiting check
     const rateLimitKey = `login_${formData.email}`;
     if (!checkRateLimit(rateLimitKey, { maxAttempts: 5, windowMs: 15 * 60 * 1000 })) {
       setErrors({
@@ -66,13 +62,11 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSubmit, isLoading }) => {
     }
 
     try {
-      // Sanitize inputs before submission
       const sanitizedData: LoginFormData = {
         email: sanitizeEmail(formData.email),
         password: sanitizeText(formData.password),
       };
       
-      // Add CSRF token to request
       const csrfToken = getCsrfToken();
       
       await onSubmit({ ...sanitizedData, csrfToken } as any);
@@ -86,10 +80,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSubmit, isLoading }) => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    
-    // Sanitize input on change
     const sanitizedValue = sanitizeText(value);
-    
     setFormData((prev) => ({ ...prev, [name]: sanitizedValue }));
     
     if (errors[name as keyof LoginFormErrors]) {
@@ -100,57 +91,87 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSubmit, isLoading }) => {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {errors.general && (
-        <div className="p-4 bg-error/10 border border-error/20 rounded-md">
-          <p className="text-sm text-error">{errors.general}</p>
+        <div className="p-4 bg-[#c75050]/10 border border-[#c75050]/30 rounded-xl backdrop-blur-sm">
+          <p className="text-sm text-[#c75050] whitespace-pre-line">{errors.general}</p>
         </div>
       )}
 
-      <Input
-        type="email"
-        name="email"
-        label="Email Address"
-        placeholder="your@email.com"
-        value={formData.email}
-        onChange={handleInputChange}
-        error={errors.email}
-        required
-        disabled={isLoading}
-        className="transition-smooth"
-      />
+      <div className="space-y-2">
+        <label className="block text-sm font-medium text-[#a8a8a8] tracking-wide mb-2">
+          Email Address <span className="text-[#c9a962]">*</span>
+        </label>
+        <div className="relative">
+          <div className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors duration-300 ${focusedField === 'email' ? 'text-[#c9a962]' : 'text-[#6b6b6b]'}`}>
+            <Icon name="Mail" size={18} />
+          </div>
+          <input
+            type="email"
+            name="email"
+            placeholder="your@email.com"
+            value={formData.email}
+            onChange={handleInputChange}
+            onFocus={() => setFocusedField('email')}
+            onBlur={() => setFocusedField(null)}
+            disabled={isLoading}
+            className={`w-full h-14 pl-12 pr-4 luxury-input rounded-xl text-[#faf9f6] placeholder:text-[#6b6b6b] focus:outline-none ${errors.email ? 'border-[#c75050]' : ''}`}
+          />
+        </div>
+        {errors.email && <p className="text-sm text-[#c75050] mt-1">{errors.email}</p>}
+      </div>
 
-      <Input
-        type="password"
-        name="password"
-        label="Password"
-        placeholder="Enter your password"
-        value={formData.password}
-        onChange={handleInputChange}
-        error={errors.password}
-        required
-        disabled={isLoading}
-        className="transition-smooth"
-      />
+      <div className="space-y-2">
+        <label className="block text-sm font-medium text-[#a8a8a8] tracking-wide mb-2">
+          Password <span className="text-[#c9a962]">*</span>
+        </label>
+        <div className="relative">
+          <div className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors duration-300 ${focusedField === 'password' ? 'text-[#c9a962]' : 'text-[#6b6b6b]'}`}>
+            <Icon name="Lock" size={18} />
+          </div>
+          <input
+            type="password"
+            name="password"
+            placeholder="Enter your password"
+            value={formData.password}
+            onChange={handleInputChange}
+            onFocus={() => setFocusedField('password')}
+            onBlur={() => setFocusedField(null)}
+            disabled={isLoading}
+            className={`w-full h-14 pl-12 pr-4 luxury-input rounded-xl text-[#faf9f6] placeholder:text-[#6b6b6b] focus:outline-none ${errors.password ? 'border-[#c75050]' : ''}`}
+          />
+        </div>
+        {errors.password && <p className="text-sm text-[#c75050] mt-1">{errors.password}</p>}
+      </div>
 
       <div className="flex items-center justify-end">
         <button
           type="button"
-          className="text-sm font-medium text-secondary hover:text-text-primary transition-smooth"
+          className="text-sm font-medium text-[#a8a8a8] hover:text-[#c9a962] transition-colors duration-300"
           disabled={isLoading}
         >
           Forgot Password?
         </button>
       </div>
 
-      <Button
+      <button
         type="submit"
-        variant="default"
-        size="lg"
-        fullWidth
-        loading={isLoading}
-        className="bg-accent hover:bg-accent/90 text-accent-foreground"
+        disabled={isLoading}
+        className="w-full h-14 luxury-button rounded-xl text-base font-semibold tracking-wide disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
       >
-        Sign In
-      </Button>
+        {isLoading ? (
+          <>
+            <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+            </svg>
+            <span>Signing In...</span>
+          </>
+        ) : (
+          <>
+            <span>Enter Stable Eye</span>
+            <Icon name="ArrowRight" size={18} />
+          </>
+        )}
+      </button>
     </form>
   );
 };
