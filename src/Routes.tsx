@@ -6,6 +6,7 @@ import NotFound from "pages/NotFound";
 import Landing from './pages/landing';
 
 const Login = lazy(() => import('./pages/login'));
+const Contact = lazy(() => import('./pages/contact'));
 const DailySummary = lazy(() => import('./pages/daily-summary'));
 const HorseTimeline = lazy(() => import('./pages/horse-timeline'));
 const HorseList = lazy(() => import('./pages/horse-list'));
@@ -27,6 +28,7 @@ const Routes: React.FC = () => {
           <RouterRoutes>
             <Route path="/" element={<Landing />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/contact" element={<Contact />} />
             <Route path="/daily-summary" element={<DailySummary />} />
             <Route path="/horse-timeline" element={<HorseTimeline />} />
             <Route path="/horse-list" element={<HorseList />} />

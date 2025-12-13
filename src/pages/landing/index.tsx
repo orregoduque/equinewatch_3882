@@ -55,6 +55,7 @@ const Landing: React.FC = () => {
                 <a href="#features" className="text-[#a8a8a8] hover:text-[#c9a962] transition-colors">Features</a>
                 <a href="#about" className="text-[#a8a8a8] hover:text-[#c9a962] transition-colors">About</a>
                 <a href="#team" className="text-[#a8a8a8] hover:text-[#c9a962] transition-colors">Team</a>
+                <Link to="/contact" className="text-[#a8a8a8] hover:text-[#c9a962] transition-colors">Contact</Link>
               </nav>
 
               <Link
