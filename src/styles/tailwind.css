@@ -1,0 +1,358 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Premium Background with Gradient System */
+    --color-background: linear-gradient(135deg, #000814 0%, #001530 50%, #001a3d 100%);
+    --color-surface: rgba(255, 255, 255, 0.03);
+    --color-muted: rgba(255, 255, 255, 0.05);
+
+    /* Vibrant Brand Colors with Gradients */
+    --color-primary: #001530;
+    --color-primary-light: #002d5a;
+    --color-primary-dark: #000a1a;
+    --color-primary-gradient: linear-gradient(135deg, #001530 0%, #003d7a 100%);
+
+    /* Electric Accent System */
+    --color-accent: #00f0ff;
+    --color-accent-light: #66f6ff;
+    --color-accent-dark: #00b8d4;
+    --color-accent-glow: rgba(0, 240, 255, 0.4);
+    --color-accent-gradient: linear-gradient(135deg, #00f0ff 0%, #00d4ff 50%, #0099ff 100%);
+
+    /* Premium Secondary Palette */
+    --color-secondary: #94a3b8;
+    --color-secondary-light: #cbd5e1;
+    --color-secondary-dark: #64748b;
+    --color-secondary-gradient: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
+
+    /* Premium Text Colors */
+    --color-text-primary: #f8fafc;
+    --color-text-secondary: #cbd5e1;
+    --color-text-tertiary: #94a3b8;
+    --color-text-accent: #00f0ff;
+
+    /* Sophisticated Semantic Colors */
+    --color-success: #10b981;
+    --color-success-light: #34d399;
+    --color-success-dark: #059669;
+    --color-success-glow: rgba(16, 185, 129, 0.3);
+
+    --color-warning: #f59e0b;
+    --color-warning-light: #fbbf24;
+    --color-warning-dark: #d97706;
+    --color-warning-glow: rgba(245, 158, 11, 0.3);
+
+    --color-error: #ef4444;
+    --color-error-light: #f87171;
+    --color-error-dark: #dc2626;
+    --color-error-glow: rgba(239, 68, 68, 0.3);
+
+    --color-info: #06b6d4;
+    --color-info-light: #22d3ee;
+    --color-info-dark: #0891b2;
+    --color-info-glow: rgba(6, 182, 212, 0.3);
+
+    /* Glassmorphism & Border System */
+    --color-border: rgba(255, 255, 255, 0.08);
+    --color-border-light: rgba(255, 255, 255, 0.12);
+    --color-divider: rgba(255, 255, 255, 0.06);
+    --color-glass: rgba(255, 255, 255, 0.05);
+    --color-glass-hover: rgba(255, 255, 255, 0.08);
+
+    /* Premium Shadow System */
+    --shadow-glow-sm: 0 0 20px rgba(0, 240, 255, 0.2);
+    --shadow-glow-md: 0 0 40px rgba(0, 240, 255, 0.3);
+    --shadow-glow-lg: 0 0 60px rgba(0, 240, 255, 0.4);
+    --shadow-premium: 0 20px 60px rgba(0, 0, 0, 0.4), 0 0 30px rgba(0, 240, 255, 0.1);
+    --shadow-card: 0 10px 40px rgba(0, 0, 0, 0.3);
+    
+    /* Status Colors with Glow */
+    --color-active: #10b981;
+    --color-inactive: #64748b;
+    --color-pending: #f59e0b;
+  }
+
+  /* Light Theme Variables */
+  .light-theme {
+    /* Bright Background System */
+    --color-background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 50%, #f1f3f5 100%);
+    --color-surface: rgba(0, 0, 0, 0.02);
+    --color-muted: rgba(0, 0, 0, 0.04);
+
+    /* Adjusted Brand Colors for Light Theme */
+    --color-primary: #001530;
+    --color-primary-light: #002d5a;
+    --color-primary-dark: #000a1a;
+    --color-primary-gradient: linear-gradient(135deg, #001530 0%, #003d7a 100%);
+
+    /* Accent Colors remain vibrant */
+    --color-accent: #00b8d4;
+    --color-accent-light: #00d4ff;
+    --color-accent-dark: #008ca3;
+    --color-accent-glow: rgba(0, 184, 212, 0.3);
+    --color-accent-gradient: linear-gradient(135deg, #00b8d4 0%, #00d4ff 50%, #0099ff 100%);
+
+    /* Light Theme Text Colors */
+    --color-text-primary: #1a1a1a;
+    --color-text-secondary: #4a5568;
+    --color-text-tertiary: #718096;
+    --color-text-accent: #00b8d4;
+
+    /* Light Theme Secondary Palette */
+    --color-secondary: #64748b;
+    --color-secondary-light: #94a3b8;
+    --color-secondary-dark: #475569;
+    --color-secondary-gradient: linear-gradient(135deg, #64748b 0%, #475569 100%);
+
+    /* Light Theme Borders & Glass */
+    --color-border: rgba(0, 0, 0, 0.1);
+    --color-border-light: rgba(0, 0, 0, 0.15);
+    --color-divider: rgba(0, 0, 0, 0.08);
+    --color-glass: rgba(255, 255, 255, 0.8);
+    --color-glass-hover: rgba(255, 255, 255, 0.95);
+
+    /* Light Theme Shadows */
+    --shadow-glow-sm: 0 0 15px rgba(0, 184, 212, 0.15);
+    --shadow-glow-md: 0 0 25px rgba(0, 184, 212, 0.2);
+    --shadow-glow-lg: 0 0 40px rgba(0, 184, 212, 0.25);
+    --shadow-premium: 0 10px 40px rgba(0, 0, 0, 0.08), 0 0 20px rgba(0, 184, 212, 0.05);
+    --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.08);
+  }
+
+  * {
+    @apply antialiased;
+  }
+
+  body {
+    @apply bg-[#000814];
+    background: linear-gradient(135deg, #000814 0%, #001530 50%, #001a3d 100%);
+    background-attachment: fixed;
+    transition: background 0.3s ease;
+  }
+
+  .light-theme body {
+    @apply bg-white;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 50%, #f1f3f5 100%);
+    background-attachment: fixed;
+  }
+
+  /* Premium Scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  .light-theme ::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.02);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(0, 240, 255, 0.3);
+    border-radius: 4px;
+  }
+
+  .light-theme ::-webkit-scrollbar-thumb {
+    background: rgba(0, 184, 212, 0.4);
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 240, 255, 0.5);
+  }
+
+  .light-theme ::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 184, 212, 0.6);
+  }
+
+  /* Glassmorphism Utilities */
+  .glass-card {
+    @apply backdrop-blur-xl bg-white/5 border border-white/10;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+
+  .light-theme .glass-card {
+    @apply backdrop-blur-xl bg-white/80 border border-black/10;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  }
+
+  .glass-card-hover {
+    @apply backdrop-blur-xl bg-white/[0.07] border border-white/[0.15];
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 0 0 30px rgba(0, 240, 255, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  }
+
+  .light-theme .glass-card-hover {
+    @apply backdrop-blur-xl bg-white/95 border border-black/[0.15];
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1), 0 0 20px rgba(0, 184, 212, 0.1), inset 0 1px 0 rgba(255, 255, 255, 1);
+  }
+
+  /* Premium Gradient Text */
+  .gradient-text {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, #00f0ff 0%, #00d4ff 50%, #0099ff 100%);
+  }
+
+  .light-theme .gradient-text {
+    background-image: linear-gradient(135deg, #00b8d4 0%, #00d4ff 50%, #0099ff 100%);
+  }
+
+  /* Glow Effects */
+  .glow-accent {
+    box-shadow: 0 0 20px rgba(0, 240, 255, 0.4), 0 0 40px rgba(0, 240, 255, 0.2);
+  }
+
+  .light-theme .glow-accent {
+    box-shadow: 0 0 15px rgba(0, 184, 212, 0.3), 0 0 30px rgba(0, 184, 212, 0.15);
+  }
+
+  .glow-success {
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.4), 0 0 40px rgba(16, 185, 129, 0.2);
+  }
+
+  .light-theme .glow-success {
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.3), 0 0 30px rgba(16, 185, 129, 0.15);
+  }
+
+  .glow-warning {
+    box-shadow: 0 0 20px rgba(245, 158, 11, 0.4), 0 0 40px rgba(245, 158, 11, 0.2);
+  }
+
+  .light-theme .glow-warning {
+    box-shadow: 0 0 15px rgba(245, 158, 11, 0.3), 0 0 30px rgba(245, 158, 11, 0.15);
+  }
+
+  /* Global Rounded Border Styling */
+  input,
+  textarea,
+  select,
+  button,
+  [role="button"],
+  .filter-box,
+  .dropdown,
+  .card,
+  .panel,
+  .modal,
+  .dialog,
+  .menu,
+  .popover,
+  .tooltip {
+    @apply rounded-xl;
+  }
+
+  /* Enhanced border radius for specific UI elements */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="search"],
+  input[type="tel"],
+  input[type="url"],
+  input[type="date"],
+  input[type="time"],
+  textarea,
+  select {
+    @apply rounded-xl;
+  }
+
+  /* Ensure all buttons have rounded corners */
+  button,
+  [type="button"],
+  [type="submit"],
+  [type="reset"] {
+    @apply rounded-xl;
+  }
+
+  /* Cards and containers */
+  .glass-card,
+  .glass-card-hover,
+  [class*="card"],
+  [class*="container"],
+  [class*="box"],
+  [class*="panel"] {
+    @apply rounded-2xl;
+  }
+
+  /* Filter and dropdown components */
+  [class*="filter"],
+  [class*="dropdown"],
+  [class*="select"],
+  [class*="picker"],
+  [class*="menu"] {
+    @apply rounded-xl;
+  }
+
+  /* Image containers */
+  img,
+  [class*="image"],
+  [class*="avatar"],
+  [class*="thumbnail"] {
+    @apply rounded-xl;
+  }
+
+  /* Badge and chip components */
+  [class*="badge"],
+  [class*="chip"],
+  [class*="tag"] {
+    @apply rounded-full;
+  }
+
+  /* Premium Animation Classes */
+  .animate-glow {
+    animation: glow 3s ease-in-out infinite;
+  }
+
+  @keyframes glow {
+    0%, 100% {
+      box-shadow: 0 0 20px rgba(0, 240, 255, 0.3), 0 0 40px rgba(0, 240, 255, 0.1);
+    }
+    50% {
+      box-shadow: 0 0 30px rgba(0, 240, 255, 0.5), 0 0 60px rgba(0, 240, 255, 0.2);
+    }
+  }
+
+  .light-theme .animate-glow {
+    animation: glow-light 3s ease-in-out infinite;
+  }
+
+  @keyframes glow-light {
+    0%, 100% {
+      box-shadow: 0 0 15px rgba(0, 184, 212, 0.2), 0 0 30px rgba(0, 184, 212, 0.1);
+    }
+    50% {
+      box-shadow: 0 0 20px rgba(0, 184, 212, 0.35), 0 0 40px rgba(0, 184, 212, 0.15);
+    }
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.4s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+}
