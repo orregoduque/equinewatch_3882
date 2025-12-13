@@ -40,13 +40,32 @@ const MobileNavigation: React.FC = () => {
 
   const isActive = (path: string) => location.pathname === path;
 
+  const hasScrollableContent = navItems.length > 5;
+
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 z-[100]">
       <div className="relative">
         <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#c9a962]/30 to-transparent" />
         
         <div className="backdrop-blur-2xl bg-[#0a0a0f]/90 border-t border-[#c9a962]/10">
-          <div className="flex items-center justify-around px-4 py-3 safe-area-inset-bottom">
+          {hasScrollableContent && (
+            <>
+              <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-[#0a0a0f] to-transparent z-10 pointer-events-none" />
+              <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-[#0a0a0f] to-transparent z-10 pointer-events-none" />
+            </>
+          )}
+          <div 
+            className={`flex items-center py-3 safe-area-inset-bottom ${
+              hasScrollableContent 
+                ? 'overflow-x-auto scrollbar-hide px-6 gap-2 snap-x snap-mandatory scroll-smooth' 
+                : 'justify-around px-4'
+            }`}
+            style={hasScrollableContent ? { 
+              scrollbarWidth: 'none', 
+              msOverflowStyle: 'none',
+              WebkitOverflowScrolling: 'touch'
+            } : undefined}
+          >
             {navItems.map((item) => {
               const active = isActive(item.path);
               
@@ -54,7 +73,9 @@ const MobileNavigation: React.FC = () => {
                 <Link
                   key={item.path}
                   to={item.path}
-                  className="relative flex flex-col items-center gap-1.5 py-2 px-4 rounded-xl transition-all duration-300 group"
+                  className={`relative flex flex-col items-center gap-1.5 py-2 px-3 rounded-xl transition-all duration-300 group flex-shrink-0 ${
+                    hasScrollableContent ? 'snap-center min-w-[60px]' : 'px-4'
+                  }`}
                 >
                   {active && (
                     <div className="absolute inset-0 bg-[#c9a962]/10 rounded-xl shadow-[0_0_20px_rgba(201,169,98,0.15)] animate-fade-in" />
@@ -68,7 +89,7 @@ const MobileNavigation: React.FC = () => {
                     }`}>
                       <Icon 
                         name={item.icon} 
-                        size={22} 
+                        size={20} 
                         className={`transition-colors duration-300 ${
                           active ? 'text-[#c9a962]' : 'text-[#6b6b6b] group-active:text-[#a8a8a8]'
                         }`}
@@ -80,7 +101,7 @@ const MobileNavigation: React.FC = () => {
                     )}
                   </div>
                   
-                  <span className={`text-[10px] font-semibold transition-colors duration-300 ${
+                  <span className={`text-[10px] font-semibold transition-colors duration-300 whitespace-nowrap ${
                     active ? 'text-[#c9a962]' : 'text-[#6b6b6b] group-active:text-[#a8a8a8]'
                   }`}>
                     {item.label}
