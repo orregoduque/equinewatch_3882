@@ -7,16 +7,23 @@ interface BehaviorPatternsCardProps {
 }
 
 const BehaviorPatternsCard: React.FC<BehaviorPatternsCardProps> = ({ patterns }) => {
+  if (!patterns?.length) return null;
+  
   const totalCount = patterns.reduce((sum, p) => sum + p.count, 0);
 
   return (
-    <div className="bg-card rounded-xl p-6 border border-border shadow-card">
+    <div className="glass-card p-6 luxury-border">
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-semibold text-text-primary">
-          Behavior Patterns
-        </h3>
-        <span className="text-sm text-secondary">
-          {totalCount} total observations
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-xl bg-[#c9a962]/10">
+            <Icon name="Activity" size={20} className="text-[#c9a962]" />
+          </div>
+          <h3 className="font-serif text-xl font-medium text-[#faf9f6]">
+            Behavior Patterns
+          </h3>
+        </div>
+        <span className="text-sm text-[#6b6b6b]">
+          {totalCount} observations
         </span>
       </div>
 
@@ -29,23 +36,23 @@ const BehaviorPatternsCard: React.FC<BehaviorPatternsCardProps> = ({ patterns })
                   className="w-3 h-3 rounded-full"
                   style={{ backgroundColor: pattern.color }}
                 />
-                <span className="text-sm font-medium text-text-primary">
+                <span className="text-sm font-medium text-[#faf9f6]">
                   {pattern.type}
                 </span>
               </div>
               <div className="flex items-center gap-3">
-                <span className="text-sm text-secondary">
+                <span className="text-sm text-[#6b6b6b]">
                   {pattern.count} observations
                 </span>
-                <span className="text-sm font-semibold text-text-primary">
+                <span className="text-sm font-semibold text-[#faf9f6]">
                   {pattern.percentage}%
                 </span>
               </div>
             </div>
 
-            <div className="h-2 bg-muted rounded-full overflow-hidden">
+            <div className="h-2 bg-white/5 rounded-full overflow-hidden">
               <div
-                className="h-full transition-all duration-500 ease-out"
+                className="h-full transition-all duration-500 ease-out rounded-full"
                 style={{
                   width: `${pattern.percentage}%`,
                   backgroundColor: pattern.color
@@ -56,9 +63,9 @@ const BehaviorPatternsCard: React.FC<BehaviorPatternsCardProps> = ({ patterns })
         ))}
       </div>
 
-      <div className="mt-6 pt-4 border-t border-border">
-        <div className="flex items-center gap-2 text-xs text-secondary">
-          <Icon name="Info" size={14} />
+      <div className="mt-6 pt-4 border-t border-[#c9a962]/10">
+        <div className="flex items-center gap-2 text-xs text-[#6b6b6b]">
+          <Icon name="Info" size={14} className="text-[#c9a962]" />
           <span>
             Behavior patterns help identify potential health concerns early
           </span>

@@ -7,6 +7,8 @@ interface TemperatureTrendChartProps {
 }
 
 const TemperatureTrendChart: React.FC<TemperatureTrendChartProps> = ({ data }) => {
+  if (!data?.length) return null;
+  
   const allTemps = data.flatMap(d => [d.avgTemp, d.minTemp, d.maxTemp]);
   const minTemp = Math.min(...allTemps);
   const maxTemp = Math.max(...allTemps);
@@ -17,14 +19,18 @@ const TemperatureTrendChart: React.FC<TemperatureTrendChartProps> = ({ data }) =
   };
 
   return (
-    <div className="bg-card rounded-xl p-6 border border-border shadow-card">
+    <div className="glass-card p-6 luxury-border">
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-semibold text-text-primary">
-          Temperature Trends
-        </h3>
-        <div className="flex items-center gap-2 text-sm text-secondary">
-          <Icon name="Thermometer" size={16} />
-          <span>Celsius</span>
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-xl bg-[#c9a962]/10">
+            <Icon name="Thermometer" size={20} className="text-[#c9a962]" />
+          </div>
+          <div>
+            <h3 className="font-serif text-xl font-medium text-[#faf9f6]">
+              Temperature Trends
+            </h3>
+            <p className="text-sm text-[#6b6b6b]">Body temperature monitoring</p>
+          </div>
         </div>
       </div>
 
@@ -32,8 +38,8 @@ const TemperatureTrendChart: React.FC<TemperatureTrendChartProps> = ({ data }) =
         <svg className="w-full h-full" viewBox="0 0 400 192" preserveAspectRatio="none">
           <defs>
             <linearGradient id="tempGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="var(--color-accent)" stopOpacity="0.2" />
-              <stop offset="100%" stopColor="var(--color-accent)" stopOpacity="0.05" />
+              <stop offset="0%" stopColor="#c9a962" stopOpacity="0.3" />
+              <stop offset="100%" stopColor="#c9a962" stopOpacity="0" />
             </linearGradient>
           </defs>
 
@@ -44,7 +50,7 @@ const TemperatureTrendChart: React.FC<TemperatureTrendChartProps> = ({ data }) =
                   `${(i / (data.length - 1)) * 400},${getYPosition(d.avgTemp) * 1.92}`
                 ).join(' L ')}`}
                 fill="none"
-                stroke="var(--color-accent)"
+                stroke="#c9a962"
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -64,41 +70,42 @@ const TemperatureTrendChart: React.FC<TemperatureTrendChartProps> = ({ data }) =
               key={i}
               cx={(i / (data.length - 1)) * 400}
               cy={getYPosition(d.avgTemp) * 1.92}
-              r="4"
-              fill="var(--color-accent)"
-              className="transition-smooth hover:r-6"
+              r="5"
+              fill="#c9a962"
+              stroke="#0a0a0f"
+              strokeWidth="2"
             />
           ))}
         </svg>
       </div>
 
-      <div className="flex items-center justify-between text-xs text-secondary border-t border-border pt-4">
+      <div className="flex items-center justify-between text-xs border-t border-[#c9a962]/10 pt-4">
         {data.map((item, index) => (
           <div key={index} className="text-center">
-            <p className="font-medium text-text-primary mb-1">
+            <p className="font-medium text-[#faf9f6] mb-1">
               {item.avgTemp.toFixed(1)}°C
             </p>
-            <p>{item.time}</p>
+            <p className="text-[#6b6b6b]">{item.time}</p>
           </div>
         ))}
       </div>
 
       <div className="mt-4 grid grid-cols-3 gap-4">
-        <div className="text-center p-3 bg-muted rounded-lg">
-          <p className="text-xs text-secondary mb-1">Average</p>
-          <p className="text-lg font-semibold text-text-primary">
+        <div className="text-center p-3 rounded-xl bg-white/[0.03] border border-[#c9a962]/10">
+          <p className="text-xs text-[#6b6b6b] mb-1">Average</p>
+          <p className="text-lg font-light text-[#faf9f6]">
             {(data.reduce((sum, d) => sum + d.avgTemp, 0) / data.length).toFixed(1)}°C
           </p>
         </div>
-        <div className="text-center p-3 bg-muted rounded-lg">
-          <p className="text-xs text-secondary mb-1">Minimum</p>
-          <p className="text-lg font-semibold text-text-primary">
+        <div className="text-center p-3 rounded-xl bg-white/[0.03] border border-[#c9a962]/10">
+          <p className="text-xs text-[#6b6b6b] mb-1">Minimum</p>
+          <p className="text-lg font-light text-[#4a9d6b]">
             {minTemp.toFixed(1)}°C
           </p>
         </div>
-        <div className="text-center p-3 bg-muted rounded-lg">
-          <p className="text-xs text-secondary mb-1">Maximum</p>
-          <p className="text-lg font-semibold text-text-primary">
+        <div className="text-center p-3 rounded-xl bg-white/[0.03] border border-[#c9a962]/10">
+          <p className="text-xs text-[#6b6b6b] mb-1">Maximum</p>
+          <p className="text-lg font-light text-[#d4a84b]">
             {maxTemp.toFixed(1)}°C
           </p>
         </div>

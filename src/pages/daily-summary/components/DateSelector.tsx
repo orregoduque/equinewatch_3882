@@ -1,6 +1,5 @@
 import React from 'react';
-
-import Button from '../../../components/ui/Button';
+import Icon from '../../../components/AppIcon';
 
 interface DateSelectorProps {
   selectedDate: Date;
@@ -37,49 +36,44 @@ const DateSelector: React.FC<DateSelectorProps> = ({ selectedDate, onDateChange 
   };
 
   return (
-    <div className="bg-card rounded-xl p-4 border border-border shadow-card">
+    <div className="glass-card p-4 luxury-border">
       <div className="flex items-center justify-between gap-4">
-        <Button
-          variant="ghost"
-          size="icon"
+        <button
           onClick={handlePreviousDay}
-          iconName="ChevronLeft"
-          iconSize={20}
+          className="p-2 rounded-xl bg-white/[0.03] border border-[#c9a962]/10 hover:bg-[#c9a962]/10 hover:border-[#c9a962]/30 transition-all duration-300"
           aria-label="Previous day"
-        />
+        >
+          <Icon name="ChevronLeft" size={20} className="text-[#c9a962]" />
+        </button>
 
         <div className="flex-1 text-center">
-          <p className="text-lg font-semibold text-text-primary">
+          <p className="text-lg font-semibold text-[#faf9f6]">
             {formatDate(selectedDate)}
           </p>
           {isToday && (
-            <p className="text-xs text-accent mt-1">Today</p>
+            <p className="text-xs text-[#c9a962] mt-1">Today</p>
           )}
         </div>
 
-        <Button
-          variant="ghost"
-          size="icon"
+        <button
           onClick={handleNextDay}
           disabled={isFutureDate}
-          iconName="ChevronRight"
-          iconSize={20}
+          className="p-2 rounded-xl bg-white/[0.03] border border-[#c9a962]/10 hover:bg-[#c9a962]/10 hover:border-[#c9a962]/30 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
           aria-label="Next day"
-        />
+        >
+          <Icon name="ChevronRight" size={20} className="text-[#c9a962]" />
+        </button>
       </div>
 
       {!isToday && (
-        <div className="mt-3 pt-3 border-t border-border">
-          <Button
-            variant="outline"
-            size="sm"
-            fullWidth
+        <div className="mt-3 pt-3 border-t border-[#c9a962]/10">
+          <button
             onClick={handleToday}
-            iconName="Calendar"
-            iconPosition="left"
+            className="w-full flex items-center justify-center gap-2 py-2 rounded-xl bg-white/[0.03] border border-[#c9a962]/20 hover:bg-[#c9a962]/10 hover:border-[#c9a962]/30 transition-all duration-300 text-sm text-[#c9a962]"
           >
+            <Icon name="Calendar" size={16} />
             Jump to Today
-          </Button>
+          </button>
         </div>
       )}
     </div>
