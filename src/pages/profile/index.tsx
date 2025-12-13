@@ -45,12 +45,9 @@ const Profile: React.FC = () => {
   }, []);
 
   const handleLogout = () => {
-    // Clear any stored authentication data
     localStorage.clear();
     sessionStorage.clear();
-    
-    // Navigate to login page
-    navigate('/login');
+    window.location.href = '/#team';
   };
 
   const formatLastObservation = (date: Date): string => {

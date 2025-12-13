@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { Helmet } from 'react-helmet';
+import { Link } from 'react-router-dom';
 import LoginHeader from './components/LoginHeader';
 import LoginForm from './components/LoginForm';
 import TrustSignals from './components/TrustSignals';
+import Icon from '../../components/AppIcon';
 import type { LoginFormData, TrustBadge } from './types';
 
 const Login: React.FC = () => {
@@ -65,6 +67,14 @@ const Login: React.FC = () => {
       </Helmet>
 
       <div className="min-h-screen flex items-center justify-center px-4 py-12 relative overflow-hidden">
+        <Link
+          to="/#team"
+          className="absolute top-6 left-6 flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.03] border border-[#c9a962]/20 text-[#a8a8a8] hover:text-[#c9a962] hover:border-[#c9a962]/40 transition-all duration-300 z-20"
+        >
+          <Icon name="ArrowLeft" size={18} />
+          <span className="text-sm font-medium">Back</span>
+        </Link>
+
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-1/4 -left-32 w-96 h-96 bg-[#c9a962]/5 rounded-full blur-3xl" />
           <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-[#c9a962]/3 rounded-full blur-3xl" />
