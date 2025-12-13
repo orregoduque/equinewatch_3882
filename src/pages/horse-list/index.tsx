@@ -7,13 +7,11 @@ import HorseCard from './components/HorseCard';
 import HorseCardSkeleton from './components/HorseCardSkeleton';
 import EmptyState from './components/EmptyState';
 import { Horse, User } from './types';
-import { useTheme } from '../../contexts/ThemeContext';
 
 const HorseList: React.FC = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { theme } = useTheme();
 
   const currentUser: User = {
     id: 'user-1',
@@ -113,21 +111,11 @@ const HorseList: React.FC = () => {
 
   return (
     <div className="min-h-screen relative overflow-hidden">
-      {/* Theme-aware Premium Animated Background */}
       <div className="fixed inset-0 -z-10">
-        {/* Dark theme gradient */}
-        <div className={`absolute inset-0 bg-gradient-to-br from-[#000814] via-[#001530] to-[#001a3d] transition-opacity duration-300 ${theme === 'dark' ? 'opacity-100' : 'opacity-0'}`} />
-        
-        {/* Light theme gradient */}
-        <div className={`absolute inset-0 bg-gradient-to-br from-white via-[#f8f9fa] to-[#f1f3f5] transition-opacity duration-300 ${theme === 'light' ? 'opacity-100' : 'opacity-0'}`} />
-        
-        {/* Animated orbs - dark theme */}
-        <div className={`absolute top-0 left-1/4 w-96 h-96 bg-[#00f0ff]/10 rounded-full blur-[120px] animate-pulse transition-opacity duration-300 ${theme === 'dark' ? 'opacity-100' : 'opacity-0'}`} />
-        <div className={`absolute bottom-0 right-1/4 w-96 h-96 bg-[#0099ff]/10 rounded-full blur-[120px] animate-pulse transition-opacity duration-300 ${theme === 'dark' ? 'opacity-100' : 'opacity-0'}`} style={{ animationDelay: '1s' }} />
-        
-        {/* Animated orbs - light theme */}
-        <div className={`absolute top-0 left-1/4 w-96 h-96 bg-[#00b8d4]/5 rounded-full blur-[120px] animate-pulse transition-opacity duration-300 ${theme === 'light' ? 'opacity-100' : 'opacity-0'}`} />
-        <div className={`absolute bottom-0 right-1/4 w-96 h-96 bg-[#0099ff]/5 rounded-full blur-[120px] animate-pulse transition-opacity duration-300 ${theme === 'light' ? 'opacity-100' : 'opacity-0'}`} style={{ animationDelay: '1s' }} />
+        <div className="absolute inset-0 bg-gradient-to-br from-[#0a0a0f] via-[#12121a] to-[#0f0f18]" />
+        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-[#c9a962]/5 rounded-full blur-[150px]" />
+        <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-[#c9a962]/3 rounded-full blur-[150px]" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[#c9a962]/2 rounded-full blur-[200px]" />
       </div>
 
       <Header />
@@ -135,33 +123,30 @@ const HorseList: React.FC = () => {
       <main className="pt-24 pb-24 md:pb-12 px-6 md:px-10">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col gap-8 animate-slide-up">
-            {/* Premium Header Section with Theme Support */}
             <div className="flex flex-col gap-4">
               <div className="flex items-center gap-3">
-                <div className={`w-1 h-12 rounded-full bg-gradient-to-b ${theme === 'dark' ? 'from-[#00f0ff] to-[#0099ff]' : 'from-[#00b8d4] to-[#0099ff]'}`} />
+                <div className="w-1 h-12 rounded-full bg-gradient-to-b from-[#c9a962] to-[#a88a45]" />
                 <div>
-                  <h1 className={`text-4xl md:text-5xl font-bold bg-gradient-to-r bg-clip-text text-transparent ${theme === 'dark' ? 'from-white via-white to-white/80' : 'from-gray-900 via-gray-800 to-gray-700'}`}>
-                    Horse Monitoring
+                  <h1 className="font-serif text-4xl md:text-5xl font-light text-[#faf9f6]">
+                    Horse <span className="gradient-text font-medium">Monitoring</span>
                   </h1>
-                  <p className={`text-base mt-2 font-medium ${theme === 'dark' ? 'text-white/60' : 'text-gray-600'}`}>
+                  <p className="text-base mt-2 font-light text-[#a8a8a8] tracking-wide">
                     Real-time health tracking and behavioral insights
                   </p>
                 </div>
               </div>
               
-              {/* Stats Overview with Theme Support */}
               <div className="flex items-center gap-4 mt-2">
-                <div className={`flex items-center gap-2 px-4 py-2 rounded-xl backdrop-blur-xl border ${theme === 'dark' ? 'bg-white/[0.04] border-white/[0.08]' : 'bg-black/[0.02] border-black/[0.1]'}`}>
-                  <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  <span className={`text-sm font-medium ${theme === 'dark' ? 'text-white/70' : 'text-gray-700'}`}>{mockHorses.filter(h => h.status === 'normal').length} Active</span>
+                <div className="flex items-center gap-2 px-4 py-2 rounded-xl backdrop-blur-xl bg-[#c9a962]/5 border border-[#c9a962]/15">
+                  <div className="w-2 h-2 rounded-full bg-[#4a9d6b] animate-pulse" />
+                  <span className="text-sm font-medium text-[#a8a8a8]">{mockHorses.filter(h => h.status === 'normal').length} Active</span>
                 </div>
-                <div className={`flex items-center gap-2 px-4 py-2 rounded-xl backdrop-blur-xl border ${theme === 'dark' ? 'bg-white/[0.04] border-white/[0.08]' : 'bg-black/[0.02] border-black/[0.1]'}`}>
-                  <span className={`text-sm font-medium ${theme === 'dark' ? 'text-white/70' : 'text-gray-700'}`}>{mockHorses.length} Total Horses</span>
+                <div className="flex items-center gap-2 px-4 py-2 rounded-xl backdrop-blur-xl bg-white/[0.03] border border-[#c9a962]/10">
+                  <span className="text-sm font-medium text-[#a8a8a8]">{mockHorses.length} Total Horses</span>
                 </div>
               </div>
             </div>
 
-            {/* Search Bar with Enhanced Styling */}
             <div className="max-w-2xl">
               <SearchBar
                 value={searchQuery}
@@ -170,7 +155,6 @@ const HorseList: React.FC = () => {
               />
             </div>
 
-            {/* Results Section */}
             {isLoading ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                 {[...Array(6)].map((_, index) => (
