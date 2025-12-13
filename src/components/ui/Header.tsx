@@ -30,6 +30,7 @@ const Header = ({ className = '' }: HeaderProps) => {
   const adminItems = [
     { label: 'Admin', path: '/admin', icon: 'Shield' },
     { label: 'Stables', path: '/admin/stables', icon: 'Building' },
+    { label: 'World Map', path: '/world-map', icon: 'Globe' },
   ];
 
   const getNavigationItems = () => {

@@ -21,6 +21,7 @@ const MobileNavigation: React.FC = () => {
   const adminItems = [
     { icon: 'Shield', label: 'Admin', path: '/admin' },
     { icon: 'Building', label: 'Stables', path: '/admin/stables' },
+    { icon: 'Globe', label: 'Map', path: '/world-map' },
   ];
 
   const getNavItems = () => {
