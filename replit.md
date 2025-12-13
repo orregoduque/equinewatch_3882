@@ -28,6 +28,7 @@ src/
 │   ├── daily-summary/
 │   ├── horse-list/
 │   ├── horse-timeline/
+│   ├── landing/     # Public landing page (homepage)
 │   ├── login/
 │   ├── profile/
 │   └── world-map/
@@ -35,6 +36,15 @@ src/
 └── utils/           # Utility functions
 public/              # Static assets
 ```
+
+## Routes
+- `/` - Public landing page (company info, features, team)
+- `/login` - Login page (entry to the app)
+- `/daily-summary` - Colic Monitoring dashboard
+- `/horse-timeline` - Live Monitoring with photos
+- `/horse-list` - Horse list/Horses page
+- `/world-map` - World Map view
+- `/profile` - User profile
 
 ## Development Setup
 - **Port**: 5000
