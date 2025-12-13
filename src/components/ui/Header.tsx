@@ -1,4 +1,4 @@
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import Icon from '../AppIcon';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -8,7 +8,13 @@ interface HeaderProps {
 
 const Header = ({ className = '' }: HeaderProps) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { user, isStableOwner, isAdmin, logout, isAuthenticated } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   const baseNavItems = [
     { label: 'Horses', path: '/horse-list', icon: 'Home' },
@@ -110,7 +116,7 @@ const Header = ({ className = '' }: HeaderProps) => {
             </Link>
             {isAuthenticated && (
               <button 
-                onClick={logout}
+                onClick={handleLogout}
                 className="p-2.5 rounded-xl backdrop-blur-xl bg-white/[0.03] border border-[#c9a962]/10 hover:bg-[#c75050]/10 hover:border-[#c75050]/20 transition-all duration-300 group"
               >
                 <Icon 
