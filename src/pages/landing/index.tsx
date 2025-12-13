@@ -273,6 +273,16 @@ const Landing: React.FC = () => {
                 </div>
               ))}
             </div>
+
+            <div className="text-center mt-12">
+              <Link
+                to="/contact"
+                className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-gradient-to-r from-[#c9a962] to-[#a88a45] text-[#0a0a0f] font-semibold text-lg hover:shadow-[0_0_40px_rgba(201,169,98,0.4)] transition-all duration-300"
+              >
+                <Icon name="Mail" size={20} />
+                Contact Us
+              </Link>
+            </div>
           </div>
         </section>
 
