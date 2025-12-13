@@ -26,7 +26,7 @@ const WorldMap: React.FC = () => {
   }, [allDevices, filters]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-50 dark:from-primary-950 dark:via-primary-900 dark:to-primary-950">
+    <div className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#12121a] to-[#0f0f18]">
       <Helmet>
         <title>World Map - Stable Eye</title>
         <meta
@@ -40,10 +40,10 @@ const WorldMap: React.FC = () => {
       <main className="pt-16 pb-20 md:pb-4">
         <div className="h-[calc(100vh-4rem)] relative overflow-hidden">
           {/* Luxury background gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-br from-primary-900/20 via-transparent to-accent-500/10 dark:from-primary-950/40 dark:via-transparent dark:to-accent-400/20 pointer-events-none z-[1]" />
+          <div className="absolute inset-0 bg-gradient-to-br from-[#0a0a0f]/40 via-transparent to-[#c9a962]/10 pointer-events-none z-[1]" />
           
           {/* Premium glow effect */}
-          <div className="absolute inset-0 bg-gradient-radial from-accent-500/5 via-transparent to-transparent dark:from-accent-400/10 pointer-events-none z-[2]" />
+          <div className="absolute inset-0 bg-gradient-radial from-[#c9a962]/5 via-transparent to-transparent pointer-events-none z-[2]" />
 
           <MapContainer
             center={[30, 0]}
@@ -86,36 +86,21 @@ const WorldMap: React.FC = () => {
         }
 
         .map-tiles {
-          filter: brightness(1.1) contrast(1.15) saturate(1.2);
-          opacity: 0.95;
-        }
-
-        .dark .map-tiles {
-          filter: brightness(0.85) contrast(1.3) saturate(1.1);
-          opacity: 1;
+          filter: brightness(0.6) contrast(1.2) saturate(0.8) invert(1) hue-rotate(180deg);
+          opacity: 0.9;
         }
 
         /* Premium popup styling */
         .leaflet-popup-content-wrapper {
-          background: rgba(255, 255, 255, 0.98);
+          background: rgba(10, 10, 15, 0.95);
           border-radius: 1.25rem;
           box-shadow: 
-            0 0 0 1px rgba(0, 240, 255, 0.1),
-            0 20px 60px rgba(0, 0, 0, 0.3),
-            0 10px 30px rgba(0, 240, 255, 0.1);
-          border: 1px solid rgba(255, 255, 255, 0.3);
+            0 0 0 1px rgba(201, 169, 98, 0.2),
+            0 20px 60px rgba(0, 0, 0, 0.6),
+            0 10px 30px rgba(201, 169, 98, 0.1);
+          border: 1px solid rgba(201, 169, 98, 0.3);
           backdrop-filter: blur(20px);
           padding: 0.5rem;
-        }
-
-        .dark .leaflet-popup-content-wrapper {
-          background: rgba(10, 25, 41, 0.98);
-          border: 1px solid rgba(0, 240, 255, 0.3);
-          box-shadow: 
-            0 0 0 1px rgba(0, 240, 255, 0.2),
-            0 20px 60px rgba(0, 0, 0, 0.6),
-            0 10px 30px rgba(0, 240, 255, 0.2),
-            inset 0 1px 0 rgba(255, 255, 255, 0.1);
         }
 
         .leaflet-popup-content {
@@ -124,13 +109,8 @@ const WorldMap: React.FC = () => {
         }
 
         .leaflet-popup-tip {
-          background: rgba(255, 255, 255, 0.98);
-          box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
-        }
-
-        .dark .leaflet-popup-tip {
-          background: rgba(10, 25, 41, 0.98);
-          box-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
+          background: rgba(10, 10, 15, 0.95);
+          box-shadow: 0 0 15px rgba(201, 169, 98, 0.2);
         }
 
         /* Luxury zoom controls */
@@ -143,10 +123,10 @@ const WorldMap: React.FC = () => {
         }
 
         .leaflet-control-zoom a {
-          background: rgba(255, 255, 255, 0.15) !important;
+          background: rgba(10, 10, 15, 0.8) !important;
           backdrop-filter: blur(20px);
-          border: 1px solid rgba(255, 255, 255, 0.25) !important;
-          color: #001530 !important;
+          border: 1px solid rgba(201, 169, 98, 0.3) !important;
+          color: #c9a962 !important;
           transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
           font-weight: 600;
           width: 36px !important;
@@ -154,20 +134,13 @@ const WorldMap: React.FC = () => {
           line-height: 36px !important;
         }
 
-        .dark .leaflet-control-zoom a {
-          background: rgba(10, 25, 41, 0.7) !important;
-          color: #00f0ff !important;
-          border: 1px solid rgba(0, 240, 255, 0.3) !important;
-          box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
-        }
-
         .leaflet-control-zoom a:hover {
-          background: rgba(0, 240, 255, 0.25) !important;
+          background: rgba(201, 169, 98, 0.2) !important;
           transform: scale(1.08) translateY(-1px);
           box-shadow: 
-            0 0 20px rgba(0, 240, 255, 0.4),
-            inset 0 1px 0 rgba(255, 255, 255, 0.2);
-          border-color: rgba(0, 240, 255, 0.5) !important;
+            0 0 20px rgba(201, 169, 98, 0.3),
+            inset 0 1px 0 rgba(255, 255, 255, 0.1);
+          border-color: rgba(201, 169, 98, 0.5) !important;
         }
 
         .leaflet-control-zoom a:first-child {
@@ -186,37 +159,28 @@ const WorldMap: React.FC = () => {
 
         /* Premium attribution */
         .leaflet-control-attribution {
-          background: rgba(255, 255, 255, 0.12) !important;
+          background: rgba(10, 10, 15, 0.8) !important;
           backdrop-filter: blur(15px);
-          border: 1px solid rgba(255, 255, 255, 0.25);
+          border: 1px solid rgba(201, 169, 98, 0.2);
           border-radius: 0.75rem;
           padding: 0.375rem 0.75rem;
           font-size: 0.75rem;
-          box-shadow: 
-            0 4px 12px rgba(0, 0, 0, 0.2),
-            inset 0 1px 0 rgba(255, 255, 255, 0.1);
-        }
-
-        .dark .leaflet-control-attribution {
-          background: rgba(10, 25, 41, 0.6) !important;
-          border: 1px solid rgba(0, 240, 255, 0.25);
-          color: rgba(255, 255, 255, 0.8);
+          color: rgba(168, 168, 168, 0.8);
           box-shadow: 
             0 4px 12px rgba(0, 0, 0, 0.4),
-            0 0 20px rgba(0, 240, 255, 0.05),
-            inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            inset 0 1px 0 rgba(255, 255, 255, 0.05);
         }
 
         .leaflet-control-attribution a {
-          color: #00f0ff !important;
+          color: #c9a962 !important;
           text-decoration: none;
           font-weight: 500;
           transition: all 0.2s ease;
         }
 
         .leaflet-control-attribution a:hover {
-          color: #33f5ff !important;
-          text-shadow: 0 0 8px rgba(0, 240, 255, 0.4);
+          color: #d4b978 !important;
+          text-shadow: 0 0 8px rgba(201, 169, 98, 0.4);
         }
 
         /* Smooth map loading */
