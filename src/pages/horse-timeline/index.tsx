@@ -134,15 +134,12 @@ const HorseTimeline: React.FC = () => {
   ];
 
   useEffect(() => {
-    setIsLoading(true);
-    setTimeout(() => {
-      const filtered = mockObservations
-        .filter((obs) => obs.horseId === selectedHorseId)
-        .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
-      setObservations(filtered);
-      setSelectedObservation(filtered[0] || null);
-      setIsLoading(false);
-    }, 300);
+    const filtered = mockObservations
+      .filter((obs) => obs.horseId === selectedHorseId)
+      .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+    setObservations(filtered);
+    setSelectedObservation(filtered[0] || null);
+    setIsLoading(false);
   }, [selectedHorseId]);
 
   const selectedHorse = horses.find(h => h.id === selectedHorseId);

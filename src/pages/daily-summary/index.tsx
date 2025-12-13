@@ -51,9 +51,8 @@ const DailySummary: React.FC = () => {
   ];
 
   useEffect(() => {
-    const loadSummaryData = async () => {
+    const loadSummaryData = () => {
       setIsLoading(true);
-      await new Promise(resolve => setTimeout(resolve, 300));
 
       const mockData: DailySummaryData = {
         date: selectedDate,
