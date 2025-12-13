@@ -5,10 +5,12 @@ import LoginHeader from './components/LoginHeader';
 import LoginForm from './components/LoginForm';
 import TrustSignals from './components/TrustSignals';
 import Icon from '../../components/AppIcon';
+import { useAuth } from '../../contexts/AuthContext';
 import type { LoginFormData, TrustBadge } from './types';
 
 const Login: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const { login } = useAuth();
 
   const trustBadges: TrustBadge[] = [
     {
@@ -31,26 +33,14 @@ const Login: React.FC = () => {
     },
   ];
 
-  const mockCredentials = {
-    owner: { email: 'owner@equinewatch.com', password: 'owner123' },
-    caretaker: { email: 'caretaker@equinewatch.com', password: 'care123' },
-    admin: { email: 'admin@equinewatch.com', password: 'admin123' },
-  };
-
   const handleLogin = async (data: LoginFormData): Promise<void> => {
     setIsLoading(true);
 
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    const result = await login(data.email, data.password);
 
-    const isValidCredential = Object.values(mockCredentials).some(
-      (cred) => cred.email === data.email && cred.password === data.password
-    );
-
-    if (!isValidCredential) {
+    if (!result.success) {
       setIsLoading(false);
-      throw new Error(
-        'Invalid credentials. Please use one of the following:\n' + 'Owner: owner@equinewatch.com / owner123\n'+ 'Caretaker: caretaker@equinewatch.com / care123\n'+ 'Admin: admin@equinewatch.com / admin123'
-      );
+      throw new Error(result.error);
     }
 
     setIsLoading(false);

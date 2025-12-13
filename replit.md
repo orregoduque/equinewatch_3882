@@ -21,7 +21,7 @@ Premium equine health monitoring application through continuous photographic obs
 src/
 ├── components/       # Reusable UI components
 │   └── ui/          # Base UI components (Button, Input, etc.)
-├── contexts/        # React contexts (Theme)
+├── contexts/        # React contexts (Theme, Auth)
 ├── hooks/           # Custom hooks
 ├── pages/           # Page components
 │   ├── add-observation/
@@ -31,6 +31,9 @@ src/
 │   ├── landing/     # Public landing page (homepage)
 │   ├── login/
 │   ├── profile/
+│   ├── devices/     # Hardware devices (stable owner/admin only)
+│   ├── bills/       # Billing history (stable owner/admin only)
+│   ├── admin/       # Admin dashboard & stables (admin only)
 │   └── world-map/
 ├── styles/          # CSS files
 └── utils/           # Utility functions
@@ -45,6 +48,25 @@ public/              # Static assets
 - `/horse-list` - Horse list/Horses page
 - `/world-map` - World Map view
 - `/profile` - User profile
+- `/devices` - Hardware devices page (stable owner/admin only)
+- `/bills` - Billing history (stable owner/admin only)
+- `/admin` - Admin dashboard with user management (admin only)
+- `/admin/stables` - View all stables (admin only)
+
+## User Roles
+The app supports 3 user types with different access levels:
+
+### Horse Owner (horse_owner)
+- Access: Horses, Timeline, Insights, Profile
+- Login: owner@equinewatch.com / owner123
+
+### Stable Owner (stable_owner)
+- Access: Everything horse owner has + Devices + Bills
+- Login: stable@equinewatch.com / stable123
+
+### Admin (admin)
+- Access: Everything + Admin Dashboard + All Stables + User Management
+- Login: admin@equinewatch.com / admin123
 
 ## Development Setup
 - **Port**: 5000

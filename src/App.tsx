@@ -3,14 +3,17 @@ import Routes from "./Routes";
 
 import { SecurityProvider } from './components/SecurityProvider';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { AuthProvider } from './contexts/AuthContext';
 
 const App: React.FC = () => {
   return (
-    <ThemeProvider>
-      <SecurityProvider>
-        <Routes />
-      </SecurityProvider>
-    </ThemeProvider>
+    <AuthProvider>
+      <ThemeProvider>
+        <SecurityProvider>
+          <Routes />
+        </SecurityProvider>
+      </ThemeProvider>
+    </AuthProvider>
   );
 };
 

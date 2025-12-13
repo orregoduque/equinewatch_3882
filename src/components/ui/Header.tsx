@@ -1,5 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import Icon from '../AppIcon';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface HeaderProps {
   className?: string;
@@ -7,12 +8,36 @@ interface HeaderProps {
 
 const Header = ({ className = '' }: HeaderProps) => {
   const location = useLocation();
+  const { user, isStableOwner, isAdmin, logout, isAuthenticated } = useAuth();
 
-  const navigationItems = [
+  const baseNavItems = [
     { label: 'Horses', path: '/horse-list', icon: 'Home' },
     { label: 'Timeline', path: '/horse-timeline', icon: 'Clock' },
     { label: 'Insights', path: '/daily-summary', icon: 'BarChart3' },
   ];
+
+  const stableOwnerItems = [
+    { label: 'Devices', path: '/devices', icon: 'Camera' },
+    { label: 'Bills', path: '/bills', icon: 'CreditCard' },
+  ];
+
+  const adminItems = [
+    { label: 'Admin', path: '/admin', icon: 'Shield' },
+    { label: 'Stables', path: '/admin/stables', icon: 'Building' },
+  ];
+
+  const getNavigationItems = () => {
+    let items = [...baseNavItems];
+    if (isStableOwner || isAdmin) {
+      items = [...items, ...stableOwnerItems];
+    }
+    if (isAdmin) {
+      items = [...items, ...adminItems];
+    }
+    return items;
+  };
+
+  const navigationItems = getNavigationItems();
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -65,6 +90,14 @@ const Header = ({ className = '' }: HeaderProps) => {
           </nav>
 
           <div className="hidden md:flex items-center gap-3 ml-6 pl-6 border-l border-[#c9a962]/10">
+            {user && (
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/[0.03] border border-[#c9a962]/10">
+                <span className="text-xs text-[#a8a8a8]">{user.name}</span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#c9a962]/20 text-[#c9a962] border border-[#c9a962]/30 capitalize">
+                  {user.role.replace('_', ' ')}
+                </span>
+              </div>
+            )}
             <Link 
               to="/profile"
               className="p-2.5 rounded-xl backdrop-blur-xl bg-white/[0.03] border border-[#c9a962]/10 hover:bg-white/[0.06] hover:border-[#c9a962]/20 transition-all duration-300 group"
@@ -75,6 +108,18 @@ const Header = ({ className = '' }: HeaderProps) => {
                 className="text-[#a8a8a8] group-hover:text-[#c9a962] transition-colors"
               />
             </Link>
+            {isAuthenticated && (
+              <button 
+                onClick={logout}
+                className="p-2.5 rounded-xl backdrop-blur-xl bg-white/[0.03] border border-[#c9a962]/10 hover:bg-[#c75050]/10 hover:border-[#c75050]/20 transition-all duration-300 group"
+              >
+                <Icon 
+                  name="LogOut" 
+                  size={18} 
+                  className="text-[#a8a8a8] group-hover:text-[#c75050] transition-colors"
+                />
+              </button>
+            )}
           </div>
         </div>
       </div>

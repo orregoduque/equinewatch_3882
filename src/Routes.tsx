@@ -12,6 +12,10 @@ const HorseTimeline = lazy(() => import('./pages/horse-timeline'));
 const HorseList = lazy(() => import('./pages/horse-list'));
 const WorldMap = lazy(() => import('./pages/world-map'));
 const Profile = lazy(() => import('./pages/profile'));
+const Devices = lazy(() => import('./pages/devices'));
+const Bills = lazy(() => import('./pages/bills'));
+const AdminDashboard = lazy(() => import('./pages/admin'));
+const AdminStables = lazy(() => import('./pages/admin/stables'));
 
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center bg-[#0a0a0f]">
@@ -34,6 +38,10 @@ const Routes: React.FC = () => {
             <Route path="/horse-list" element={<HorseList />} />
             <Route path="/world-map" element={<WorldMap />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/devices" element={<Devices />} />
+            <Route path="/bills" element={<Bills />} />
+            <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin/stables" element={<AdminStables />} />
             <Route path="*" element={<NotFound />} />
           </RouterRoutes>
         </Suspense>

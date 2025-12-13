@@ -1,16 +1,41 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import Icon from '../AppIcon';
+import { useAuth } from '../../contexts/AuthContext';
 
 const MobileNavigation: React.FC = () => {
   const location = useLocation();
+  const { isStableOwner, isAdmin } = useAuth();
 
-  const navItems = [
+  const baseNavItems = [
     { icon: 'Home', label: 'Horses', path: '/horse-list' },
     { icon: 'Clock', label: 'Timeline', path: '/horse-timeline' },
     { icon: 'BarChart3', label: 'Insights', path: '/daily-summary' },
-    { icon: 'User', label: 'Profile', path: '/profile' },
   ];
+
+  const stableOwnerItems = [
+    { icon: 'Camera', label: 'Devices', path: '/devices' },
+    { icon: 'CreditCard', label: 'Bills', path: '/bills' },
+  ];
+
+  const adminItems = [
+    { icon: 'Shield', label: 'Admin', path: '/admin' },
+    { icon: 'Building', label: 'Stables', path: '/admin/stables' },
+  ];
+
+  const getNavItems = () => {
+    let items = [...baseNavItems];
+    if (isStableOwner || isAdmin) {
+      items = [...items, ...stableOwnerItems];
+    }
+    if (isAdmin) {
+      items = [...items, ...adminItems];
+    }
+    items.push({ icon: 'User', label: 'Profile', path: '/profile' });
+    return items;
+  };
+
+  const navItems = getNavItems();
 
   const isActive = (path: string) => location.pathname === path;
 
