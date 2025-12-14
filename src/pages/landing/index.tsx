@@ -265,6 +265,66 @@ const Landing: React.FC = () => {
               ))}
             </div>
 
+          </div>
+        </section>
+
+        <section id="social" className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-transparent via-[#c9a962]/5 to-transparent">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-12">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[#c9a962]/10 mb-6">
+                <Icon name="Heart" size={32} className="text-[#c9a962]" />
+              </div>
+              <h2 className="font-serif text-3xl md:text-4xl font-light mb-4">
+                Our <span className="text-[#c9a962]">Social Mission</span>
+              </h2>
+              <p className="text-[#a8a8a8] max-w-3xl mx-auto leading-relaxed text-lg">
+                We believe every horse deserves protection from colic, regardless of where they live.
+              </p>
+            </div>
+
+            <div className="max-w-4xl mx-auto">
+              <div className="p-8 md:p-12 rounded-3xl bg-white/[0.02] border border-[#c9a962]/20 text-center">
+                <div className="flex justify-center gap-4 mb-8">
+                  <div className="w-12 h-12 rounded-full bg-[#4a9d6b]/20 flex items-center justify-center">
+                    <Icon name="Globe" size={24} className="text-[#4a9d6b]" />
+                  </div>
+                  <div className="w-12 h-12 rounded-full bg-[#c9a962]/20 flex items-center justify-center">
+                    <Icon name="Users" size={24} className="text-[#c9a962]" />
+                  </div>
+                  <div className="w-12 h-12 rounded-full bg-[#4a9d6b]/20 flex items-center justify-center">
+                    <Icon name="Gift" size={24} className="text-[#4a9d6b]" />
+                  </div>
+                </div>
+                
+                <h3 className="font-serif text-2xl md:text-3xl font-light text-[#faf9f6] mb-6">
+                  Helping Stables in Developing Countries
+                </h3>
+                
+                <p className="text-[#a8a8a8] leading-relaxed text-lg mb-8 max-w-2xl mx-auto">
+                  Our vision is a world where all horses are safe from colic. That's why we're committed to providing monitoring devices <span className="text-[#c9a962] font-medium">completely free</span> to stables in developing countries that cannot afford them.
+                </p>
+                
+                <p className="text-[#a8a8a8] leading-relaxed mb-8 max-w-2xl mx-auto">
+                  With the support of our users and community, we will make this vision a reality. Every subscription helps us extend our reach to horses and caretakers who need it most.
+                </p>
+
+                <div className="flex flex-wrap justify-center gap-6">
+                  <div className="flex items-center gap-2 text-[#c9a962]">
+                    <Icon name="Check" size={20} />
+                    <span>Free devices for those in need</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-[#c9a962]">
+                    <Icon name="Check" size={20} />
+                    <span>Community-powered mission</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-[#c9a962]">
+                    <Icon name="Check" size={20} />
+                    <span>Global horse protection</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div className="text-center mt-12">
               <Link
                 to="/contact"
