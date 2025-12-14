@@ -153,11 +153,32 @@ const Landing: React.FC = () => {
           <div className="max-w-7xl mx-auto">
             <div className="grid lg:grid-cols-2 gap-12 items-center">
               <div>
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-red-500/10 border border-red-500/30 mb-6">
+                  <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                  <span className="text-red-400 text-sm font-semibold">Critical Health Issue</span>
+                </div>
+                
                 <h2 className="font-serif text-3xl md:text-4xl font-light mb-6">
-                  Every year, thousands of horses suffer from <span className="text-[#c9a962] font-medium">colic</span>
+                  <span className="text-[#c9a962] font-medium">4 out of 10</span> horses suffer from colic every single year
                 </h2>
+                
+                <div className="grid grid-cols-3 gap-4 mb-8">
+                  <div className="p-4 rounded-xl bg-white/[0.03] border border-[#c9a962]/10 text-center">
+                    <p className="text-2xl md:text-3xl font-bold text-[#c9a962]">920,000+</p>
+                    <p className="text-xs text-[#6b6b6b] mt-1">Cases per year in the US alone</p>
+                  </div>
+                  <div className="p-4 rounded-xl bg-white/[0.03] border border-[#c9a962]/10 text-center">
+                    <p className="text-2xl md:text-3xl font-bold text-red-400">11%</p>
+                    <p className="text-xs text-[#6b6b6b] mt-1">Fatality rate without early detection</p>
+                  </div>
+                  <div className="p-4 rounded-xl bg-white/[0.03] border border-[#c9a962]/10 text-center">
+                    <p className="text-2xl md:text-3xl font-bold text-[#4a9d6b]">85%</p>
+                    <p className="text-xs text-[#6b6b6b] mt-1">Preventable with early intervention</p>
+                  </div>
+                </div>
+
                 <p className="text-[#a8a8a8] leading-relaxed mb-6">
-                  A condition that can be prevented if owners notice the early signs in time. We've built a portable, smart, and easy-to-install device that monitors a horse's behavior while it's alone in the stall, detects subtle changes in habits, and sends real-time alerts to the owner's app.
+                  Colic is the <span className="text-[#faf9f6] font-medium">#1 cause of premature death</span> in horses—a condition that can be prevented if owners notice the early signs in time. We've built a portable, smart, and easy-to-install device that monitors a horse's behavior while it's alone in the stall, detects subtle changes in habits, and sends real-time alerts to the owner's app.
                 </p>
                 <p className="text-[#a8a8a8] leading-relaxed">
                   The system is privacy-friendly, non-intrusive, and works autonomously, providing continuous insight into the horse's wellbeing. Our goal is to become the most widely used equine prevention device in the world.
