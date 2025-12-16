@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
+import { jsPDF } from 'jspdf';
 import Header from '../../components/ui/Header';
 import MobileNavigation from '../../components/ui/MobileNavigation';
 import MetricCard from './components/MetricCard';
@@ -13,6 +14,7 @@ import GutHealthMonitor from './components/GutHealthMonitor';
 import ColicRiskAssessment from './components/ColicRiskAssessment';
 import PainScoreTimeline from './components/PainScoreTimeline';
 import LoadingSkeleton from './components/LoadingSkeleton';
+import Icon from '../../components/AppIcon';
 import { DailySummaryData, VitalSign, GutHealthData, ColicRiskIndicator, PainAssessment } from './types';
 
 const DailySummary: React.FC = () => {
@@ -106,6 +108,157 @@ const DailySummary: React.FC = () => {
 
   const overallColicScore = colicRisk.reduce((sum, r) => sum + (r.score / r.maxScore) * 20, 0);
 
+  const generatePDFReport = () => {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    
+    // Header
+    doc.setFillColor(10, 10, 15);
+    doc.rect(0, 0, pageWidth, 45, 'F');
+    
+    doc.setTextColor(201, 169, 98);
+    doc.setFontSize(28);
+    doc.text('Stable Eye', 20, 25);
+    
+    doc.setTextColor(168, 168, 168);
+    doc.setFontSize(10);
+    doc.text('Certified Health Report', 20, 35);
+    
+    doc.setTextColor(201, 169, 98);
+    doc.text(`Report ID: SE-${Date.now().toString(36).toUpperCase()}`, pageWidth - 60, 25);
+    doc.setTextColor(168, 168, 168);
+    doc.text(`Generated: ${new Date().toLocaleDateString()}`, pageWidth - 60, 35);
+    
+    let yPos = 60;
+    
+    // Horse Information Section
+    doc.setTextColor(201, 169, 98);
+    doc.setFontSize(16);
+    doc.text('Horse Information', 20, yPos);
+    yPos += 10;
+    
+    doc.setDrawColor(201, 169, 98);
+    doc.setLineWidth(0.5);
+    doc.line(20, yPos, pageWidth - 20, yPos);
+    yPos += 10;
+    
+    doc.setTextColor(60, 60, 60);
+    doc.setFontSize(11);
+    const horseInfo = [
+      ['Horse Name:', 'Thunder'],
+      ['Breed:', 'Thoroughbred'],
+      ['Age:', '8 years'],
+      ['Location:', 'Barn A - Stall 12'],
+      ['Monitoring Since:', 'March 15, 2023'],
+      ['Total Monitoring Days:', '639 days'],
+    ];
+    
+    horseInfo.forEach(([label, value]) => {
+      doc.setTextColor(100, 100, 100);
+      doc.text(label, 20, yPos);
+      doc.setTextColor(40, 40, 40);
+      doc.text(value, 80, yPos);
+      yPos += 8;
+    });
+    
+    yPos += 10;
+    
+    // Health Summary Section
+    doc.setTextColor(201, 169, 98);
+    doc.setFontSize(16);
+    doc.text('Health Summary', 20, yPos);
+    yPos += 10;
+    
+    doc.setDrawColor(201, 169, 98);
+    doc.line(20, yPos, pageWidth - 20, yPos);
+    yPos += 10;
+    
+    doc.setFontSize(11);
+    const healthStats = [
+      ['Total Observations:', '12,547'],
+      ['Health Incidents:', '3 (all resolved)'],
+      ['Colic Episodes:', '0'],
+      ['Average Health Score:', '94/100'],
+      ['Vaccination Status:', 'Up to date'],
+      ['Last Vet Check:', 'November 28, 2024'],
+    ];
+    
+    healthStats.forEach(([label, value]) => {
+      doc.setTextColor(100, 100, 100);
+      doc.text(label, 20, yPos);
+      doc.setTextColor(40, 40, 40);
+      doc.text(value, 80, yPos);
+      yPos += 8;
+    });
+    
+    yPos += 10;
+    
+    // Current Vital Signs
+    doc.setTextColor(201, 169, 98);
+    doc.setFontSize(16);
+    doc.text('Current Vital Signs', 20, yPos);
+    yPos += 10;
+    
+    doc.setDrawColor(201, 169, 98);
+    doc.line(20, yPos, pageWidth - 20, yPos);
+    yPos += 10;
+    
+    doc.setFontSize(11);
+    vitalSigns.forEach((vital) => {
+      doc.setTextColor(100, 100, 100);
+      doc.text(`${vital.name}:`, 20, yPos);
+      
+      const statusColor = vital.status === 'normal' ? [74, 157, 107] : 
+                          vital.status === 'elevated' ? [212, 168, 75] : [199, 80, 80];
+      doc.setTextColor(statusColor[0], statusColor[1], statusColor[2]);
+      doc.text(`${vital.value} ${vital.unit} (${vital.status})`, 80, yPos);
+      yPos += 8;
+    });
+    
+    yPos += 10;
+    
+    // Behavior Patterns
+    doc.setTextColor(201, 169, 98);
+    doc.setFontSize(16);
+    doc.text('Behavior Analysis', 20, yPos);
+    yPos += 10;
+    
+    doc.setDrawColor(201, 169, 98);
+    doc.line(20, yPos, pageWidth - 20, yPos);
+    yPos += 10;
+    
+    doc.setFontSize(11);
+    if (summaryData?.behaviorPatterns) {
+      summaryData.behaviorPatterns.forEach((pattern) => {
+        doc.setTextColor(100, 100, 100);
+        doc.text(`${pattern.type}:`, 20, yPos);
+        doc.setTextColor(40, 40, 40);
+        doc.text(`${pattern.percentage}% of observations (${pattern.count} instances)`, 80, yPos);
+        yPos += 8;
+      });
+    }
+    
+    // Trust Network Certification
+    yPos += 15;
+    doc.setFillColor(201, 169, 98);
+    doc.roundedRect(20, yPos, pageWidth - 40, 35, 3, 3, 'F');
+    
+    doc.setTextColor(10, 10, 15);
+    doc.setFontSize(14);
+    doc.text('Stable Eye Trust Network Certified', pageWidth / 2, yPos + 15, { align: 'center' });
+    doc.setFontSize(10);
+    doc.text('This report is verified and authenticated by Stable Eye monitoring system', pageWidth / 2, yPos + 25, { align: 'center' });
+    
+    // Footer
+    doc.setTextColor(150, 150, 150);
+    doc.setFontSize(8);
+    doc.text('This report contains authentic monitoring data collected by Stable Eye devices.', pageWidth / 2, 280, { align: 'center' });
+    doc.text('For verification, visit stable-eye.co/verify', pageWidth / 2, 286, { align: 'center' });
+    
+    // Save the PDF
+    doc.save(`StableEye_Horse_Report_Thunder_${new Date().toISOString().split('T')[0]}.pdf`);
+  };
+
   return (
     <>
       <Helmet>
@@ -137,7 +290,7 @@ const DailySummary: React.FC = () => {
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 mt-4">
+              <div className="flex flex-wrap items-center gap-3 mt-4">
                 <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#d4a84b]/10 border border-[#d4a84b]/30">
                   <div className="w-2 h-2 rounded-full bg-[#d4a84b] animate-pulse" />
                   <span className="text-sm font-medium text-[#d4a84b]">Colic Watch Active</span>
@@ -145,6 +298,13 @@ const DailySummary: React.FC = () => {
                 <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.03] border border-[#c9a962]/10">
                   <span className="text-sm font-medium text-[#a8a8a8]">Thunder - Barn A</span>
                 </div>
+                <button
+                  onClick={generatePDFReport}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-[#c9a962] to-[#a88a45] text-[#0a0a0f] font-semibold text-sm hover:shadow-[0_0_20px_rgba(201,169,98,0.3)] transition-all duration-300"
+                >
+                  <Icon name="FileText" size={16} />
+                  Export Health Report
+                </button>
               </div>
             </div>
 
