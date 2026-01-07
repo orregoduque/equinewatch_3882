@@ -7,13 +7,13 @@ const Landing: React.FC = () => {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
-  const features = [
-    { icon: 'Package', title: 'Portable', description: 'Lightweight and easy to move, perfect for monitoring horses in any location.' },
-    { icon: 'Eye', title: 'Non-Intrusive', description: "Works quietly in the background without disturbing your horses' natural behavior." },
-    { icon: 'Zap', title: 'Easy to Install', description: 'Set up in minutes with our simple installation process - no technical expertise required.' },
-    { icon: 'Activity', title: 'Real-Time Monitoring', description: "Get instant alerts and continuous monitoring of your horse's behavior 24/7." },
-    { icon: 'Battery', title: 'Rechargeable', description: 'Long-lasting battery life with convenient recharging options for continuous operation.' },
-    { icon: 'Smile', title: 'User Friendly', description: 'Intuitive interface and simple controls designed for all horse owners and professionals.' },
+  const benefits = [
+    { icon: 'Heart', title: 'Save Your Horse\'s Life', description: 'Detect early signs of colic before it becomes fatal. Our AI catches warning signs hours before symptoms become visible to the human eye.' },
+    { icon: 'Moon', title: 'Sleep Peacefully at Night', description: 'No more midnight stable checks. Get instant alerts only when something needs your attention—rest knowing your horse is being watched.' },
+    { icon: 'DollarSign', title: 'Reduce Vet Bills by 60%', description: 'Early detection means simpler treatments. Prevent expensive emergency surgeries and hospitalizations with proactive care.' },
+    { icon: 'TrendingUp', title: 'Increase Your Horse\'s Value', description: 'Verified health history reports make your horse more attractive to buyers. Build trust with documented monitoring data.' },
+    { icon: 'Clock', title: 'Save 10+ Hours Weekly', description: 'Automated monitoring replaces manual checks. Spend more quality time with your horse instead of worrying about their health.' },
+    { icon: 'Shield', title: 'Peace of Mind Guaranteed', description: 'Know exactly how your horse is doing at any moment. Access live updates from anywhere in the world through our app.' },
   ];
 
   const team = [
@@ -125,24 +125,24 @@ const Landing: React.FC = () => {
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-16">
               <h2 className="font-serif text-3xl md:text-4xl font-light mb-4">
-                <span className="text-[#c9a962]">Features</span>
+                Why Horse Owners <span className="text-[#c9a962]">Love Stable Eye</span>
               </h2>
               <p className="text-[#a8a8a8] max-w-2xl mx-auto">
-                Discover the key features that make our intelligent monitoring system the ideal solution for horse health and safety.
+                Real benefits that transform how you care for your horses—protecting their health while giving you back your time and peace of mind.
               </p>
             </div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {features.map((feature, index) => (
+              {benefits.map((benefit, index) => (
                 <div
                   key={index}
-                  className="p-6 rounded-2xl bg-white/[0.02] border border-[#c9a962]/10 hover:border-[#c9a962]/30 hover:bg-white/[0.04] transition-all duration-300"
+                  className="p-6 rounded-2xl bg-white/[0.02] border border-[#c9a962]/10 hover:border-[#c9a962]/30 hover:bg-white/[0.04] transition-all duration-300 group"
                 >
-                  <div className="w-12 h-12 rounded-xl bg-[#c9a962]/10 flex items-center justify-center mb-4">
-                    <Icon name={feature.icon} size={24} className="text-[#c9a962]" />
+                  <div className="w-12 h-12 rounded-xl bg-[#c9a962]/10 flex items-center justify-center mb-4 group-hover:bg-[#c9a962]/20 transition-colors">
+                    <Icon name={benefit.icon} size={24} className="text-[#c9a962]" />
                   </div>
-                  <h3 className="font-serif text-xl font-medium text-[#faf9f6] mb-2">{feature.title}</h3>
-                  <p className="text-[#a8a8a8] text-sm leading-relaxed">{feature.description}</p>
+                  <h3 className="font-serif text-xl font-medium text-[#faf9f6] mb-2">{benefit.title}</h3>
+                  <p className="text-[#a8a8a8] text-sm leading-relaxed">{benefit.description}</p>
                 </div>
               ))}
             </div>
