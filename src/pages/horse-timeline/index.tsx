@@ -12,6 +12,10 @@ const HorseTimeline: React.FC = () => {
   const [observations, setObservations] = useState<Observation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedObservation, setSelectedObservation] = useState<Observation | null>(null);
+  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
+  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
+  const [currentVideoFrame, setCurrentVideoFrame] = useState(0);
+  const [videoProgress, setVideoProgress] = useState(0);
 
   const horses: Horse[] = [
     {
@@ -141,6 +145,60 @@ const HorseTimeline: React.FC = () => {
     setSelectedObservation(filtered[0] || null);
     setIsLoading(false);
   }, [selectedHorseId]);
+
+  // Video playback effect - 15 seconds total, divided by number of photos
+  useEffect(() => {
+    if (!isVideoPlaying || observations.length === 0) return;
+    
+    const totalDuration = 15000; // 15 seconds
+    const frameInterval = totalDuration / observations.length;
+    const progressInterval = 50; // Update progress every 50ms
+    
+    const frameTimer = setInterval(() => {
+      setCurrentVideoFrame((prev) => {
+        const next = prev + 1;
+        if (next >= observations.length) {
+          setIsVideoPlaying(false);
+          setVideoProgress(100);
+          return 0;
+        }
+        return next;
+      });
+    }, frameInterval);
+    
+    const progressTimer = setInterval(() => {
+      setVideoProgress((prev) => {
+        const increment = (progressInterval / totalDuration) * 100;
+        const next = prev + increment;
+        return next >= 100 ? 100 : next;
+      });
+    }, progressInterval);
+    
+    return () => {
+      clearInterval(frameTimer);
+      clearInterval(progressTimer);
+    };
+  }, [isVideoPlaying, observations.length]);
+
+  const handleGenerateVideo = () => {
+    setIsVideoModalOpen(true);
+    setCurrentVideoFrame(0);
+    setVideoProgress(0);
+    setIsVideoPlaying(false);
+  };
+
+  const handlePlayVideo = () => {
+    setCurrentVideoFrame(0);
+    setVideoProgress(0);
+    setIsVideoPlaying(true);
+  };
+
+  const handleCloseVideo = () => {
+    setIsVideoModalOpen(false);
+    setIsVideoPlaying(false);
+    setCurrentVideoFrame(0);
+    setVideoProgress(0);
+  };
 
   const selectedHorse = horses.find(h => h.id === selectedHorseId);
   const latestObservation = observations[0];
@@ -309,7 +367,16 @@ const HorseTimeline: React.FC = () => {
                 <div className="glass-card p-6 luxury-border">
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="font-serif text-xl font-medium text-[#faf9f6]">Recent Photos</h3>
-                    <span className="text-sm text-[#6b6b6b]">{observations.length} photos today</span>
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm text-[#6b6b6b]">{observations.length} photos today</span>
+                      <button
+                        onClick={handleGenerateVideo}
+                        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-[#c9a962] to-[#a88a45] text-[#0a0a0f] font-semibold text-sm hover:shadow-[0_0_20px_rgba(201,169,98,0.3)] transition-all duration-300"
+                      >
+                        <Icon name="Video" size={16} />
+                        Generate Video
+                      </button>
+                    </div>
                   </div>
 
                   <div className="flex gap-3 overflow-x-auto pb-2">
@@ -386,6 +453,139 @@ const HorseTimeline: React.FC = () => {
         </main>
 
         <MobileNavigation />
+
+        {/* Video Modal */}
+        {isVideoModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl">
+            <div className="relative w-full max-w-4xl">
+              {/* Close Button */}
+              <button
+                onClick={handleCloseVideo}
+                className="absolute -top-12 right-0 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+              >
+                <Icon name="X" size={24} className="text-white" />
+              </button>
+
+              {/* Video Player Card */}
+              <div className="glass-card luxury-border overflow-hidden">
+                {/* Header */}
+                <div className="flex items-center justify-between px-6 py-4 bg-[#c9a962]/10 border-b border-[#c9a962]/20">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-[#c9a962]/50">
+                      <Image 
+                        src={selectedHorse?.profileImage || ''} 
+                        alt={selectedHorse?.name || ''} 
+                        className="w-full h-full object-cover" 
+                      />
+                    </div>
+                    <div>
+                      <h3 className="font-serif text-lg font-medium text-[#faf9f6]">
+                        {selectedHorse?.name}'s Daily Recap
+                      </h3>
+                      <p className="text-sm text-[#a8a8a8]">{observations.length} photos • 15 seconds</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-[#c9a962]/20 border border-[#c9a962]/30">
+                    <Icon name="Video" size={14} className="text-[#c9a962]" />
+                    <span className="text-sm font-medium text-[#c9a962]">Generated Video</span>
+                  </div>
+                </div>
+
+                {/* Video Display */}
+                <div className="relative aspect-video bg-black">
+                  {observations.map((obs, index) => (
+                    <div
+                      key={obs.id}
+                      className={`absolute inset-0 transition-opacity duration-500 ${
+                        currentVideoFrame === index ? 'opacity-100' : 'opacity-0'
+                      }`}
+                    >
+                      <Image 
+                        src={obs.imageUrl} 
+                        alt={obs.imageAlt} 
+                        className="w-full h-full object-cover" 
+                      />
+                      {/* Photo Info Overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+                      <div className="absolute bottom-4 left-4 right-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-white font-medium">{format(obs.timestamp, 'HH:mm')}</p>
+                            <p className="text-white/70 text-sm">{obs.notes.substring(0, 50)}...</p>
+                          </div>
+                          <div className={`px-3 py-1 rounded-full text-xs font-semibold uppercase ${
+                            obs.behaviorStatus === 'normal' 
+                              ? 'bg-[#4a9d6b]/80 text-white' 
+                              : 'bg-[#d4a84b]/80 text-white'
+                          }`}>
+                            {obs.behaviorStatus}
+                          </div>
+                        </div>
+                      </div>
+                      {/* Frame Counter */}
+                      <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-black/50 backdrop-blur-sm">
+                        <span className="text-white text-sm font-medium">
+                          {index + 1} / {observations.length}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+
+                  {/* Play Button Overlay */}
+                  {!isVideoPlaying && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                      <button
+                        onClick={handlePlayVideo}
+                        className="w-20 h-20 rounded-full bg-[#c9a962] flex items-center justify-center hover:scale-110 hover:shadow-[0_0_40px_rgba(201,169,98,0.5)] transition-all duration-300"
+                      >
+                        <Icon name="Play" size={32} className="text-[#0a0a0f] ml-1" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Progress Bar & Controls */}
+                <div className="px-6 py-4 bg-[#0a0a0f]/50">
+                  {/* Progress Bar */}
+                  <div className="relative h-2 bg-white/10 rounded-full overflow-hidden mb-4">
+                    <div 
+                      className="absolute inset-y-0 left-0 bg-gradient-to-r from-[#c9a962] to-[#a88a45] transition-all duration-100"
+                      style={{ width: `${videoProgress}%` }}
+                    />
+                  </div>
+
+                  {/* Controls */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <button
+                        onClick={isVideoPlaying ? () => setIsVideoPlaying(false) : handlePlayVideo}
+                        className="p-3 rounded-full bg-[#c9a962]/20 hover:bg-[#c9a962]/30 transition-colors"
+                      >
+                        <Icon 
+                          name={isVideoPlaying ? "Pause" : "Play"} 
+                          size={20} 
+                          className="text-[#c9a962]" 
+                        />
+                      </button>
+                      <span className="text-sm text-[#a8a8a8]">
+                        {Math.round((videoProgress / 100) * 15)}s / 15s
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={handlePlayVideo}
+                        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 transition-colors"
+                      >
+                        <Icon name="RotateCcw" size={16} className="text-[#a8a8a8]" />
+                        <span className="text-sm text-[#a8a8a8]">Replay</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </>
   );
