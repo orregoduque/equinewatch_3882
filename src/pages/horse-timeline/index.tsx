@@ -211,6 +211,18 @@ const HorseTimeline: React.FC = () => {
     };
   }, [isVideoPlaying, observations.length]);
 
+  // Handle body scroll lock when video modal is open
+  useEffect(() => {
+    if (isVideoModalOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isVideoModalOpen]);
+
   const handleGenerateVideo = () => {
     setIsVideoModalOpen(true);
     setCurrentVideoFrame(0);
