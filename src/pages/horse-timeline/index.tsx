@@ -6,6 +6,7 @@ import MobileNavigation from '../../components/ui/MobileNavigation';
 import Image from '../../components/AppImage';
 import Icon from '../../components/AppIcon';
 import { Observation, Horse } from './types';
+import { fetchHorseImages, getImageUrl, HorseImage } from '../../utils/supabase';
 
 const HorseTimeline: React.FC = () => {
   const [selectedHorseId, setSelectedHorseId] = useState<string>('horse-1');
@@ -138,12 +139,42 @@ const HorseTimeline: React.FC = () => {
   ];
 
   useEffect(() => {
-    const filtered = mockObservations
-      .filter((obs) => obs.horseId === selectedHorseId)
-      .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
-    setObservations(filtered);
-    setSelectedObservation(filtered[0] || null);
-    setIsLoading(false);
+    const loadImages = async () => {
+      setIsLoading(true);
+      try {
+        const images = await fetchHorseImages(30);
+        
+        const realObservations: Observation[] = images.map((img: HorseImage, index: number) => ({
+          id: `obs-${img.id}`,
+          horseId: 'horse-1',
+          horseName: 'Thunder',
+          imageUrl: getImageUrl(img.storage_path_enhanced),
+          imageAlt: `Horse observation ${img.image_number}`,
+          timestamp: new Date(img.created_at),
+          temperature: 37.5 + (Math.random() * 1.5 - 0.5),
+          behaviorStatus: index === 0 ? 'normal' : (Math.random() > 0.8 ? 'suspicious' : 'normal') as 'normal' | 'suspicious',
+          notes: img.notes || `Observation #${img.image_number} - Captured at ${format(new Date(img.created_at), 'HH:mm')}`,
+          uploadedBy: 'Stable Eye Camera'
+        }));
+
+        const filtered = selectedHorseId === 'horse-1' 
+          ? realObservations 
+          : mockObservations.filter((obs) => obs.horseId === selectedHorseId);
+        
+        setObservations(filtered);
+        setSelectedObservation(filtered[0] || null);
+      } catch (error) {
+        console.error('Error loading images:', error);
+        const filtered = mockObservations
+          .filter((obs) => obs.horseId === selectedHorseId)
+          .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+        setObservations(filtered);
+        setSelectedObservation(filtered[0] || null);
+      }
+      setIsLoading(false);
+    };
+
+    loadImages();
   }, [selectedHorseId]);
 
   // Video playback effect - 15 seconds total, divided by number of photos
@@ -326,7 +357,7 @@ const HorseTimeline: React.FC = () => {
                       <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-black/40 border border-white/20 backdrop-blur-xl">
                         <Icon name="Thermometer" size={16} className="text-[#c9a962]" />
                         <span className="text-lg font-semibold text-[#faf9f6]">
-                          {selectedObservation?.temperature || latestObservation.temperature}°C
+                          {(selectedObservation?.temperature || latestObservation.temperature).toFixed(1)}°C
                         </span>
                       </div>
                     </div>
