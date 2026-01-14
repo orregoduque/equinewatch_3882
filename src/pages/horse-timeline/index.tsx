@@ -26,28 +26,8 @@ const HorseTimeline: React.FC = () => {
       age: 5,
       owner: 'John Smith',
       lastObservation: new Date(),
-      profileImage: "https://img.rocket.new/generatedImages/rocket_gen_img_12f7dfca2-1765393004995.png",
+      profileImage: "https://zmxppbpywizdjlhstfkf.supabase.co/storage/v1/object/public/images/image_111_enhanced.jpg",
       profileImageAlt: 'Majestic brown thoroughbred horse'
-    },
-    {
-      id: 'horse-2',
-      name: 'Midnight',
-      breed: 'Arabian',
-      age: 7,
-      owner: 'Sarah Johnson',
-      lastObservation: new Date(Date.now() - 3600000),
-      profileImage: "https://img.rocket.new/generatedImages/rocket_gen_img_1594b846c-1764835401410.png",
-      profileImageAlt: 'Elegant black Arabian horse'
-    },
-    {
-      id: 'horse-3',
-      name: 'Spirit',
-      breed: 'Quarter Horse',
-      age: 4,
-      owner: 'Michael Brown',
-      lastObservation: new Date(Date.now() - 7200000),
-      profileImage: "https://img.rocket.new/generatedImages/rocket_gen_img_137bef0d8-1765170668258.png",
-      profileImageAlt: 'Strong chestnut quarter horse'
     }
   ];
 
