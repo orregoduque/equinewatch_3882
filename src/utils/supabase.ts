@@ -33,16 +33,24 @@ export const getImageUrl = (storagePath: string): string => {
 };
 
 export const fetchHorseImages = async (limit: number = 20): Promise<HorseImage[]> => {
-  const { data, error } = await supabase
-    .from('images')
-    .select('*')
-    .order('created_at', { ascending: false })
-    .limit(limit);
+  console.log('Fetching images from Supabase...', { supabaseUrl, limit });
+  
+  try {
+    const { data, error } = await supabase
+      .from('images')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(limit);
 
-  if (error) {
-    console.error('Error fetching images:', error);
+    if (error) {
+      console.error('Supabase error fetching images:', error);
+      return [];
+    }
+
+    console.log('Fetched images count:', data?.length || 0);
+    return data || [];
+  } catch (err) {
+    console.error('Exception fetching images:', err);
     return [];
   }
-
-  return data || [];
 };
