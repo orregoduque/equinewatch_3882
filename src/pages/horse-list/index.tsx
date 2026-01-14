@@ -23,7 +23,7 @@ const HorseList: React.FC = () => {
   {
     id: 'horse-1',
     name: 'Thunder',
-    image: "https://img.rocket.new/generatedImages/rocket_gen_img_12f7dfca2-1765393004995.png",
+    image: "https://zmxppbpywizdjlhstfkf.supabase.co/storage/v1/object/public/images/image_111_enhanced.jpg",
     alt: 'Majestic brown thoroughbred horse with white blaze standing in green pasture',
     lastObservation: new Date(Date.now() - 1800000),
     status: 'normal',
@@ -31,66 +31,6 @@ const HorseList: React.FC = () => {
     ownerName: 'Michael Anderson',
     temperatureC: 37.8,
     notes: 'Active and alert during morning rounds. Eating well and showing good energy levels.'
-  },
-  {
-    id: 'horse-2',
-    name: 'Midnight Star',
-    image: "https://images.unsplash.com/photo-1590574746148-05224c8e7930",
-    alt: 'Black Arabian horse with flowing mane running freely in open field',
-    lastObservation: new Date(Date.now() - 900000),
-    status: 'suspicious',
-    ownerId: 'owner-2',
-    ownerName: 'Jennifer Williams',
-    temperatureC: 38.4,
-    notes: 'Showing signs of discomfort. Reduced appetite and lying down more frequently than usual.'
-  },
-  {
-    id: 'horse-3',
-    name: 'Golden Dawn',
-    image: "https://images.unsplash.com/photo-1734703493206-b1ad7583521b",
-    alt: 'Palomino horse with golden coat grazing peacefully in morning sunlight',
-    lastObservation: new Date(Date.now() - 3600000),
-    status: 'normal',
-    ownerId: 'owner-1',
-    ownerName: 'Michael Anderson',
-    temperatureC: 37.5,
-    notes: 'Calm and content. Normal behavior patterns observed throughout the day.'
-  },
-  {
-    id: 'horse-4',
-    name: 'Storm Chaser',
-    image: "https://images.unsplash.com/photo-1717811473202-187a38d15c2a",
-    alt: 'Gray dappled horse trotting energetically across sandy arena',
-    lastObservation: new Date(Date.now() - 7200000),
-    status: 'inactive',
-    ownerId: 'owner-3',
-    ownerName: 'Robert Martinez',
-    temperatureC: 37.6,
-    notes: 'No recent observations recorded. Last check showed normal vital signs.'
-  },
-  {
-    id: 'horse-5',
-    name: 'Copper Belle',
-    image: "https://img.rocket.new/generatedImages/rocket_gen_img_137bef0d8-1765170668258.png",
-    alt: 'Chestnut mare with copper-colored coat standing near wooden fence',
-    lastObservation: new Date(Date.now() - 2700000),
-    status: 'normal',
-    ownerId: 'owner-2',
-    ownerName: 'Jennifer Williams',
-    temperatureC: 37.7,
-    notes: 'Excellent condition. Responsive to commands and showing healthy appetite.'
-  },
-  {
-    id: 'horse-6',
-    name: 'Silver Shadow',
-    image: "https://images.unsplash.com/photo-1667089695292-f429c468fde8",
-    alt: 'White horse with silver-gray mane standing majestically against blue sky',
-    lastObservation: new Date(Date.now() - 5400000),
-    status: 'normal',
-    ownerId: 'owner-3',
-    ownerName: 'Robert Martinez',
-    temperatureC: 37.9,
-    notes: 'Stable and healthy. Regular exercise routine maintained without issues.'
   }];
 
 
