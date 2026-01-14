@@ -21,6 +21,7 @@ const DailySummary: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [summaryData, setSummaryData] = useState<DailySummaryData | null>(null);
+  const [showProPopup, setShowProPopup] = useState<boolean>(true);
 
   const vitalSigns: VitalSign[] = [
     { id: '1', name: 'Heart Rate', value: 48, unit: 'bpm', normalMin: 28, normalMax: 44, status: 'elevated', icon: 'Heart', trend: [36, 38, 42, 44, 46, 48, 47, 48] },
@@ -274,6 +275,40 @@ const DailySummary: React.FC = () => {
         </div>
 
         <Header />
+
+        {showProPopup && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+            <div className="relative mx-4 max-w-md w-full bg-gradient-to-br from-[#1a1a24] to-[#12121a] border border-[#c9a962]/30 rounded-2xl p-8 shadow-[0_0_50px_rgba(201,169,98,0.15)]">
+              <button
+                onClick={() => setShowProPopup(false)}
+                className="absolute top-4 right-4 text-[#a8a8a8] hover:text-white transition-colors"
+              >
+                <Icon name="X" size={24} />
+              </button>
+              
+              <div className="text-center">
+                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-[#c9a962] to-[#a88a45] flex items-center justify-center">
+                  <Icon name="Sparkles" size={32} className="text-[#0a0a0f]" />
+                </div>
+                
+                <h3 className="text-2xl font-serif text-white mb-3">
+                  AI <span className="gradient-text">Monitoring</span>
+                </h3>
+                
+                <p className="text-lg text-[#a8a8a8] mb-6">
+                  Unlock ai monitoring with you PRO subscription
+                </p>
+                
+                <button
+                  onClick={() => setShowProPopup(false)}
+                  className="w-full py-3 px-6 rounded-xl bg-gradient-to-r from-[#c9a962] to-[#a88a45] text-[#0a0a0f] font-semibold hover:shadow-[0_0_20px_rgba(201,169,98,0.4)] transition-all duration-300"
+                >
+                  Got it
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
         
         <main className="pt-24 pb-24 md:pb-12 px-4 sm:px-6 lg:px-8">
           <div className="max-w-7xl mx-auto">
