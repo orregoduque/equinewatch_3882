@@ -68,7 +68,7 @@
   },
   "scripts": {
     "start": "vite",
-    "build": "tsc --noCheck && vite build --sourcemap",
+    "build": "tsc --noCheck && vite build",
     "serve": "vite preview"
   },
   "eslintConfig": {
