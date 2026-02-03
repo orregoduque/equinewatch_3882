@@ -41,7 +41,7 @@ public/              # Static assets
 ```
 
 ## Routes
-- `/` - Public landing page (company info, features, team)
+- `/` - Public landing page (Hero, Problem, How It Works, Features, Use Cases, AI Technology, Testimonials, Comparison, FAQ, Team, CTA)
 - `/login` - Login page (entry to the app)
 - `/daily-summary` - Colic Monitoring dashboard
 - `/horse-timeline` - Live Monitoring with photos
