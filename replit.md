@@ -68,6 +68,18 @@ The app supports 3 user types with different access levels:
 - Access: Everything + Admin Dashboard + All Stables + User Management
 - Login: admin@equinewatch.com / admin123
 
+## Design System
+- **Theme**: Light/refined luxury with modern equestrian elegance
+- **Primary Background**: #FFFFFF (Pure white)
+- **Secondary Background**: #FAFAF9 (Warm off-white)
+- **Primary Accent**: #C9A86A (Champagne gold)
+- **Secondary Accent**: #8B7355 (Saddle brown)
+- **Text Primary**: #1C1917 (Near black, warm undertone)
+- **Text Secondary**: #57534E (Warm medium gray)
+- **Success/Health**: #16A34A (Forest green)
+- **Heading Font**: Cormorant Garamond (serif)
+- **Body Font**: Inter (sans-serif)
+
 ## Development Setup
 - **Port**: 5000
 - **Host**: 0.0.0.0 (configured for Replit proxy)

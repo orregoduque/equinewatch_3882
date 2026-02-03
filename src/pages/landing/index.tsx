@@ -71,30 +71,30 @@ const Landing: React.FC = () => {
         <meta name="description" content="AI-powered portable camera system with intelligent alerts for your horse's health. Detect colic, stress, and behavioral changes before they become emergencies." />
       </Helmet>
 
-      <div className="min-h-screen bg-[#0a0a0f] text-[#faf9f6]">
-        <header className="fixed top-0 left-0 right-0 z-50 bg-[#0a0a0f]/90 backdrop-blur-xl border-b border-[#c9a962]/10">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-white text-[#1C1917]">
+        <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-[#E7E5E4]">
+          <div className="max-w-7xl mx-auto px-6 lg:px-20">
             <div className="flex items-center justify-between h-20">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#c9a962] to-[#a88a45] flex items-center justify-center">
-                  <Icon name="Eye" size={24} className="text-[#0a0a0f]" />
+                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-[#C9A86A] to-[#8B7355] flex items-center justify-center shadow-sm">
+                  <Icon name="Eye" size={24} className="text-white" />
                 </div>
                 <div>
-                  <h1 className="font-serif text-xl font-semibold text-[#faf9f6]">Stable Eye</h1>
-                  <p className="text-xs text-[#c9a962] tracking-widest uppercase">Premium Monitoring</p>
+                  <h1 className="font-serif text-xl font-medium text-[#1C1917] tracking-wide">Stable Eye</h1>
+                  <p className="text-[10px] text-[#8B7355] tracking-[0.2em] uppercase font-medium">Premium Monitoring</p>
                 </div>
               </div>
               
-              <nav className="hidden md:flex items-center gap-8">
-                <a href="#features" className="text-[#a8a8a8] hover:text-[#c9a962] transition-colors">Features</a>
-                <a href="#how-it-works" className="text-[#a8a8a8] hover:text-[#c9a962] transition-colors">How It Works</a>
-                <a href="#testimonials" className="text-[#a8a8a8] hover:text-[#c9a962] transition-colors">Testimonials</a>
-                <a href="#faq" className="text-[#a8a8a8] hover:text-[#c9a962] transition-colors">FAQ</a>
+              <nav className="hidden md:flex items-center gap-10">
+                <a href="#features" className="text-[#57534E] hover:text-[#C9A86A] transition-colors text-sm font-medium">Features</a>
+                <a href="#how-it-works" className="text-[#57534E] hover:text-[#C9A86A] transition-colors text-sm font-medium">How It Works</a>
+                <a href="#testimonials" className="text-[#57534E] hover:text-[#C9A86A] transition-colors text-sm font-medium">Testimonials</a>
+                <a href="#faq" className="text-[#57534E] hover:text-[#C9A86A] transition-colors text-sm font-medium">FAQ</a>
               </nav>
 
               <Link
                 to="/login"
-                className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#c9a962] to-[#a88a45] text-[#0a0a0f] font-semibold hover:shadow-[0_0_30px_rgba(201,169,98,0.3)] transition-all duration-300"
+                className="px-6 py-2.5 rounded bg-[#C9A86A] text-white font-semibold text-sm hover:bg-[#8B7355] transition-all duration-200 shadow-sm hover:shadow-md"
               >
                 Login
               </Link>
@@ -102,61 +102,57 @@ const Landing: React.FC = () => {
           </div>
         </header>
 
-        <section className="relative pt-32 pb-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
-          <div className="absolute inset-0 -z-10">
-            <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-[#c9a962]/5 rounded-full blur-[150px]" />
-            <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-[#c9a962]/3 rounded-full blur-[150px]" />
-          </div>
-
-          <div className="max-w-7xl mx-auto">
-            <div className="grid lg:grid-cols-2 gap-12 items-center">
+        <section className="relative pt-32 pb-24 lg:pb-32 px-6 lg:px-20 min-h-[90vh] flex items-center">
+          <div className="max-w-7xl mx-auto w-full">
+            <div className="grid lg:grid-cols-2 gap-16 items-center">
               <div>
-                <div className="flex items-center gap-2 mb-6">
-                  <div className="w-2 h-2 rounded-full bg-[#4a9d6b] animate-pulse" />
-                  <span className="text-sm text-[#4a9d6b] font-medium">Trusted by 500+ Horse Owners</span>
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#F5F5F4] border border-[#E7E5E4] mb-8">
+                  <div className="w-2 h-2 rounded-full bg-[#16A34A] animate-pulse" />
+                  <span className="text-xs text-[#16A34A] font-semibold uppercase tracking-wider">Trusted by 500+ Horse Owners</span>
                 </div>
                 
-                <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl font-light leading-tight mb-6">
-                  Never Miss a <span className="text-[#c9a962] font-medium">Warning Sign</span>
+                <h1 className="font-serif text-5xl md:text-6xl lg:text-[64px] font-normal leading-[1.1] mb-6 tracking-tight">
+                  Never Miss a{' '}
+                  <span className="text-[#C9A86A]">Warning Sign</span>
                 </h1>
                 
-                <p className="text-xl text-[#a8a8a8] leading-relaxed mb-4">
+                <p className="text-xl text-[#57534E] leading-relaxed mb-4 font-medium">
                   AI-Powered Monitoring for Your Horse's Health
                 </p>
                 
-                <p className="text-lg text-[#6b6b6b] leading-relaxed mb-8">
+                <p className="text-lg text-[#A8A29E] leading-relaxed mb-10 max-w-lg">
                   Portable camera system with intelligent alerts when your horse needs attention. Detect colic, stress, and abnormal behaviors before they become emergencies.
                 </p>
 
-                <div className="flex flex-wrap gap-4 mb-8">
+                <div className="flex flex-wrap gap-4 mb-10">
                   <Link
                     to="/login"
-                    className="px-8 py-4 rounded-xl bg-gradient-to-r from-[#c9a962] to-[#a88a45] text-[#0a0a0f] font-semibold text-lg hover:shadow-[0_0_40px_rgba(201,169,98,0.4)] transition-all duration-300"
+                    className="px-8 py-4 rounded bg-[#C9A86A] text-white font-semibold text-base hover:bg-[#8B7355] transition-all duration-200 shadow-md hover:shadow-lg hover:-translate-y-0.5"
                   >
                     Get Early Access
                   </Link>
                   <a
                     href="#how-it-works"
-                    className="px-8 py-4 rounded-xl border border-[#c9a962]/30 text-[#c9a962] font-medium text-lg hover:bg-[#c9a962]/10 transition-all duration-300"
+                    className="px-8 py-4 rounded border-2 border-[#C9A86A] text-[#C9A86A] font-semibold text-base hover:bg-[#C9A86A] hover:text-white transition-all duration-200"
                   >
                     See How It Works
                   </a>
                 </div>
 
-                <div className="flex items-center gap-6">
+                <div className="flex items-center gap-8">
                   <div className="flex items-center gap-2">
-                    <Icon name="Shield" size={18} className="text-[#4a9d6b]" />
-                    <span className="text-sm text-[#a8a8a8]">Veterinarian Approved</span>
+                    <Icon name="Shield" size={18} className="text-[#16A34A]" />
+                    <span className="text-sm text-[#57534E] font-medium">Veterinarian Approved</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Icon name="Award" size={18} className="text-[#c9a962]" />
-                    <span className="text-sm text-[#a8a8a8]">30-Day Guarantee</span>
+                    <Icon name="Award" size={18} className="text-[#C9A86A]" />
+                    <span className="text-sm text-[#57534E] font-medium">30-Day Guarantee</span>
                   </div>
                 </div>
               </div>
 
               <div className="relative">
-                <div className="aspect-[4/3] rounded-2xl overflow-hidden border border-[#c9a962]/20 shadow-[0_0_60px_rgba(201,169,98,0.1)]">
+                <div className="aspect-[4/3] rounded-lg overflow-hidden shadow-xl">
                   <img
                     src="https://www.stable-eye.co/_next/image?url=%2Fproducts%2Fhorse_ground_2.png&w=1920&q=75"
                     alt="Horse being monitored by Stable Eye device"
@@ -164,14 +160,14 @@ const Landing: React.FC = () => {
                     loading="eager"
                   />
                 </div>
-                <div className="absolute -bottom-6 -left-6 p-4 rounded-xl bg-[#12121a] border border-[#c9a962]/20 shadow-xl">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-[#4a9d6b]/20 flex items-center justify-center">
-                      <Icon name="Shield" size={20} className="text-[#4a9d6b]" />
+                <div className="absolute -bottom-6 -left-6 p-5 rounded-lg bg-white border border-[#E7E5E4] shadow-lg">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-full bg-[#16A34A]/10 flex items-center justify-center">
+                      <Icon name="Shield" size={24} className="text-[#16A34A]" />
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-[#faf9f6]">Protected</p>
-                      <p className="text-xs text-[#6b6b6b]">24/7 Monitoring Active</p>
+                      <p className="text-sm font-semibold text-[#1C1917]">Protected</p>
+                      <p className="text-xs text-[#A8A29E]">24/7 Monitoring Active</p>
                     </div>
                   </div>
                 </div>
@@ -180,48 +176,49 @@ const Landing: React.FC = () => {
           </div>
         </section>
 
-        <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-transparent via-[#c9a962]/5 to-transparent">
+        <section className="py-24 px-6 lg:px-20 bg-[#FAFAF9]">
           <div className="max-w-7xl mx-auto">
-            <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div className="grid lg:grid-cols-2 gap-16 items-center">
               <div>
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-red-500/10 border border-red-500/30 mb-6">
-                  <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                  <span className="text-red-400 text-sm font-semibold">The Problem</span>
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#EA580C]/10 border border-[#EA580C]/20 mb-8">
+                  <div className="w-2 h-2 rounded-full bg-[#EA580C] animate-pulse" />
+                  <span className="text-xs text-[#EA580C] font-semibold uppercase tracking-wider">The Problem</span>
                 </div>
                 
-                <h2 className="font-serif text-3xl md:text-4xl font-light mb-6">
-                  You can't be there <span className="text-[#c9a962] font-medium">every moment</span>
+                <h2 className="font-serif text-4xl md:text-5xl font-normal leading-tight mb-6">
+                  You can't be there{' '}
+                  <span className="text-[#C9A86A]">every moment</span>
                 </h2>
                 
-                <p className="text-[#a8a8a8] leading-relaxed mb-6 text-lg">
+                <p className="text-lg text-[#57534E] leading-relaxed mb-8">
                   Late-night colic episodes. Undetected injuries. Behavioral changes while you're away. Every horse owner knows the anxiety of not being able to constantly watch over their animals.
                 </p>
 
                 <div className="grid grid-cols-3 gap-4 mb-8">
-                  <div className="p-4 rounded-xl bg-white/[0.03] border border-[#c9a962]/10 text-center">
-                    <p className="text-2xl md:text-3xl font-bold text-[#c9a962]">920K+</p>
-                    <p className="text-xs text-[#6b6b6b] mt-1">Colic cases yearly in the US</p>
+                  <div className="p-5 rounded-lg bg-white border border-[#E7E5E4] text-center shadow-sm">
+                    <p className="text-2xl md:text-3xl font-bold text-[#C9A86A]">920K+</p>
+                    <p className="text-xs text-[#A8A29E] mt-2 leading-tight">Colic cases yearly in the US</p>
                   </div>
-                  <div className="p-4 rounded-xl bg-white/[0.03] border border-[#c9a962]/10 text-center">
-                    <p className="text-2xl md:text-3xl font-bold text-red-400">11%</p>
-                    <p className="text-xs text-[#6b6b6b] mt-1">Fatality rate without early detection</p>
+                  <div className="p-5 rounded-lg bg-white border border-[#E7E5E4] text-center shadow-sm">
+                    <p className="text-2xl md:text-3xl font-bold text-[#EA580C]">11%</p>
+                    <p className="text-xs text-[#A8A29E] mt-2 leading-tight">Fatality rate without early detection</p>
                   </div>
-                  <div className="p-4 rounded-xl bg-white/[0.03] border border-[#c9a962]/10 text-center">
-                    <p className="text-2xl md:text-3xl font-bold text-[#4a9d6b]">85%</p>
-                    <p className="text-xs text-[#6b6b6b] mt-1">Preventable with early care</p>
+                  <div className="p-5 rounded-lg bg-white border border-[#E7E5E4] text-center shadow-sm">
+                    <p className="text-2xl md:text-3xl font-bold text-[#16A34A]">85%</p>
+                    <p className="text-xs text-[#A8A29E] mt-2 leading-tight">Preventable with early care</p>
                   </div>
                 </div>
 
-                <p className="text-[#a8a8a8] leading-relaxed">
-                  Colic is the <span className="text-[#faf9f6] font-medium">#1 cause of premature death</span> in horses—but it doesn't have to be. With the right monitoring, most cases can be caught and treated before they become life-threatening.
+                <p className="text-[#57534E] leading-relaxed">
+                  Colic is the <span className="text-[#1C1917] font-semibold">#1 cause of premature death</span> in horses—but it doesn't have to be. With the right monitoring, most cases can be caught and treated before they become life-threatening.
                 </p>
               </div>
               <div className="relative">
-                <div className="aspect-square rounded-2xl overflow-hidden border border-[#c9a962]/20">
+                <div className="aspect-square rounded-lg overflow-hidden shadow-lg border border-[#E7E5E4]">
                   <img
                     src="https://www.stable-eye.co/_next/image?url=%2Fproducts%2Fiphone.png&w=1080&q=75"
                     alt="Stable Eye App showing horse monitoring alerts"
-                    className="w-full h-full object-contain bg-[#12121a] p-8"
+                    className="w-full h-full object-contain bg-[#FAFAF9] p-8"
                     loading="lazy"
                   />
                 </div>
@@ -230,41 +227,45 @@ const Landing: React.FC = () => {
           </div>
         </section>
 
-        <section id="how-it-works" className="py-20 px-4 sm:px-6 lg:px-8">
+        <section id="how-it-works" className="py-24 px-6 lg:px-20 bg-white">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-16">
-              <h2 className="font-serif text-3xl md:text-4xl font-light mb-4">
-                How It <span className="text-[#c9a962]">Works</span>
+              <h2 className="font-serif text-4xl md:text-5xl font-normal mb-4">
+                How It <span className="text-[#C9A86A]">Works</span>
               </h2>
-              <p className="text-[#a8a8a8] max-w-2xl mx-auto text-lg">
+              <p className="text-lg text-[#57534E] max-w-2xl mx-auto">
                 Simple setup. Powerful protection. Get started in minutes, not hours.
               </p>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-8">
-              {howItWorks.map((step, index) => (
-                <div key={index} className="relative p-8 rounded-2xl bg-white/[0.02] border border-[#c9a962]/10 hover:border-[#c9a962]/30 transition-all duration-300">
-                  <div className="absolute -top-4 -left-4 w-10 h-10 rounded-full bg-gradient-to-br from-[#c9a962] to-[#a88a45] flex items-center justify-center text-[#0a0a0f] font-bold text-lg">
-                    {step.step}
+            <div className="relative">
+              <div className="hidden md:block absolute top-20 left-[16%] right-[16%] h-0.5 border-t-2 border-dashed border-[#C9A86A]/30" />
+              
+              <div className="grid md:grid-cols-3 gap-8">
+                {howItWorks.map((step, index) => (
+                  <div key={index} className="relative p-8 rounded-lg bg-white border border-[#E7E5E4] hover:border-[#C9A86A]/50 hover:shadow-[0_8px_24px_rgba(201,168,106,0.08)] transition-all duration-300">
+                    <div className="absolute -top-5 left-8 w-10 h-10 rounded-full bg-[#C9A86A] flex items-center justify-center text-white font-bold text-lg shadow-md">
+                      {step.step}
+                    </div>
+                    <div className="w-14 h-14 rounded-lg bg-[#C9A86A]/10 flex items-center justify-center mb-6 mt-4">
+                      <Icon name={step.icon} size={28} className="text-[#C9A86A]" />
+                    </div>
+                    <h3 className="font-serif text-xl font-medium text-[#1C1917] mb-3">{step.title}</h3>
+                    <p className="text-[#57534E] leading-relaxed">{step.description}</p>
                   </div>
-                  <div className="w-14 h-14 rounded-xl bg-[#c9a962]/10 flex items-center justify-center mb-6 mt-2">
-                    <Icon name={step.icon} size={28} className="text-[#c9a962]" />
-                  </div>
-                  <h3 className="font-serif text-xl font-medium text-[#faf9f6] mb-3">{step.title}</h3>
-                  <p className="text-[#a8a8a8] leading-relaxed">{step.description}</p>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
         </section>
 
-        <section id="features" className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-transparent via-[#c9a962]/5 to-transparent">
+        <section id="features" className="py-24 px-6 lg:px-20 bg-[#FAFAF9]">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-16">
-              <h2 className="font-serif text-3xl md:text-4xl font-light mb-4">
-                Key <span className="text-[#c9a962]">Features</span>
+              <h2 className="font-serif text-4xl md:text-5xl font-normal mb-4">
+                Key <span className="text-[#C9A86A]">Features</span>
               </h2>
-              <p className="text-[#a8a8a8] max-w-2xl mx-auto text-lg">
+              <p className="text-lg text-[#57534E] max-w-2xl mx-auto">
                 Everything you need to keep your horse safe, healthy, and monitored around the clock.
               </p>
             </div>
@@ -273,58 +274,58 @@ const Landing: React.FC = () => {
               {features.map((feature, index) => (
                 <div
                   key={index}
-                  className="p-6 rounded-2xl bg-white/[0.02] border border-[#c9a962]/10 hover:border-[#c9a962]/30 hover:bg-white/[0.04] transition-all duration-300 group"
+                  className="p-6 rounded-lg bg-white border border-[#E7E5E4] hover:border-[#C9A86A]/50 hover:shadow-[0_8px_24px_rgba(201,168,106,0.08)] transition-all duration-300 group"
                 >
-                  <div className="w-12 h-12 rounded-xl bg-[#c9a962]/10 flex items-center justify-center mb-4 group-hover:bg-[#c9a962]/20 transition-colors">
-                    <Icon name={feature.icon} size={24} className="text-[#c9a962]" />
+                  <div className="w-12 h-12 rounded-lg bg-[#C9A86A]/10 flex items-center justify-center mb-4 group-hover:bg-[#C9A86A]/20 transition-colors">
+                    <Icon name={feature.icon} size={24} className="text-[#C9A86A]" />
                   </div>
-                  <h3 className="font-serif text-lg font-medium text-[#faf9f6] mb-2">{feature.title}</h3>
-                  <p className="text-[#a8a8a8] text-sm leading-relaxed">{feature.description}</p>
+                  <h3 className="font-serif text-lg font-medium text-[#1C1917] mb-2">{feature.title}</h3>
+                  <p className="text-[#57534E] text-sm leading-relaxed">{feature.description}</p>
                 </div>
               ))}
             </div>
           </div>
         </section>
 
-        <section className="py-20 px-4 sm:px-6 lg:px-8">
+        <section className="py-24 px-6 lg:px-20 bg-white">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-16">
-              <h2 className="font-serif text-3xl md:text-4xl font-light mb-4">
-                Perfect For <span className="text-[#c9a962]">Every Scenario</span>
+              <h2 className="font-serif text-4xl md:text-5xl font-normal mb-4">
+                Perfect For <span className="text-[#C9A86A]">Every Scenario</span>
               </h2>
-              <p className="text-[#a8a8a8] max-w-2xl mx-auto text-lg">
+              <p className="text-lg text-[#57534E] max-w-2xl mx-auto">
                 See how horse owners like you are using Stable Eye to protect their animals.
               </p>
             </div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
               {useCases.map((useCase, index) => (
-                <div key={index} className="p-6 rounded-2xl bg-white/[0.02] border border-[#c9a962]/10 hover:border-[#c9a962]/30 transition-all duration-300">
-                  <div className="w-12 h-12 rounded-full bg-[#c9a962]/10 flex items-center justify-center mb-4">
-                    <Icon name={useCase.icon} size={24} className="text-[#c9a962]" />
+                <div key={index} className="p-6 rounded-lg bg-[#FAFAF9] border border-[#E7E5E4] hover:border-[#C9A86A]/50 transition-all duration-300">
+                  <div className="w-12 h-12 rounded-full bg-[#C9A86A]/10 flex items-center justify-center mb-4">
+                    <Icon name={useCase.icon} size={24} className="text-[#C9A86A]" />
                   </div>
-                  <h3 className="font-serif text-lg font-medium text-[#faf9f6] mb-2">{useCase.title}</h3>
-                  <p className="text-[#a8a8a8] text-sm leading-relaxed">{useCase.description}</p>
+                  <h3 className="font-serif text-lg font-medium text-[#1C1917] mb-2">{useCase.title}</h3>
+                  <p className="text-[#57534E] text-sm leading-relaxed">{useCase.description}</p>
                 </div>
               ))}
             </div>
           </div>
         </section>
 
-        <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-transparent via-[#c9a962]/5 to-transparent">
+        <section className="py-24 px-6 lg:px-20 bg-[#FAFAF9]">
           <div className="max-w-7xl mx-auto">
-            <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div className="grid lg:grid-cols-2 gap-16 items-center">
               <div>
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#c9a962]/10 border border-[#c9a962]/30 mb-6">
-                  <Icon name="Cpu" size={16} className="text-[#c9a962]" />
-                  <span className="text-[#c9a962] text-sm font-medium">AI Technology</span>
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#C9A86A]/10 border border-[#C9A86A]/20 mb-8">
+                  <Icon name="Cpu" size={16} className="text-[#C9A86A]" />
+                  <span className="text-xs text-[#C9A86A] font-semibold uppercase tracking-wider">AI Technology</span>
                 </div>
                 
-                <h2 className="font-serif text-3xl md:text-4xl font-light mb-6">
-                  Trained on <span className="text-[#c9a962] font-medium">10,000+ Hours</span> of Equine Behavior
+                <h2 className="font-serif text-4xl md:text-5xl font-normal leading-tight mb-6">
+                  Trained on <span className="text-[#C9A86A]">10,000+ Hours</span> of Equine Behavior
                 </h2>
                 
-                <p className="text-[#a8a8a8] leading-relaxed mb-6 text-lg">
+                <p className="text-lg text-[#57534E] leading-relaxed mb-8">
                   Our machine learning model has been developed in partnership with equine veterinarians and behavioral specialists. It understands what "normal" looks like for horses—and when something is wrong.
                 </p>
 
@@ -336,16 +337,16 @@ const Landing: React.FC = () => {
                     'Continuously learning and improving from new data'
                   ].map((item, i) => (
                     <li key={i} className="flex items-start gap-3">
-                      <div className="w-5 h-5 rounded-full bg-[#4a9d6b]/20 flex items-center justify-center mt-0.5">
-                        <Icon name="Check" size={12} className="text-[#4a9d6b]" />
+                      <div className="w-5 h-5 rounded-full bg-[#16A34A]/10 flex items-center justify-center mt-0.5 flex-shrink-0">
+                        <Icon name="Check" size={12} className="text-[#16A34A]" />
                       </div>
-                      <span className="text-[#a8a8a8]">{item}</span>
+                      <span className="text-[#57534E]">{item}</span>
                     </li>
                   ))}
                 </ul>
               </div>
               <div className="relative">
-                <div className="aspect-[4/3] rounded-2xl overflow-hidden border border-[#c9a962]/20">
+                <div className="aspect-[4/3] rounded-lg overflow-hidden shadow-lg border border-[#E7E5E4]">
                   <img
                     src="https://www.stable-eye.co/_next/image?url=%2Fproducts%2Fhorse_outside.png&w=1200&q=75"
                     alt="Horse being analyzed by AI"
@@ -358,36 +359,39 @@ const Landing: React.FC = () => {
           </div>
         </section>
 
-        <section id="testimonials" className="py-20 px-4 sm:px-6 lg:px-8">
+        <section id="testimonials" className="py-24 px-6 lg:px-20 bg-white">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-16">
-              <h2 className="font-serif text-3xl md:text-4xl font-light mb-4">
-                Trusted by <span className="text-[#c9a962]">Horse Owners</span> Worldwide
+              <h2 className="font-serif text-4xl md:text-5xl font-normal mb-4">
+                Trusted by <span className="text-[#C9A86A]">Horse Owners</span> Worldwide
               </h2>
-              <p className="text-[#a8a8a8] max-w-2xl mx-auto text-lg">
+              <p className="text-lg text-[#57534E] max-w-2xl mx-auto">
                 Real stories from real customers who trust Stable Eye to protect their horses.
               </p>
             </div>
 
             <div className="grid md:grid-cols-3 gap-8">
               {testimonials.map((testimonial, index) => (
-                <div key={index} className="p-8 rounded-2xl bg-white/[0.02] border border-[#c9a962]/10">
-                  <div className="flex items-center gap-1 mb-4">
+                <div key={index} className="p-8 rounded-lg bg-[#FAFAF9] border-l-4 border-[#C9A86A]">
+                  <div className="flex items-center gap-1 mb-6">
                     {[...Array(5)].map((_, i) => (
-                      <Icon key={i} name="Star" size={18} className="text-[#c9a962] fill-[#c9a962]" />
+                      <Icon key={i} name="Star" size={18} className="text-[#C9A86A] fill-[#C9A86A]" />
                     ))}
                   </div>
-                  <p className="text-[#a8a8a8] leading-relaxed mb-6 italic">"{testimonial.quote}"</p>
+                  <div className="mb-6">
+                    <span className="font-serif text-4xl text-[#C9A86A]/30">"</span>
+                    <p className="text-[#57534E] leading-relaxed -mt-4 ml-4">{testimonial.quote}</p>
+                  </div>
                   <div className="flex items-center gap-4">
                     <img
                       src={testimonial.image}
                       alt={testimonial.name}
-                      className="w-12 h-12 rounded-full object-cover"
+                      className="w-14 h-14 rounded-full object-cover border-2 border-[#C9A86A]/20 grayscale"
                       loading="lazy"
                     />
                     <div>
-                      <p className="font-medium text-[#faf9f6]">{testimonial.name}</p>
-                      <p className="text-sm text-[#6b6b6b]">{testimonial.role}</p>
+                      <p className="font-semibold text-[#1C1917]">{testimonial.name}</p>
+                      <p className="text-sm text-[#A8A29E]">{testimonial.role}</p>
                     </div>
                   </div>
                 </div>
@@ -396,50 +400,50 @@ const Landing: React.FC = () => {
           </div>
         </section>
 
-        <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-transparent via-[#c9a962]/5 to-transparent">
+        <section className="py-24 px-6 lg:px-20 bg-[#FAFAF9]">
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-16">
-              <h2 className="font-serif text-3xl md:text-4xl font-light mb-4">
-                Compare Your <span className="text-[#c9a962]">Options</span>
+              <h2 className="font-serif text-4xl md:text-5xl font-normal mb-4">
+                Compare Your <span className="text-[#C9A86A]">Options</span>
               </h2>
-              <p className="text-[#a8a8a8] max-w-2xl mx-auto text-lg">
+              <p className="text-lg text-[#57534E] max-w-2xl mx-auto">
                 See why Stable Eye outperforms traditional monitoring methods.
               </p>
             </div>
 
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto rounded-lg border border-[#E7E5E4] bg-white shadow-sm">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-[#c9a962]/20">
-                    <th className="py-4 px-6 text-left text-[#a8a8a8] font-normal">Feature</th>
-                    <th className="py-4 px-6 text-center text-[#a8a8a8] font-normal">Manual Checks</th>
-                    <th className="py-4 px-6 text-center text-[#a8a8a8] font-normal">Standard Camera</th>
-                    <th className="py-4 px-6 text-center text-[#c9a962] font-semibold">Stable Eye</th>
+                  <tr className="border-b border-[#E7E5E4] bg-[#FAFAF9]">
+                    <th className="py-4 px-6 text-left text-[#57534E] font-medium text-sm">Feature</th>
+                    <th className="py-4 px-6 text-center text-[#57534E] font-medium text-sm">Manual Checks</th>
+                    <th className="py-4 px-6 text-center text-[#57534E] font-medium text-sm">Standard Camera</th>
+                    <th className="py-4 px-6 text-center text-[#C9A86A] font-semibold text-sm">Stable Eye</th>
                   </tr>
                 </thead>
                 <tbody>
                   {comparison.map((row, index) => (
-                    <tr key={index} className="border-b border-white/5">
-                      <td className="py-4 px-6 text-[#faf9f6]">{row.feature}</td>
+                    <tr key={index} className="border-b border-[#E7E5E4] last:border-b-0">
+                      <td className="py-4 px-6 text-[#1C1917] font-medium">{row.feature}</td>
                       <td className="py-4 px-6 text-center">
                         {row.manual ? (
-                          <Icon name="Check" size={20} className="text-[#4a9d6b] mx-auto" />
+                          <Icon name="Check" size={20} className="text-[#16A34A] mx-auto" />
                         ) : (
-                          <Icon name="X" size={20} className="text-red-400 mx-auto" />
+                          <Icon name="X" size={20} className="text-[#A8A29E] mx-auto" />
                         )}
                       </td>
                       <td className="py-4 px-6 text-center">
                         {row.camera ? (
-                          <Icon name="Check" size={20} className="text-[#4a9d6b] mx-auto" />
+                          <Icon name="Check" size={20} className="text-[#16A34A] mx-auto" />
                         ) : (
-                          <Icon name="X" size={20} className="text-red-400 mx-auto" />
+                          <Icon name="X" size={20} className="text-[#A8A29E] mx-auto" />
                         )}
                       </td>
-                      <td className="py-4 px-6 text-center">
+                      <td className="py-4 px-6 text-center bg-[#C9A86A]/5">
                         {row.stableEye ? (
-                          <Icon name="Check" size={20} className="text-[#4a9d6b] mx-auto" />
+                          <Icon name="Check" size={20} className="text-[#16A34A] mx-auto" />
                         ) : (
-                          <Icon name="X" size={20} className="text-red-400 mx-auto" />
+                          <Icon name="X" size={20} className="text-[#A8A29E] mx-auto" />
                         )}
                       </td>
                     </tr>
@@ -450,11 +454,11 @@ const Landing: React.FC = () => {
           </div>
         </section>
 
-        <section id="faq" className="py-20 px-4 sm:px-6 lg:px-8">
+        <section id="faq" className="py-24 px-6 lg:px-20 bg-white">
           <div className="max-w-3xl mx-auto">
             <div className="text-center mb-16">
-              <h2 className="font-serif text-3xl md:text-4xl font-light mb-4">
-                Frequently Asked <span className="text-[#c9a962]">Questions</span>
+              <h2 className="font-serif text-4xl md:text-5xl font-normal mb-4">
+                Frequently Asked <span className="text-[#C9A86A]">Questions</span>
               </h2>
             </div>
 
@@ -462,22 +466,22 @@ const Landing: React.FC = () => {
               {faqs.map((faq, index) => (
                 <div
                   key={index}
-                  className="rounded-xl border border-[#c9a962]/10 overflow-hidden"
+                  className="rounded-lg border border-[#E7E5E4] overflow-hidden bg-white"
                 >
                   <button
                     onClick={() => setOpenFaq(openFaq === index ? null : index)}
-                    className="w-full p-6 flex items-center justify-between text-left hover:bg-white/[0.02] transition-colors"
+                    className="w-full p-6 flex items-center justify-between text-left hover:bg-[#FAFAF9] transition-colors"
                   >
-                    <span className="font-medium text-[#faf9f6] pr-4">{faq.question}</span>
+                    <span className="font-medium text-[#1C1917] pr-4">{faq.question}</span>
                     <Icon
                       name={openFaq === index ? 'ChevronUp' : 'ChevronDown'}
                       size={20}
-                      className="text-[#c9a962] flex-shrink-0"
+                      className="text-[#C9A86A] flex-shrink-0"
                     />
                   </button>
                   {openFaq === index && (
                     <div className="px-6 pb-6">
-                      <p className="text-[#a8a8a8] leading-relaxed">{faq.answer}</p>
+                      <p className="text-[#57534E] leading-relaxed">{faq.answer}</p>
                     </div>
                   )}
                 </div>
@@ -486,18 +490,18 @@ const Landing: React.FC = () => {
           </div>
         </section>
 
-        <section id="team" className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-transparent via-[#c9a962]/5 to-transparent">
+        <section id="team" className="py-24 px-6 lg:px-20 bg-[#FAFAF9]">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-16">
-              <h2 className="font-serif text-3xl md:text-4xl font-light mb-4">
-                Meet Our <span className="text-[#c9a962]">Team</span>
+              <h2 className="font-serif text-4xl md:text-5xl font-normal mb-4">
+                Meet Our <span className="text-[#C9A86A]">Team</span>
               </h2>
             </div>
 
-            <div className="flex justify-center gap-8 flex-wrap">
+            <div className="flex justify-center gap-12 flex-wrap">
               {team.map((member, index) => (
                 <div key={index} className="text-center">
-                  <div className="w-48 h-48 rounded-2xl overflow-hidden border-2 border-[#c9a962]/20 mb-4 mx-auto">
+                  <div className="w-48 h-48 rounded-lg overflow-hidden border-2 border-[#C9A86A]/20 mb-4 mx-auto shadow-md">
                     <img
                       src={member.image}
                       alt={member.name}
@@ -505,116 +509,116 @@ const Landing: React.FC = () => {
                       loading="lazy"
                     />
                   </div>
-                  <h3 className="font-serif text-xl font-medium text-[#faf9f6]">{member.name}</h3>
-                  <p className="text-[#c9a962] font-medium">{member.role}</p>
-                  <p className="text-sm text-[#6b6b6b]">{member.title}</p>
+                  <h3 className="font-serif text-xl font-medium text-[#1C1917]">{member.name}</h3>
+                  <p className="text-[#C9A86A] font-semibold text-sm">{member.role}</p>
+                  <p className="text-sm text-[#A8A29E]">{member.title}</p>
                 </div>
               ))}
             </div>
           </div>
         </section>
 
-        <section className="py-20 px-4 sm:px-6 lg:px-8">
-          <div className="max-w-4xl mx-auto">
-            <div className="p-12 rounded-3xl bg-gradient-to-br from-[#c9a962]/10 to-transparent border border-[#c9a962]/20 text-center">
-              <h2 className="font-serif text-3xl md:text-4xl font-light mb-4">
-                Give Your Horse the <span className="text-[#c9a962]">Protection</span> They Deserve
-              </h2>
-              <p className="text-[#a8a8a8] text-lg mb-8 max-w-2xl mx-auto">
-                Join hundreds of horse owners who sleep better knowing their animals are protected. 30-day money-back guarantee.
-              </p>
-              
-              <div className="flex flex-wrap justify-center gap-4 mb-8">
-                <Link
-                  to="/login"
-                  className="px-8 py-4 rounded-xl bg-gradient-to-r from-[#c9a962] to-[#a88a45] text-[#0a0a0f] font-semibold text-lg hover:shadow-[0_0_40px_rgba(201,169,98,0.4)] transition-all duration-300"
-                >
-                  Get Early Access
-                </Link>
-                <Link
-                  to="/contact"
-                  className="px-8 py-4 rounded-xl border border-[#c9a962]/30 text-[#c9a962] font-medium text-lg hover:bg-[#c9a962]/10 transition-all duration-300"
-                >
-                  Request Demo
-                </Link>
-              </div>
+        <section className="py-24 px-6 lg:px-20 bg-[#8B7355]">
+          <div className="max-w-4xl mx-auto text-center">
+            <h2 className="font-serif text-4xl md:text-5xl font-normal mb-6 text-white">
+              Give Your Horse the{' '}
+              <span className="text-[#C9A86A]">Protection</span>{' '}
+              They Deserve
+            </h2>
+            <p className="text-lg text-white/80 mb-10 max-w-2xl mx-auto">
+              Join hundreds of horse owners who sleep better knowing their animals are protected. 30-day money-back guarantee.
+            </p>
+            
+            <div className="flex flex-wrap justify-center gap-4 mb-10">
+              <Link
+                to="/login"
+                className="px-8 py-4 rounded bg-[#C9A86A] text-white font-semibold text-base hover:bg-white hover:text-[#8B7355] transition-all duration-200 shadow-lg"
+              >
+                Get Early Access
+              </Link>
+              <Link
+                to="/contact"
+                className="px-8 py-4 rounded border-2 border-white text-white font-semibold text-base hover:bg-white hover:text-[#8B7355] transition-all duration-200"
+              >
+                Request Demo
+              </Link>
+            </div>
 
-              <div className="flex flex-wrap justify-center gap-6 text-sm text-[#a8a8a8]">
-                <div className="flex items-center gap-2">
-                  <Icon name="Shield" size={16} className="text-[#4a9d6b]" />
-                  <span>30-Day Money-Back Guarantee</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Icon name="Zap" size={16} className="text-[#c9a962]" />
-                  <span>Free Shipping</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Icon name="Headphones" size={16} className="text-[#c9a962]" />
-                  <span>24/7 Support</span>
-                </div>
+            <div className="flex flex-wrap justify-center gap-8 text-sm text-white/70">
+              <div className="flex items-center gap-2">
+                <Icon name="Shield" size={16} className="text-[#C9A86A]" />
+                <span>30-Day Money-Back Guarantee</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Icon name="Zap" size={16} className="text-[#C9A86A]" />
+                <span>Free Shipping</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Icon name="Headphones" size={16} className="text-[#C9A86A]" />
+                <span>24/7 Support</span>
               </div>
             </div>
           </div>
         </section>
 
-        <footer className="py-12 px-4 sm:px-6 lg:px-8 border-t border-[#c9a962]/10">
+        <footer className="py-16 px-6 lg:px-20 bg-white border-t border-[#E7E5E4]">
           <div className="max-w-7xl mx-auto">
-            <div className="grid md:grid-cols-4 gap-8 mb-12">
+            <div className="grid md:grid-cols-4 gap-12 mb-12">
               <div>
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#c9a962] to-[#a88a45] flex items-center justify-center">
-                    <Icon name="Eye" size={20} className="text-[#0a0a0f]" />
+                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#C9A86A] to-[#8B7355] flex items-center justify-center">
+                    <Icon name="Eye" size={20} className="text-white" />
                   </div>
-                  <span className="font-serif text-lg font-semibold text-[#faf9f6]">Stable Eye</span>
+                  <span className="font-serif text-lg font-medium text-[#1C1917]">Stable Eye</span>
                 </div>
-                <p className="text-sm text-[#6b6b6b] leading-relaxed">
+                <p className="text-sm text-[#A8A29E] leading-relaxed">
                   AI-powered equine health monitoring for discerning horse owners.
                 </p>
               </div>
               
               <div>
-                <h4 className="font-medium text-[#faf9f6] mb-4">Product</h4>
-                <ul className="space-y-2 text-sm text-[#6b6b6b]">
-                  <li><a href="#features" className="hover:text-[#c9a962] transition-colors">Features</a></li>
-                  <li><a href="#how-it-works" className="hover:text-[#c9a962] transition-colors">How It Works</a></li>
-                  <li><a href="#testimonials" className="hover:text-[#c9a962] transition-colors">Testimonials</a></li>
-                  <li><a href="#faq" className="hover:text-[#c9a962] transition-colors">FAQ</a></li>
+                <h4 className="font-semibold text-[#1C1917] mb-4 text-sm uppercase tracking-wider">Product</h4>
+                <ul className="space-y-3 text-sm text-[#57534E]">
+                  <li><a href="#features" className="hover:text-[#C9A86A] transition-colors">Features</a></li>
+                  <li><a href="#how-it-works" className="hover:text-[#C9A86A] transition-colors">How It Works</a></li>
+                  <li><a href="#testimonials" className="hover:text-[#C9A86A] transition-colors">Testimonials</a></li>
+                  <li><a href="#faq" className="hover:text-[#C9A86A] transition-colors">FAQ</a></li>
                 </ul>
               </div>
               
               <div>
-                <h4 className="font-medium text-[#faf9f6] mb-4">Company</h4>
-                <ul className="space-y-2 text-sm text-[#6b6b6b]">
-                  <li><a href="#team" className="hover:text-[#c9a962] transition-colors">About Us</a></li>
-                  <li><Link to="/contact" className="hover:text-[#c9a962] transition-colors">Contact</Link></li>
-                  <li><a href="#" className="hover:text-[#c9a962] transition-colors">Privacy Policy</a></li>
-                  <li><a href="#" className="hover:text-[#c9a962] transition-colors">Terms of Service</a></li>
+                <h4 className="font-semibold text-[#1C1917] mb-4 text-sm uppercase tracking-wider">Company</h4>
+                <ul className="space-y-3 text-sm text-[#57534E]">
+                  <li><a href="#team" className="hover:text-[#C9A86A] transition-colors">About Us</a></li>
+                  <li><Link to="/contact" className="hover:text-[#C9A86A] transition-colors">Contact</Link></li>
+                  <li><a href="#" className="hover:text-[#C9A86A] transition-colors">Privacy Policy</a></li>
+                  <li><a href="#" className="hover:text-[#C9A86A] transition-colors">Terms of Service</a></li>
                 </ul>
               </div>
               
               <div>
-                <h4 className="font-medium text-[#faf9f6] mb-4">Connect</h4>
-                <div className="flex gap-4">
-                  <a href="#" className="w-10 h-10 rounded-lg bg-white/[0.05] flex items-center justify-center hover:bg-[#c9a962]/20 transition-colors">
-                    <Icon name="Instagram" size={20} className="text-[#a8a8a8]" />
+                <h4 className="font-semibold text-[#1C1917] mb-4 text-sm uppercase tracking-wider">Connect</h4>
+                <div className="flex gap-3">
+                  <a href="#" className="w-10 h-10 rounded-lg bg-[#F5F5F4] flex items-center justify-center hover:bg-[#C9A86A]/10 transition-colors">
+                    <Icon name="Instagram" size={18} className="text-[#57534E]" />
                   </a>
-                  <a href="#" className="w-10 h-10 rounded-lg bg-white/[0.05] flex items-center justify-center hover:bg-[#c9a962]/20 transition-colors">
-                    <Icon name="Facebook" size={20} className="text-[#a8a8a8]" />
+                  <a href="#" className="w-10 h-10 rounded-lg bg-[#F5F5F4] flex items-center justify-center hover:bg-[#C9A86A]/10 transition-colors">
+                    <Icon name="Facebook" size={18} className="text-[#57534E]" />
                   </a>
-                  <a href="#" className="w-10 h-10 rounded-lg bg-white/[0.05] flex items-center justify-center hover:bg-[#c9a962]/20 transition-colors">
-                    <Icon name="Linkedin" size={20} className="text-[#a8a8a8]" />
+                  <a href="#" className="w-10 h-10 rounded-lg bg-[#F5F5F4] flex items-center justify-center hover:bg-[#C9A86A]/10 transition-colors">
+                    <Icon name="Linkedin" size={18} className="text-[#57534E]" />
                   </a>
                 </div>
               </div>
             </div>
             
-            <div className="flex flex-col md:flex-row items-center justify-between gap-4 pt-8 border-t border-[#c9a962]/10">
-              <p className="text-sm text-[#6b6b6b]">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4 pt-8 border-t border-[#E7E5E4]">
+              <p className="text-sm text-[#A8A29E]">
                 © {new Date().getFullYear()} Stable Eye. All rights reserved.
               </p>
               <Link
                 to="/login"
-                className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#c9a962] to-[#a88a45] text-[#0a0a0f] font-semibold hover:shadow-[0_0_30px_rgba(201,169,98,0.3)] transition-all duration-300"
+                className="px-6 py-2.5 rounded bg-[#C9A86A] text-white font-semibold text-sm hover:bg-[#8B7355] transition-all duration-200"
               >
                 Login to App
               </Link>

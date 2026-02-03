@@ -1,0 +1,437 @@
+Style Guide & Design System PRD: Stable Eye Landing Page Redesign
+1. Design Direction Overview
+Transition: From dark/moody luxury → Light/refined luxury
+Core Aesthetic: Modern equestrian elegance with clinical precision — combining the sophistication of high-end equestrian brands with the trust and clarity of medical/veterinary technology.
+Mood Keywords: Clean, refined, trustworthy, sophisticated, veterinary-grade, premium, peaceful, protective
+2. Color Palette
+2.1 Primary Colors
+Base White/Neutrals:
+	∙	Primary Background: #FFFFFF (Pure white)
+	∙	Secondary Background: #FAFAF9 (Warm off-white)
+	∙	Tertiary Background: #F5F5F4 (Subtle warm gray for section breaks)
+Accent Colors:
+	∙	Primary Accent: #C9A86A (Champagne gold - refined, not brassy)
+	∙	Use: CTAs, key highlights, icons, hover states
+	∙	Ratio: 5-10% of page
+	∙	Secondary Accent: #8B7355 (Saddle brown)
+	∙	Use: Subheadings, secondary buttons, borders
+	∙	Ratio: 10-15% of page
+Supporting Neutrals:
+	∙	Text Primary: #1C1917 (Near black, warm undertone)
+	∙	Text Secondary: #57534E (Warm medium gray)
+	∙	Text Tertiary: #A8A29E (Light warm gray for captions)
+	∙	Border/Divider: #E7E5E4 (Subtle warm gray)
+Functional Colors:
+	∙	Success/Health: #16A34A (Forest green - represents health, wellness)
+	∙	Alert/Warning: #EA580C (Warm orange - for alert examples)
+	∙	Information: #0369A1 (Deep sky blue)
+2.2 Color Usage Strategy
+Hero Section:
+	∙	White background with large, airy product photography
+	∙	Gold accents sparingly on primary CTA
+	∙	Dark text for maximum readability
+Alternating Sections:
+	∙	Rhythm: White → Warm off-white → White
+	∙	Never more than two consecutive dark sections
+	∙	Gold accents appear consistently but strategically
+Photography Treatment:
+	∙	High-key lighting in stable photography
+	∙	Natural lighting emphasized
+	∙	Warm color grading (slightly golden hour tone)
+3. Typography System
+3.1 Font Families
+Headings:
+	∙	Primary Choice: ‘Cormorant Garamond’ or ‘Libre Baskerville’
+	∙	Serif font suggesting tradition, heritage, refinement
+	∙	Alternative: ‘Playfair Display’ (if more modern feel desired)
+Body & UI:
+	∙	Primary Choice: ‘Inter’ or ‘Manrope’
+	∙	Clean, highly legible sans-serif
+	∙	Modern, professional, accessible
+	∙	Alternative: ‘DM Sans’
+Accent/Special:
+	∙	Optional: Thin weight of heading font for testimonials, quotes
+	∙	Small caps for category labels/overlines
+3.2 Type Scale & Hierarchy
+Desktop:
+
+H1 (Hero): 64px / 68px line-height, Serif, 400 weight
+H2 (Section): 48px / 52px, Serif, 400 weight  
+H3 (Subsection): 32px / 38px, Serif, 500 weight
+H4 (Card title): 24px / 30px, Serif, 500 weight
+Body Large: 20px / 32px, Sans-serif, 400 weight
+Body Regular: 16px / 26px, Sans-serif, 400 weight
+Body Small: 14px / 22px, Sans-serif, 400 weight
+Caption: 12px / 18px, Sans-serif, 500 weight, uppercase tracking
+
+
+Mobile (adjust down):
+
+H1: 40px / 44px
+H2: 32px / 38px
+H3: 24px / 30px
+H4: 20px / 26px
+
+
+3.3 Typography Treatment
+	∙	Letter spacing: Slightly increased on headings (+0.01em for elegance)
+	∙	Text color contrast: Minimum 4.5:1 for WCAG AA
+	∙	Link styling: Gold underline on hover, smooth transition
+	∙	Emphasis: Gold color for key phrases, not bold (maintains elegance)
+4. Spacing & Layout System
+4.1 Grid System
+Container:
+	∙	Max-width: 1280px
+	∙	Padding: 80px horizontal (desktop), 24px (mobile)
+	∙	Centered alignment
+Grid:
+	∙	12-column grid
+	∙	Gutter: 32px (desktop), 16px (mobile)
+	∙	Margin: Fluid
+4.2 Spacing Scale
+Use 8px base unit:
+
+xs: 8px
+sm: 16px
+md: 24px
+lg: 32px
+xl: 48px
+2xl: 64px
+3xl: 96px
+4xl: 128px
+5xl: 192px
+
+
+Section Spacing:
+	∙	Between major sections: 128px (desktop), 80px (mobile)
+	∙	Within sections: 64px (desktop), 40px (mobile)
+	∙	Between elements: 32px standard
+Breathing Room:
+	∙	Generous white space around all elements
+	∙	Never crowded or cramped
+	∙	2:1 ratio of white space to content in hero
+5. Component Styles
+5.1 Buttons
+Primary (CTA):
+
+Background: Champagne gold (#C9A86A)
+Text: White or very dark brown
+Padding: 16px 32px
+Border-radius: 4px (subtle, modern)
+Font: 16px, Sans-serif, 600 weight
+Hover: Darken 10%, slight lift (2px shadow)
+Transition: 200ms ease
+
+
+Secondary:
+
+Background: White
+Text: Champagne gold
+Border: 2px solid champagne gold
+Padding: 14px 30px (account for border)
+Hover: Fill with gold, text to white
+
+
+Tertiary (Ghost):
+
+Background: Transparent
+Text: Saddle brown
+Underline on hover: Gold, 2px
+
+
+5.2 Cards
+Feature Cards:
+
+Background: White
+Border: 1px solid #E7E5E4
+Border-radius: 8px
+Padding: 40px
+Shadow: None initially, subtle on hover
+  Hover shadow: 0 8px 24px rgba(201, 168, 106, 0.08)
+Icon: Gold, 32px, top aligned
+
+
+Testimonial Cards:
+
+Background: #FAFAF9 (warm off-white)
+Border: None or subtle gold left border (4px)
+Padding: 32px
+Quote marks: Large, gold, serif font
+Photo: Circular, 64px, grayscale with gold border
+
+
+Image Cards:
+
+Border-radius: 8px
+Overlay gradient: Subtle dark overlay on hover
+Caption: White text, bottom positioned
+
+
+5.3 Form Elements
+Input Fields:
+
+Background: White
+Border: 1.5px solid #E7E5E4
+Border-radius: 4px
+Padding: 12px 16px
+Focus: Gold border, subtle gold shadow
+Font: 16px (prevent zoom on mobile)
+
+
+Labels:
+
+Font: 14px, 600 weight, saddle brown
+Margin-bottom: 8px
+
+
+5.4 Iconography
+Style: Line icons (not filled) for modern, clean look
+Color: Champagne gold as primary, saddle brown as secondary
+Size: 24px standard, 32px for feature highlights, 48px for major sections
+Sources: Lucide, Feather Icons, or custom set
+Treatment: 1.5px stroke width, rounded caps
+5.5 Photography Style
+Product Photos:
+	∙	White or very light neutral backgrounds
+	∙	Clean studio lighting
+	∙	Show device in context with horses
+	∙	High resolution, crisp details
+	∙	Subtle shadows for depth
+Lifestyle/Horse Photos:
+	∙	Natural lighting (golden hour preferred)
+	∙	Authentic stable environments (clean, well-maintained)
+	∙	Warm color grading
+	∙	Include humans for scale and emotional connection
+	∙	Mix of close-ups and environmental shots
+Photo Treatment:
+	∙	Minimal filters (authenticity matters)
+	∙	Consistent warm temperature (+200K)
+	∙	Slight vignette on hero images
+	∙	Border-radius: 8px on cards, 0 on full-bleed
+5.6 Video Elements
+Container:
+	∙	16:9 aspect ratio
+	∙	Border-radius: 8px
+	∙	Subtle shadow: 0 4px 16px rgba(0,0,0,0.06)
+	∙	Play button: Gold circle, white icon
+Thumbnail:
+	∙	High-quality freeze frame
+	∙	Gradient overlay with play icon
+	∙	Text overlay in white if needed
+6. Section-Specific Styling
+6.1 Hero Section
+Layout:
+	∙	Split: 50% text, 50% visual (desktop)
+	∙	Stack on mobile: text first
+	∙	Height: 90vh minimum (desktop)
+Background:
+	∙	Pure white (#FFFFFF)
+	∙	Optional: Subtle radial gradient from warm off-white
+Text Treatment:
+	∙	Hero headline: Large serif, dark text
+	∙	Subheadline: Body sans-serif, secondary gray
+	∙	CTA: Gold button, prominent
+	∙	Trust indicators: Small caps, gold text
+Visual:
+	∙	Product in beautiful stable setting
+	∙	Or: Split image showing device + happy horse
+	∙	High-key lighting, airy feel
+6.2 Feature Section
+Layout:
+	∙	3-column grid (desktop), stack (mobile)
+	∙	Icon above, title, description below
+Background:
+	∙	Warm off-white (#FAFAF9)
+Cards:
+	∙	White background
+	∙	Hover: Slight lift + subtle gold shadow
+6.3 How It Works
+Layout:
+	∙	Horizontal timeline (desktop)
+	∙	Vertical (mobile)
+	∙	Numbers in gold circles
+Background:
+	∙	White with subtle texture or pattern (very light equestrian motif)
+Visual Flow:
+	∙	Dotted line connecting steps (gold)
+	∙	Icons representing each step
+6.4 Social Proof / Testimonials
+Layout:
+	∙	Carousel or 3-column grid
+	∙	Large quotes in serif font
+Background:
+	∙	Warm off-white or white
+	∙	Alternating if multiple rows
+Elements:
+	∙	Quote marks: Oversized, gold, serif
+	∙	Customer photos: Circular, subtle gold border
+	∙	Star ratings: Gold fill
+6.5 CTA Sections
+Layout:
+	∙	Centered, generous padding
+	∙	Max 600px width for text
+Background:
+	∙	Deep saddle brown with subtle texture
+	∙	OR: White with gold border treatment
+	∙	OR: Large background photo with overlay
+Text:
+	∙	White text if dark background
+	∙	Dark text if light background
+	∙	Gold CTA button stands out
+7. Interactive Elements & Micro-interactions
+7.1 Animations
+Page Load:
+	∙	Fade in from bottom: 600ms ease-out
+	∙	Stagger child elements: 100ms delay between
+Scroll Animations:
+	∙	Trigger: Element 20% in viewport
+	∙	Fade + slight upward movement
+	∙	Duration: 400ms
+Hover States:
+	∙	Links: Underline slide-in, 200ms
+	∙	Buttons: Darken + 2px lift, 200ms
+	∙	Cards: Shadow + 4px lift, 300ms
+	∙	Images: Slight scale (1.02), 400ms
+Click/Tap:
+	∙	Slight scale down (0.98) then return
+	∙	Ripple effect on buttons (optional)
+7.2 Transitions
+Global:
+	∙	Default: 200ms ease-in-out
+	∙	Color changes: 150ms
+	∙	Transform: 300ms ease-out
+	∙	Opacity: 200ms linear
+7.3 Loading States
+Buttons:
+	∙	Spinner: Gold on white background
+	∙	Text: “Processing…” in same style
+Form Submission:
+	∙	Disable input, show progress
+	∙	Success: Green checkmark with message
+	∙	Error: Orange alert with clear message
+8. Responsive Behavior
+8.1 Breakpoints
+
+Mobile: 0-640px
+Tablet: 641-1024px
+Desktop: 1025-1440px
+Large Desktop: 1441px+
+
+
+8.2 Mobile-Specific Adjustments
+Typography:
+	∙	Scale down 20-30%
+	∙	Tighter line-height on headings
+Spacing:
+	∙	Reduce section padding by 40%
+	∙	Maintain comfortable tap targets (44px minimum)
+Navigation:
+	∙	Hamburger menu: Gold icon
+	∙	Full-screen overlay: White background
+	∙	Close icon: Dark brown
+Images:
+	∙	Full bleed on mobile
+	∙	Lazy load below fold
+	∙	Reduce file size, maintain quality
+CTAs:
+	∙	Sticky bottom bar option
+	∙	Full-width buttons on mobile
+9. Accessibility Considerations
+Color Contrast:
+	∙	All text meets WCAG AA (4.5:1 minimum)
+	∙	Gold on white: Ensure sufficient weight/size
+	∙	Interactive elements: 3:1 contrast minimum
+Focus States:
+	∙	Visible outline: 2px gold
+	∙	Skip to main content link
+	∙	Keyboard navigation fully supported
+Alt Text:
+	∙	Descriptive for all images
+	∙	Empty alt for decorative images
+	∙	Transcripts for videos
+Motion:
+	∙	Respect prefers-reduced-motion
+	∙	Disable animations if requested
+	∙	Maintain functionality without motion
+10. Technical Implementation
+10.1 CSS Architecture
+Approach: Utility-first with custom components (Tailwind CSS recommended)
+Custom Properties:
+
+:root {
+  --color-gold: #C9A86A;
+  --color-saddle: #8B7355;
+  --color-text: #1C1917;
+  --space-unit: 8px;
+  --radius: 8px;
+  --transition: 200ms ease-in-out;
+}
+
+
+10.2 Performance
+Images:
+	∙	WebP format with JPEG fallback
+	∙	Lazy loading below fold
+	∙	Responsive images (srcset)
+	∙	Max file size: 200KB per image
+Fonts:
+	∙	Self-hosted or Google Fonts
+	∙	Preload critical fonts
+	∙	Font-display: swap
+	∙	Subset fonts if possible
+CSS/JS:
+	∙	Minify and bundle
+	∙	Critical CSS inline
+	∙	Defer non-critical scripts
+	∙	Target: <50KB initial CSS
+10.3 Browser Support
+	∙	Modern browsers (last 2 versions)
+	∙	Graceful degradation for older browsers
+	∙	Test on iOS Safari, Chrome, Firefox, Edge
+11. Brand Consistency Touchpoints
+11.1 Logo Usage
+Placement: Top left, standard
+Size: 140px width (desktop), 100px (mobile)
+Color versions:
+	∙	Full color (gold + brown) on white
+	∙	White on dark backgrounds
+	∙	Monochrome brown for print
+Clearspace: 20px minimum all sides
+11.2 Tone of Voice (Visual)
+Every design decision should communicate:
+	∙	Premium: Through generous spacing, refined typography
+	∙	Trustworthy: Through clean layout, clear hierarchy
+	∙	Sophisticated: Through color restraint, elegant serif headings
+	∙	Approachable: Through warm tones, authentic photography
+	∙	Innovative: Through modern UI patterns, subtle animations
+11.3 Pattern Library
+Decorative Elements:
+	∙	Subtle line patterns (equestrian-inspired)
+	∙	Gold accent lines/dividers (1px, 30% width)
+	∙	Circular badges for stats/numbers
+	∙	Quote mark graphics for testimonials
+Usage: Sparingly, never overwhelming
+12. Success Metrics (Design-Related)
+	∙	Visual hierarchy clarity: Eye-tracking tests
+	∙	Brand perception: Premium/luxury rating surveys
+	∙	Readability: Text legibility scores
+	∙	Mobile usability: Touch target compliance
+	∙	Load performance: Lighthouse score >90
+	∙	Accessibility: WCAG AA compliance
+13. Design Deliverables
+	1.	Style guide document (this PRD)
+	2.	Figma/Sketch design file with all components
+	3.	Component library for development
+	4.	Responsive mockups (mobile, tablet, desktop)
+	5.	Interactive prototype for testing
+	6.	Asset library (icons, patterns, images)
+	7.	Animation specifications document
+	8.	Developer handoff notes with CSS variables
+14. Future Considerations
+	∙	Dark mode toggle: Inverse color scheme available
+	∙	Seasonal variations: Subtle adjustments for brand freshness
+	∙	International versions: RTL support, different color cultural meanings
+	∙	Print materials: How digital style translates to brochures, cards
+
+Design Timeline: 3-4 weeks
+Key Milestone: Design review with stakeholders before development handoff​​​​​​​​​​​​​​​​
