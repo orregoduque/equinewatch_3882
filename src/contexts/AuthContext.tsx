@@ -58,6 +58,18 @@ const mockUsers: { email: string; password: string; user: User }[] = [
       role: 'admin',
     },
   },
+  {
+    email: 'yc_team@stableeye.co',
+    password: 'yc123',
+    user: {
+      id: '4',
+      email: 'yc_team@stableeye.co',
+      name: 'YC Team',
+      role: 'admin',
+      stableId: 'stable-1',
+      stableName: 'Stable Eye HQ',
+    },
+  },
 ];
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
@@ -89,10 +101,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     return {
       success: false,
-      error: 'Invalid credentials. Please use one of the following:\n' +
-        'Horse Owner: owner@equinewatch.com / owner123\n' +
-        'Stable Owner: stable@equinewatch.com / stable123\n' +
-        'Admin: admin@equinewatch.com / admin123',
+      error: 'Invalid credentials. Please check your email and password.',
     };
   };
 

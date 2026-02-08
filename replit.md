@@ -67,6 +67,7 @@ The app supports 3 user types with different access levels:
 ### Admin (admin)
 - Access: Everything + Admin Dashboard + All Stables + User Management
 - Login: admin@equinewatch.com / admin123
+- Login: yc_team@stableeye.co / yc123 (YC Demo)
 
 ## Design System
 - **Theme**: Light/refined luxury with modern equestrian elegance
