@@ -60,7 +60,7 @@ const mockUsers: { email: string; password: string; user: User }[] = [
   },
   {
     email: 'yc_team@stableeye.co',
-    password: 'yc123',
+    password: 'ycteam123',
     user: {
       id: '4',
       email: 'yc_team@stableeye.co',
