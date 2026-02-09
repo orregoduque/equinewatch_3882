@@ -359,6 +359,7 @@ const Landing: React.FC = () => {
           </div>
         </section>
 
+        {/* Testimonials section hidden for now
         <section id="testimonials" className="py-24 px-6 lg:px-20 bg-white">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-16">
@@ -399,6 +400,7 @@ const Landing: React.FC = () => {
             </div>
           </div>
         </section>
+        */}
 
         <section className="py-24 px-6 lg:px-20 bg-[#FAFAF9]">
           <div className="max-w-5xl mx-auto">
