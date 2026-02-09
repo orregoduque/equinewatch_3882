@@ -61,7 +61,7 @@ const Landing: React.FC = () => {
 
   const team = [
     { name: 'Juan Jose Orrego', role: 'CEO', title: 'Electronic Engineer', image: 'https://www.stable-eye.co/_next/image?url=%2Fproducts%2FCEO.jpg&w=640&q=75' },
-    { name: 'Valentina Hurtado', role: 'CFO', title: 'Architect', image: 'https://www.stable-eye.co/_next/image?url=%2Fproducts%2FCDO.jpeg&w=640&q=75' },
+    { name: 'Valentina Hurtado', role: 'COO', title: 'Architect', image: 'https://www.stable-eye.co/_next/image?url=%2Fproducts%2FCDO.jpeg&w=640&q=75' },
   ];
 
   return (
