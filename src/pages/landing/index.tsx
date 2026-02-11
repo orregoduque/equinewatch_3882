@@ -214,11 +214,11 @@ const Landing: React.FC = () => {
                 </p>
               </div>
               <div className="relative">
-                <div className="aspect-square rounded-lg overflow-hidden shadow-lg border border-[#E7E5E4]">
+                <div className="aspect-[4/5] rounded-lg overflow-hidden shadow-lg border border-[#E7E5E4]">
                   <img
                     src="https://www.stable-eye.co/_next/image?url=%2Fproducts%2Fiphone.png&w=1080&q=75"
                     alt="Stable Eye App showing horse monitoring alerts"
-                    className="w-full h-full object-contain bg-[#FAFAF9] p-8"
+                    className="w-full h-full object-contain object-top bg-[#FAFAF9] p-8 pb-0"
                     loading="lazy"
                   />
                 </div>
