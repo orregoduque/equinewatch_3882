@@ -86,8 +86,8 @@ const Landing: React.FC = () => {
               </div>
               
               <nav className="hidden md:flex items-center gap-10">
-                <a href="#features" className="text-[#57534E] hover:text-[#C9A86A] transition-colors text-sm font-medium">Features</a>
                 <a href="#how-it-works" className="text-[#57534E] hover:text-[#C9A86A] transition-colors text-sm font-medium">How It Works</a>
+                <a href="#features" className="text-[#57534E] hover:text-[#C9A86A] transition-colors text-sm font-medium">Features</a>
 
                 <a href="#faq" className="text-[#57534E] hover:text-[#C9A86A] transition-colors text-sm font-medium">FAQ</a>
               </nav>
