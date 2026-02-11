@@ -117,7 +117,7 @@ const Landing: React.FC = () => {
                 </h1>
                 
                 <p className="text-xl text-[#57534E] leading-relaxed mb-4 font-medium">
-                  AI-Powered Monitoring for Your Horse's Health
+                  AI-powered preventive infrastructure for the global equine industry
                 </p>
                 
                 <p className="text-lg text-[#A8A29E] leading-relaxed mb-10 max-w-lg">
