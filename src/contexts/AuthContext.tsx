@@ -11,11 +11,27 @@ export interface User {
   stableName?: string;
 }
 
+interface StoredAccount {
+  email: string;
+  password: string;
+  user: User;
+}
+
+interface CreateUserData {
+  name: string;
+  email: string;
+  password: string;
+  role: UserRole;
+  stableName?: string;
+}
+
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
+  createUser: (data: CreateUserData) => { success: boolean; error?: string };
+  getCreatedUsers: () => StoredAccount[];
   isHorseOwner: boolean;
   isStableOwner: boolean;
   isAdmin: boolean;
@@ -23,7 +39,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const mockUsers: { email: string; password: string; user: User }[] = [
+const BASE_USERS: StoredAccount[] = [
   {
     email: 'owner@equinewatch.com',
     password: 'owner123',
@@ -72,8 +88,24 @@ const mockUsers: { email: string; password: string; user: User }[] = [
   },
 ];
 
+const CREATED_USERS_KEY = 'stableEyeCreatedUsers';
+
+const loadCreatedUsers = (): StoredAccount[] => {
+  try {
+    const stored = localStorage.getItem(CREATED_USERS_KEY);
+    return stored ? JSON.parse(stored) : [];
+  } catch {
+    return [];
+  }
+};
+
+const saveCreatedUsers = (users: StoredAccount[]) => {
+  localStorage.setItem(CREATED_USERS_KEY, JSON.stringify(users));
+};
+
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [createdUsers, setCreatedUsers] = useState<StoredAccount[]>(loadCreatedUsers);
 
   useEffect(() => {
     const storedUser = localStorage.getItem('stableEyeUser');
@@ -86,10 +118,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, []);
 
+  const getAllAccounts = (): StoredAccount[] => [...BASE_USERS, ...createdUsers];
+
   const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    const foundUser = mockUsers.find(
+    const allAccounts = getAllAccounts();
+    const foundUser = allAccounts.find(
       (u) => u.email === email && u.password === password
     );
 
@@ -110,11 +145,49 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     localStorage.removeItem('stableEyeUser');
   };
 
+  const createUser = (data: CreateUserData): { success: boolean; error?: string } => {
+    const allAccounts = getAllAccounts();
+    const emailExists = allAccounts.find((u) => u.email.toLowerCase() === data.email.toLowerCase());
+    if (emailExists) {
+      return { success: false, error: 'An account with this email already exists.' };
+    }
+
+    if (!data.name.trim() || !data.email.trim() || !data.password.trim()) {
+      return { success: false, error: 'Name, email, and password are required.' };
+    }
+
+    if (data.password.length < 6) {
+      return { success: false, error: 'Password must be at least 6 characters.' };
+    }
+
+    const newAccount: StoredAccount = {
+      email: data.email.toLowerCase().trim(),
+      password: data.password,
+      user: {
+        id: `user-${Date.now()}`,
+        email: data.email.toLowerCase().trim(),
+        name: data.name.trim(),
+        role: data.role,
+        stableName: data.stableName?.trim() || undefined,
+      },
+    };
+
+    const updated = [...createdUsers, newAccount];
+    setCreatedUsers(updated);
+    saveCreatedUsers(updated);
+
+    return { success: true };
+  };
+
+  const getCreatedUsers = (): StoredAccount[] => createdUsers;
+
   const value: AuthContextType = {
     user,
     isAuthenticated: !!user,
     login,
     logout,
+    createUser,
+    getCreatedUsers,
     isHorseOwner: user?.role === 'horse_owner',
     isStableOwner: user?.role === 'stable_owner',
     isAdmin: user?.role === 'admin',
