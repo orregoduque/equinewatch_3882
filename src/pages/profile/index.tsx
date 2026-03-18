@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
-import { useNavigate } from 'react-router-dom';
 import Header from '../../components/ui/Header';
 import MobileNavigation from '../../components/ui/MobileNavigation';
 import Button from '../../components/ui/Button';
 import ProfileHeader from './components/ProfileHeader';
 import StatCard from './components/StatCard';
 import { UserProfile, ProfileStats } from './types';
+import { useAuth } from '../../contexts/AuthContext';
+import { fetchUserProfiles } from '../../utils/supabase';
 
 const Profile: React.FC = () => {
-  const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [stats, setStats] = useState<ProfileStats | null>(null);
@@ -17,15 +18,27 @@ const Profile: React.FC = () => {
   useEffect(() => {
     const loadProfileData = async () => {
       setIsLoading(true);
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 800));
 
-      const mockProfile: UserProfile = {
-        id: '1',
-        name: 'Sarah Anderson',
-        email: 'sarah.anderson@equinewatch.com',
-        memberSince: new Date('2023-03-15'),
+      let memberSince = new Date();
+
+      // Try to fetch created_at from Supabase profiles table
+      if (user?.email) {
+        try {
+          const profiles = await fetchUserProfiles();
+          const found = profiles.find((p) => p.email === user.email);
+          if (found?.created_at) {
+            memberSince = new Date(found.created_at);
+          }
+        } catch {
+          // fallback to today
+        }
+      }
+
+      const appProfile: UserProfile = {
+        id: user?.id || '1',
+        name: user?.name || 'Unknown User',
+        email: user?.email || '',
+        memberSince,
         horsesOwned: 12,
       };
 
@@ -36,18 +49,17 @@ const Profile: React.FC = () => {
         lastObservation: new Date('2025-12-12T13:45:00'),
       };
 
-      setProfile(mockProfile);
+      setProfile(appProfile);
       setStats(mockStats);
       setIsLoading(false);
     };
 
     loadProfileData();
-  }, []);
+  }, [user]);
 
   const handleLogout = () => {
-    localStorage.clear();
-    sessionStorage.clear();
-    window.location.href = '/#team';
+    logout();
+    window.location.href = '/';
   };
 
   const formatLastObservation = (date: Date): string => {
