@@ -28,29 +28,59 @@ export interface HorseImage {
   user_id: string;
 }
 
+export interface UserProfile {
+  id: string;
+  email: string;
+  name: string;
+  role: 'horse_owner' | 'stable_owner' | 'admin';
+  stable_name: string | null;
+  created_at: string;
+}
+
 export const getImageUrl = (storagePath: string): string => {
   return `${supabaseUrl}/storage/v1/object/public/images/${storagePath}`;
 };
 
 export const fetchHorseImages = async (limit: number = 20): Promise<HorseImage[]> => {
   console.log('Fetching images from Supabase...', { supabaseUrl, limit });
-  
   try {
     const { data, error } = await supabase
       .from('images')
       .select('*')
       .order('created_at', { ascending: false })
       .limit(limit);
-
     if (error) {
       console.error('Supabase error fetching images:', error);
       return [];
     }
-
     console.log('Fetched images count:', data?.length || 0);
     return data || [];
   } catch (err) {
     console.error('Exception fetching images:', err);
     return [];
+  }
+};
+
+export const fetchUserProfiles = async (): Promise<UserProfile[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (error) return [];
+    return data || [];
+  } catch {
+    return [];
+  }
+};
+
+export const insertUserProfile = async (profile: Omit<UserProfile, 'id' | 'created_at'>): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from('profiles')
+      .insert([profile]);
+    return !error;
+  } catch {
+    return false;
   }
 };

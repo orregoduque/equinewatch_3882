@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { supabase } from '../utils/supabase';
+import { supabase, fetchUserProfiles, insertUserProfile, UserProfile } from '../utils/supabase';
 
 export type UserRole = 'horse_owner' | 'stable_owner' | 'admin';
 
@@ -10,12 +10,6 @@ export interface User {
   role: UserRole;
   stableId?: string;
   stableName?: string;
-}
-
-interface StoredAccount {
-  email: string;
-  password: string;
-  user: User;
 }
 
 interface CreateUserData {
@@ -37,7 +31,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   createUser: (data: CreateUserData) => Promise<CreateUserResult>;
-  getCreatedUsers: () => StoredAccount[];
+  fetchProfiles: () => Promise<UserProfile[]>;
   isHorseOwner: boolean;
   isStableOwner: boolean;
   isAdmin: boolean;
@@ -45,7 +39,8 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const HARDCODED_USERS: StoredAccount[] = [
+// Hardcoded demo accounts — never stored in Supabase
+const HARDCODED_USERS: { email: string; password: string; user: User }[] = [
   {
     email: 'owner@equinewatch.com',
     password: 'owner123',
@@ -94,24 +89,8 @@ const HARDCODED_USERS: StoredAccount[] = [
   },
 ];
 
-const CREATED_USERS_KEY = 'stableEyeCreatedUsers';
-
-const loadCreatedUsers = (): StoredAccount[] => {
-  try {
-    const stored = localStorage.getItem(CREATED_USERS_KEY);
-    return stored ? JSON.parse(stored) : [];
-  } catch {
-    return [];
-  }
-};
-
-const saveCreatedUsers = (users: StoredAccount[]) => {
-  localStorage.setItem(CREATED_USERS_KEY, JSON.stringify(users));
-};
-
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [createdUsers, setCreatedUsers] = useState<StoredAccount[]>(loadCreatedUsers);
 
   useEffect(() => {
     const storedUser = localStorage.getItem('stableEyeUser');
@@ -129,7 +108,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const normalizedEmail = email.trim().toLowerCase();
 
-    // 1. Check hardcoded users first
+    // 1. Check hardcoded demo users
     const hardcoded = HARDCODED_USERS.find(
       (u) => u.email === normalizedEmail && u.password === password
     );
@@ -139,18 +118,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return { success: true };
     }
 
-    // 2. Check locally stored created users (fallback)
-    const latest = loadCreatedUsers();
-    const local = latest.find(
-      (u) => u.email === normalizedEmail && u.password === password
-    );
-    if (local) {
-      setUser(local.user);
-      localStorage.setItem('stableEyeUser', JSON.stringify(local.user));
-      return { success: true };
-    }
-
-    // 3. Try Supabase Auth for users created via Supabase
+    // 2. Try Supabase Auth (works on any device)
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email: normalizedEmail,
@@ -158,20 +126,23 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       });
 
       if (!error && data.user) {
-        const meta = data.user.user_metadata || {};
+        // Fetch profile from profiles table for role/name info
+        const profiles = await fetchUserProfiles();
+        const profile = profiles.find((p) => p.email === normalizedEmail);
+
         const appUser: User = {
           id: data.user.id,
-          email: data.user.email || normalizedEmail,
-          name: meta.name || normalizedEmail,
-          role: (meta.role as UserRole) || 'horse_owner',
-          stableName: meta.stable_name || undefined,
+          email: normalizedEmail,
+          name: profile?.name || data.user.user_metadata?.name || normalizedEmail,
+          role: (profile?.role as UserRole) || (data.user.user_metadata?.role as UserRole) || 'horse_owner',
+          stableName: profile?.stable_name || data.user.user_metadata?.stable_name || undefined,
         };
         setUser(appUser);
         localStorage.setItem('stableEyeUser', JSON.stringify(appUser));
         return { success: true };
       }
     } catch {
-      // Supabase unavailable — continue to failure
+      // Supabase unavailable
     }
 
     return {
@@ -196,61 +167,60 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const normalizedEmail = data.email.trim().toLowerCase();
 
-    // Check for duplicates in hardcoded + local lists
-    const allLocal = [...HARDCODED_USERS, ...loadCreatedUsers()];
-    if (allLocal.find((u) => u.email === normalizedEmail)) {
+    // Check duplicate in hardcoded users
+    if (HARDCODED_USERS.find((u) => u.email === normalizedEmail)) {
       return { success: false, error: 'An account with this email already exists.' };
     }
 
-    // Create user in Supabase Auth with role stored in metadata
-    try {
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: normalizedEmail,
-        password: data.password,
-        options: {
-          data: {
-            name: data.name.trim(),
-            role: data.role,
-            stable_name: data.stableName?.trim() || null,
-          },
-        },
-      });
-
-      if (authError) {
-        // Fall back to local storage if Supabase fails
-        return saveLocalUser(data, normalizedEmail);
-      }
-
-      if (authData.user) {
-        // Also save locally so login works immediately without email confirmation
-        return saveLocalUser(data, normalizedEmail);
-      }
-    } catch {
-      return saveLocalUser(data, normalizedEmail);
-    }
-
-    return saveLocalUser(data, normalizedEmail);
-  };
-
-  const saveLocalUser = (data: CreateUserData, normalizedEmail: string): CreateUserResult => {
-    const newAccount: StoredAccount = {
+    // 1. Create in Supabase Auth
+    const { data: authData, error: authError } = await supabase.auth.signUp({
       email: normalizedEmail,
       password: data.password,
-      user: {
-        id: `user-${Date.now()}`,
-        email: normalizedEmail,
-        name: data.name.trim(),
-        role: data.role,
-        stableName: data.stableName?.trim() || undefined,
+      options: {
+        data: {
+          name: data.name.trim(),
+          role: data.role,
+          stable_name: data.stableName?.trim() || null,
+        },
       },
-    };
-    const updated = [...loadCreatedUsers(), newAccount];
-    setCreatedUsers(updated);
-    saveCreatedUsers(updated);
+    });
+
+    if (authError) {
+      return { success: false, error: authError.message };
+    }
+
+    // 2. Save profile to Supabase profiles table (cross-device visibility)
+    await insertUserProfile({
+      email: normalizedEmail,
+      name: data.name.trim(),
+      role: data.role,
+      stable_name: data.stableName?.trim() || null,
+    });
+
+    // 3. If Supabase signInWithPassword won't work immediately due to email confirmation,
+    //    we store a local backup so the user can still log in on this device.
+    //    On other devices, login requires email confirmation to be disabled in Supabase.
+    if (authData.user && !authData.session) {
+      // No session = email confirmation required. Store locally as backup.
+      const localUsers = JSON.parse(localStorage.getItem('stableEyeCreatedUsers') || '[]');
+      localUsers.push({
+        email: normalizedEmail,
+        password: data.password,
+        user: {
+          id: authData.user.id,
+          email: normalizedEmail,
+          name: data.name.trim(),
+          role: data.role,
+          stableName: data.stableName?.trim() || undefined,
+        },
+      });
+      localStorage.setItem('stableEyeCreatedUsers', JSON.stringify(localUsers));
+    }
+
     return { success: true };
   };
 
-  const getCreatedUsers = (): StoredAccount[] => createdUsers;
+  const fetchProfiles = fetchUserProfiles;
 
   const value: AuthContextType = {
     user,
@@ -258,7 +228,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     login,
     logout,
     createUser,
-    getCreatedUsers,
+    fetchProfiles,
     isHorseOwner: user?.role === 'horse_owner',
     isStableOwner: user?.role === 'stable_owner',
     isAdmin: user?.role === 'admin',

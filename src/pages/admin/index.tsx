@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from '../../components/ui/Header';
 import MobileNavigation from '../../components/ui/MobileNavigation';
 import Icon from '../../components/AppIcon';
 import { useAuth, UserRole } from '../../contexts/AuthContext';
+import { UserProfile } from '../../utils/supabase';
 
 interface DisplayUser {
   id: string;
@@ -67,12 +68,13 @@ const BASE_DISPLAY_USERS: DisplayUser[] = [
 ];
 
 const AdminDashboard: React.FC = () => {
-  const { createUser, getCreatedUsers } = useAuth();
+  const { createUser, fetchProfiles } = useAuth();
 
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [formError, setFormError] = useState('');
   const [formSuccess, setFormSuccess] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [supabaseProfiles, setSupabaseProfiles] = useState<UserProfile[]>([]);
   const [newUser, setNewUser] = useState({
     name: '',
     email: '',
@@ -81,15 +83,18 @@ const AdminDashboard: React.FC = () => {
     stableName: '',
   });
 
-  const createdAccounts = getCreatedUsers();
-  const createdDisplayUsers: DisplayUser[] = createdAccounts.map((acc) => ({
-    id: acc.user.id,
-    name: acc.user.name,
-    email: acc.user.email,
-    role: acc.user.role,
-    stableName: acc.user.stableName,
+  useEffect(() => {
+    fetchProfiles().then(setSupabaseProfiles);
+  }, []);
+
+  const createdDisplayUsers: DisplayUser[] = supabaseProfiles.map((p) => ({
+    id: p.id,
+    name: p.name,
+    email: p.email,
+    role: p.role as UserRole,
+    stableName: p.stable_name || undefined,
     status: 'active',
-    createdAt: new Date(),
+    createdAt: new Date(p.created_at),
   }));
 
   const allUsers = [...BASE_DISPLAY_USERS, ...createdDisplayUsers];
@@ -162,6 +167,7 @@ const AdminDashboard: React.FC = () => {
 
     setFormSuccess(`User "${newUser.name}" created successfully! They can now log in with the provided credentials.`);
     setNewUser({ name: '', email: '', password: '', role: 'horse_owner', stableName: '' });
+    fetchProfiles().then(setSupabaseProfiles);
   };
 
   const stats = {
