@@ -70,16 +70,14 @@ The app supports 3 user types with different access levels:
 - Login: yc_team@stableeye.co / ycteam123 (YC Demo)
 
 ## Design System
-- **Theme**: Light/refined luxury with modern equestrian elegance
-- **Primary Background**: #FFFFFF (Pure white)
-- **Secondary Background**: #FAFAF9 (Warm off-white)
-- **Primary Accent**: #C9A86A (Champagne gold)
-- **Secondary Accent**: #8B7355 (Saddle brown)
-- **Text Primary**: #1C1917 (Near black, warm undertone)
-- **Text Secondary**: #57534E (Warm medium gray)
+- **Theme**: Clean minimal with warm earthy brand identity
+- **Primary Dark**: #40352C (Warm dark brown — primary brand color)
+- **Primary Light**: #F8F6F2 (Warm cream — background)
 - **Success/Health**: #16A34A (Forest green)
-- **Heading Font**: Cormorant Garamond (serif)
-- **Body Font**: Inter (sans-serif)
+- **Title Font**: Syne (geometric, bold)
+- **Body/Subtitle Font**: Montserrat (clean, modern)
+- **Logo (dark bg)**: /logo-white.png
+- **Logo (light bg)**: /logo-dark.png
 
 ## Development Setup
 - **Port**: 5000
