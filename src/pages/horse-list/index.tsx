@@ -50,14 +50,7 @@ const HorseList: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
-      <div className="fixed inset-0 -z-10">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#0a0a0f] via-[#12121a] to-[#0f0f18]" />
-        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-[#c9a962]/5 rounded-full blur-[150px]" />
-        <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-[#c9a962]/3 rounded-full blur-[150px]" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[#c9a962]/2 rounded-full blur-[200px]" />
-      </div>
-
+    <div className="min-h-screen" style={{ backgroundColor: '#F8F6F2' }}>
       <Header />
       
       <main className="pt-24 pb-24 md:pb-12 px-6 md:px-10">
@@ -65,24 +58,24 @@ const HorseList: React.FC = () => {
           <div className="flex flex-col gap-8 animate-slide-up">
             <div className="flex flex-col gap-4">
               <div className="flex items-center gap-3">
-                <div className="w-1 h-12 rounded-full bg-gradient-to-b from-[#c9a962] to-[#a88a45]" />
+                <div className="w-1 h-12 rounded-full" style={{ backgroundColor: '#40352C' }} />
                 <div>
-                  <h1 className="font-serif text-4xl md:text-5xl font-light text-[#faf9f6]">
-                    Horse <span className="gradient-text font-medium">Monitoring</span>
+                  <h1 className="font-serif text-4xl md:text-5xl font-bold" style={{ color: '#40352C', fontFamily: 'Syne, sans-serif' }}>
+                    Horse Monitoring
                   </h1>
-                  <p className="text-base mt-2 font-light text-[#a8a8a8] tracking-wide">
+                  <p className="text-base mt-2" style={{ color: 'rgba(64,53,44,0.55)', fontFamily: 'Montserrat, sans-serif' }}>
                     Real-time health tracking and behavioral insights
                   </p>
                 </div>
               </div>
               
               <div className="flex items-center gap-4 mt-2">
-                <div className="flex items-center gap-2 px-4 py-2 rounded-xl backdrop-blur-xl bg-[#c9a962]/5 border border-[#c9a962]/15">
-                  <div className="w-2 h-2 rounded-full bg-[#4a9d6b] animate-pulse" />
-                  <span className="text-sm font-medium text-[#a8a8a8]">{mockHorses.filter(h => h.status === 'normal').length} Active</span>
+                <div className="flex items-center gap-2 px-4 py-2 rounded-xl" style={{ backgroundColor: 'rgba(64,53,44,0.06)', border: '1px solid rgba(64,53,44,0.12)' }}>
+                  <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                  <span className="text-sm font-medium" style={{ color: 'rgba(64,53,44,0.7)', fontFamily: 'Montserrat, sans-serif' }}>{mockHorses.filter(h => h.status === 'normal').length} Active</span>
                 </div>
-                <div className="flex items-center gap-2 px-4 py-2 rounded-xl backdrop-blur-xl bg-white/[0.03] border border-[#c9a962]/10">
-                  <span className="text-sm font-medium text-[#a8a8a8]">{mockHorses.length} Total Horses</span>
+                <div className="flex items-center gap-2 px-4 py-2 rounded-xl" style={{ backgroundColor: 'rgba(64,53,44,0.04)', border: '1px solid rgba(64,53,44,0.1)' }}>
+                  <span className="text-sm font-medium" style={{ color: 'rgba(64,53,44,0.6)', fontFamily: 'Montserrat, sans-serif' }}>{mockHorses.length} Total Horses</span>
                 </div>
               </div>
             </div>

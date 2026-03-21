@@ -131,13 +131,7 @@ const AdminStables: React.FC = () => {
   const activeStables = mockStables.filter(s => s.status === 'active').length;
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
-      <div className="fixed inset-0 -z-10">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#0a0a0f] via-[#12121a] to-[#0f0f18]" />
-        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-[#c9a962]/5 rounded-full blur-[150px]" />
-        <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-[#c9a962]/3 rounded-full blur-[150px]" />
-      </div>
-
+    <div className="min-h-screen" style={{ backgroundColor: '#F8F6F2' }}>
       <Header />
       
       <main className="pt-24 pb-24 md:pb-12 px-6 md:px-10">
@@ -146,57 +140,58 @@ const AdminStables: React.FC = () => {
             <div className="flex items-center gap-3">
               <Link
                 to="/admin"
-                className="p-2 rounded-lg hover:bg-white/[0.05] text-[#a8a8a8] hover:text-[#c9a962] transition-colors"
+                className="p-2 rounded-lg transition-colors hover:bg-stone-100"
+                style={{ color: 'rgba(64,53,44,0.55)' }}
               >
                 <Icon name="ArrowLeft" size={20} />
               </Link>
-              <div className="w-1 h-12 rounded-full bg-gradient-to-b from-[#c9a962] to-[#a88a45]" />
+              <div className="w-1 h-12 rounded-full" style={{ backgroundColor: '#40352C' }} />
               <div>
-                <h1 className="font-serif text-4xl md:text-5xl font-light text-[#faf9f6]">
-                  All <span className="gradient-text font-medium">Stables</span>
+                <h1 className="text-4xl md:text-5xl font-bold" style={{ color: '#40352C', fontFamily: 'Syne, sans-serif' }}>
+                  All Stables
                 </h1>
-                <p className="text-base mt-2 font-light text-[#a8a8a8] tracking-wide">
+                <p className="text-base mt-2" style={{ color: 'rgba(64,53,44,0.55)', fontFamily: 'Montserrat, sans-serif' }}>
                   Overview of all registered stables
                 </p>
               </div>
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="glass-card p-5 luxury-border">
+              <div className="rounded-xl p-5" style={{ backgroundColor: '#ffffff', border: '1px solid rgba(64,53,44,0.1)' }}>
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="p-2 rounded-lg bg-[#c9a962]/10 border border-[#c9a962]/20">
-                    <Icon name="Building" size={18} className="text-[#c9a962]" />
+                  <div className="p-2 rounded-lg" style={{ backgroundColor: 'rgba(64,53,44,0.07)', border: '1px solid rgba(64,53,44,0.12)' }}>
+                    <Icon name="Building" size={18} style={{ color: '#40352C' }} />
                   </div>
-                  <span className="text-sm text-[#a8a8a8]">Total Stables</span>
+                  <span className="text-sm" style={{ color: 'rgba(64,53,44,0.55)' }}>Total Stables</span>
                 </div>
-                <p className="text-3xl font-semibold text-[#faf9f6]">{mockStables.length}</p>
+                <p className="text-3xl font-bold" style={{ color: '#40352C', fontFamily: 'Syne, sans-serif' }}>{mockStables.length}</p>
               </div>
-              <div className="glass-card p-5 luxury-border">
+              <div className="rounded-xl p-5" style={{ backgroundColor: '#ffffff', border: '1px solid rgba(64,53,44,0.1)' }}>
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="p-2 rounded-lg bg-[#4a9d6b]/10 border border-[#4a9d6b]/20">
-                    <Icon name="CheckCircle" size={18} className="text-[#4a9d6b]" />
+                  <div className="p-2 rounded-lg bg-green-50 border border-green-100">
+                    <Icon name="CheckCircle" size={18} className="text-green-600" />
                   </div>
-                  <span className="text-sm text-[#a8a8a8]">Active</span>
+                  <span className="text-sm" style={{ color: 'rgba(64,53,44,0.55)' }}>Active</span>
                 </div>
-                <p className="text-3xl font-semibold text-[#faf9f6]">{activeStables}</p>
+                <p className="text-3xl font-bold" style={{ color: '#40352C', fontFamily: 'Syne, sans-serif' }}>{activeStables}</p>
               </div>
-              <div className="glass-card p-5 luxury-border">
+              <div className="rounded-xl p-5" style={{ backgroundColor: '#ffffff', border: '1px solid rgba(64,53,44,0.1)' }}>
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="p-2 rounded-lg bg-[#3b82f6]/10 border border-[#3b82f6]/20">
-                    <Icon name="Heart" size={18} className="text-[#3b82f6]" />
+                  <div className="p-2 rounded-lg bg-blue-50 border border-blue-100">
+                    <Icon name="Heart" size={18} className="text-blue-500" />
                   </div>
-                  <span className="text-sm text-[#a8a8a8]">Total Horses</span>
+                  <span className="text-sm" style={{ color: 'rgba(64,53,44,0.55)' }}>Total Horses</span>
                 </div>
-                <p className="text-3xl font-semibold text-[#faf9f6]">{totalHorses}</p>
+                <p className="text-3xl font-bold" style={{ color: '#40352C', fontFamily: 'Syne, sans-serif' }}>{totalHorses}</p>
               </div>
-              <div className="glass-card p-5 luxury-border">
+              <div className="rounded-xl p-5" style={{ backgroundColor: '#ffffff', border: '1px solid rgba(64,53,44,0.1)' }}>
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="p-2 rounded-lg bg-[#10b981]/10 border border-[#10b981]/20">
-                    <Icon name="DollarSign" size={18} className="text-[#10b981]" />
+                  <div className="p-2 rounded-lg bg-emerald-50 border border-emerald-100">
+                    <Icon name="DollarSign" size={18} className="text-emerald-600" />
                   </div>
-                  <span className="text-sm text-[#a8a8a8]">Monthly Revenue</span>
+                  <span className="text-sm" style={{ color: 'rgba(64,53,44,0.55)' }}>Monthly Revenue</span>
                 </div>
-                <p className="text-2xl font-semibold text-[#faf9f6]">{formatCurrency(totalRevenue)}</p>
+                <p className="text-2xl font-bold" style={{ color: '#40352C', fontFamily: 'Syne, sans-serif' }}>{formatCurrency(totalRevenue)}</p>
               </div>
             </div>
 
@@ -204,12 +199,13 @@ const AdminStables: React.FC = () => {
               {mockStables.map((stable) => (
                 <div
                   key={stable.id}
-                  className="glass-card p-6 luxury-border hover:border-[#c9a962]/30 transition-all duration-300"
+                  className="rounded-xl p-6 transition-all duration-300 hover:shadow-md"
+                  style={{ backgroundColor: '#ffffff', border: '1px solid rgba(64,53,44,0.1)', boxShadow: '0 2px 8px rgba(64,53,44,0.05)' }}
                 >
                   <div className="flex items-start justify-between mb-4">
                     <div>
-                      <h3 className="text-lg font-medium text-[#faf9f6]">{stable.name}</h3>
-                      <p className="text-sm text-[#a8a8a8]">{stable.location}</p>
+                      <h3 className="text-lg font-bold" style={{ color: '#40352C', fontFamily: 'Syne, sans-serif' }}>{stable.name}</h3>
+                      <p className="text-sm" style={{ color: 'rgba(64,53,44,0.55)' }}>{stable.location}</p>
                     </div>
                     <span className={`px-3 py-1 rounded-full text-xs font-medium border capitalize ${getStatusColor(stable.status)}`}>
                       {stable.status}
@@ -217,25 +213,25 @@ const AdminStables: React.FC = () => {
                   </div>
 
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 rounded-full bg-[#c9a962]/10 border border-[#c9a962]/20 flex items-center justify-center">
-                      <span className="text-sm font-medium text-[#c9a962]">
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: 'rgba(64,53,44,0.08)', border: '1px solid rgba(64,53,44,0.15)' }}>
+                      <span className="text-sm font-medium" style={{ color: '#40352C' }}>
                         {stable.owner.split(' ').map(n => n[0]).join('')}
                       </span>
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-[#faf9f6]">{stable.owner}</p>
-                      <p className="text-xs text-[#6b6b6b]">{stable.ownerEmail}</p>
+                      <p className="text-sm font-medium" style={{ color: '#40352C' }}>{stable.owner}</p>
+                      <p className="text-xs" style={{ color: 'rgba(64,53,44,0.45)' }}>{stable.ownerEmail}</p>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4 py-4 border-y border-[#c9a962]/10">
+                  <div className="grid grid-cols-2 gap-4 py-4" style={{ borderTop: '1px solid rgba(64,53,44,0.08)', borderBottom: '1px solid rgba(64,53,44,0.08)' }}>
                     <div>
-                      <p className="text-xs text-[#6b6b6b] mb-1">Horses</p>
-                      <p className="text-lg font-medium text-[#faf9f6]">{stable.horsesCount}</p>
+                      <p className="text-xs mb-1" style={{ color: 'rgba(64,53,44,0.4)' }}>Horses</p>
+                      <p className="text-lg font-bold" style={{ color: '#40352C', fontFamily: 'Syne, sans-serif' }}>{stable.horsesCount}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-[#6b6b6b] mb-1">Devices</p>
-                      <p className="text-lg font-medium text-[#faf9f6]">{stable.devicesCount}</p>
+                      <p className="text-xs mb-1" style={{ color: 'rgba(64,53,44,0.4)' }}>Devices</p>
+                      <p className="text-lg font-bold" style={{ color: '#40352C', fontFamily: 'Syne, sans-serif' }}>{stable.devicesCount}</p>
                     </div>
                   </div>
 
@@ -243,7 +239,7 @@ const AdminStables: React.FC = () => {
                     <span className={`px-3 py-1 rounded-full text-xs font-medium border capitalize ${getPlanColor(stable.plan)}`}>
                       {stable.plan}
                     </span>
-                    <span className="text-lg font-semibold text-[#c9a962]">
+                    <span className="text-lg font-bold" style={{ color: '#40352C', fontFamily: 'Syne, sans-serif' }}>
                       {stable.monthlyRevenue > 0 ? formatCurrency(stable.monthlyRevenue) : 'Trial'}
                     </span>
                   </div>

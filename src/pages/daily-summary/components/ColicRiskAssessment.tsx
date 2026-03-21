@@ -9,25 +9,28 @@ interface ColicRiskAssessmentProps {
 
 const ColicRiskAssessment: React.FC<ColicRiskAssessmentProps> = ({ indicators, overallScore }) => {
   if (!indicators?.length) return null;
-  
+
   const getRiskLevel = (score: number) => {
-    if (score <= 30) return { label: 'Low Risk', color: 'text-[#4a9d6b]', bg: 'bg-[#4a9d6b]' };
-    if (score <= 60) return { label: 'Moderate Risk', color: 'text-[#d4a84b]', bg: 'bg-[#d4a84b]' };
-    return { label: 'High Risk', color: 'text-[#c75050]', bg: 'bg-[#c75050]' };
+    if (score <= 30) return { label: 'Low Risk', color: '#16a34a', bg: '#16a34a' };
+    if (score <= 60) return { label: 'Moderate Risk', color: '#d97706', bg: '#d97706' };
+    return { label: 'High Risk', color: '#dc2626', bg: '#dc2626' };
   };
 
   const risk = getRiskLevel(overallScore);
 
   return (
-    <div className="glass-card p-6 luxury-border">
+    <div
+      className="rounded-xl p-6"
+      style={{ backgroundColor: '#ffffff', border: '1px solid rgba(64,53,44,0.1)', boxShadow: '0 2px 8px rgba(64,53,44,0.05)' }}
+    >
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-[#c9a962]/10">
-            <Icon name="Shield" size={20} className="text-[#c9a962]" />
+          <div className="p-2 rounded-xl" style={{ backgroundColor: 'rgba(64,53,44,0.07)' }}>
+            <Icon name="Shield" size={20} style={{ color: '#40352C' }} />
           </div>
           <div>
-            <h3 className="font-serif text-xl font-medium text-[#faf9f6]">Colic Risk Assessment</h3>
-            <p className="text-sm text-[#6b6b6b]">AI-powered early warning system</p>
+            <h3 className="text-xl font-bold" style={{ color: '#40352C', fontFamily: 'Syne, sans-serif' }}>Colic Risk Assessment</h3>
+            <p className="text-sm" style={{ color: 'rgba(64,53,44,0.5)' }}>AI-powered early warning system</p>
           </div>
         </div>
       </div>
@@ -35,13 +38,13 @@ const ColicRiskAssessment: React.FC<ColicRiskAssessmentProps> = ({ indicators, o
       <div className="flex items-center justify-center mb-8">
         <div className="relative w-48 h-48">
           <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-            <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(201,169,98,0.1)" strokeWidth="8" />
-            <circle 
-              cx="50" 
-              cy="50" 
-              r="42" 
-              fill="none" 
-              stroke={overallScore <= 30 ? '#4a9d6b' : overallScore <= 60 ? '#d4a84b' : '#c75050'}
+            <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(64,53,44,0.08)" strokeWidth="8" />
+            <circle
+              cx="50"
+              cy="50"
+              r="42"
+              fill="none"
+              stroke={overallScore <= 30 ? '#16a34a' : overallScore <= 60 ? '#d97706' : '#dc2626'}
               strokeWidth="8"
               strokeLinecap="round"
               strokeDasharray={`${overallScore * 2.64} 264`}
@@ -49,9 +52,12 @@ const ColicRiskAssessment: React.FC<ColicRiskAssessmentProps> = ({ indicators, o
             />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className={`text-4xl font-light ${risk.color}`}>{overallScore}</span>
-            <span className="text-sm text-[#6b6b6b]">/ 100</span>
-            <span className={`text-xs font-semibold mt-2 px-3 py-1 rounded-full ${risk.bg}/20 ${risk.color}`}>
+            <span className="text-4xl font-bold" style={{ color: risk.color, fontFamily: 'Syne, sans-serif' }}>{overallScore}</span>
+            <span className="text-sm" style={{ color: 'rgba(64,53,44,0.45)' }}>/ 100</span>
+            <span
+              className="text-xs font-semibold mt-2 px-3 py-1 rounded-full"
+              style={{ color: risk.color, backgroundColor: `${risk.bg}15` }}
+            >
               {risk.label}
             </span>
           </div>
@@ -62,31 +68,35 @@ const ColicRiskAssessment: React.FC<ColicRiskAssessmentProps> = ({ indicators, o
         {indicators.map((indicator, index) => {
           const indicatorRisk = getRiskLevel((indicator.score / indicator.maxScore) * 100);
           return (
-            <div key={index} className="p-3 rounded-xl bg-white/[0.02] border border-[#c9a962]/10">
+            <div
+              key={index}
+              className="p-3 rounded-xl"
+              style={{ backgroundColor: 'rgba(64,53,44,0.04)', border: '1px solid rgba(64,53,44,0.08)' }}
+            >
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-[#faf9f6]">{indicator.factor}</span>
-                <span className={`text-xs font-semibold ${indicatorRisk.color}`}>
+                <span className="text-sm font-medium" style={{ color: '#40352C' }}>{indicator.factor}</span>
+                <span className="text-xs font-semibold" style={{ color: indicatorRisk.color }}>
                   {indicator.score}/{indicator.maxScore}
                 </span>
               </div>
-              <div className="relative h-1.5 bg-white/5 rounded-full overflow-hidden">
-                <div 
-                  className={`absolute inset-y-0 left-0 rounded-full transition-all duration-500 ${indicatorRisk.bg}`}
-                  style={{ width: `${(indicator.score / indicator.maxScore) * 100}%` }}
+              <div className="relative h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: 'rgba(64,53,44,0.08)' }}>
+                <div
+                  className="absolute inset-y-0 left-0 rounded-full transition-all duration-500"
+                  style={{ width: `${(indicator.score / indicator.maxScore) * 100}%`, backgroundColor: indicatorRisk.bg }}
                 />
               </div>
-              <p className="text-xs text-[#6b6b6b] mt-2">{indicator.description}</p>
+              <p className="text-xs mt-2" style={{ color: 'rgba(64,53,44,0.5)' }}>{indicator.description}</p>
             </div>
           );
         })}
       </div>
 
-      <div className="mt-6 p-4 rounded-xl bg-[#c9a962]/5 border border-[#c9a962]/20">
+      <div className="mt-6 p-4 rounded-xl" style={{ backgroundColor: 'rgba(64,53,44,0.04)', border: '1px solid rgba(64,53,44,0.12)' }}>
         <div className="flex items-center gap-2 mb-2">
-          <Icon name="Lightbulb" size={16} className="text-[#c9a962]" />
-          <span className="text-sm font-medium text-[#c9a962]">Veterinarian Recommendation</span>
+          <Icon name="Lightbulb" size={16} style={{ color: '#40352C' }} />
+          <span className="text-sm font-medium" style={{ color: '#40352C' }}>Veterinarian Recommendation</span>
         </div>
-        <p className="text-xs text-[#a8a8a8] leading-relaxed">
+        <p className="text-xs leading-relaxed" style={{ color: 'rgba(64,53,44,0.55)' }}>
           Based on current indicators, continue monitoring every 30 minutes. Ensure horse has access to fresh water and monitor for any pawing or rolling behavior.
         </p>
       </div>

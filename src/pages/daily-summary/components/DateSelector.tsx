@@ -31,45 +31,51 @@ const DateSelector: React.FC<DateSelectorProps> = ({ selectedDate, onDateChange 
       weekday: 'long',
       year: 'numeric',
       month: 'long',
-      day: 'numeric'
+      day: 'numeric',
     });
   };
 
   return (
-    <div className="glass-card p-4 luxury-border">
+    <div
+      className="rounded-xl p-4"
+      style={{ backgroundColor: '#ffffff', border: '1px solid rgba(64,53,44,0.1)' }}
+    >
       <div className="flex items-center justify-between gap-4">
         <button
           onClick={handlePreviousDay}
-          className="p-2 rounded-xl bg-white/[0.03] border border-[#c9a962]/10 hover:bg-[#c9a962]/10 hover:border-[#c9a962]/30 transition-all duration-300"
+          className="p-2 rounded-xl transition-all duration-300 hover:bg-stone-50"
+          style={{ border: '1px solid rgba(64,53,44,0.12)' }}
           aria-label="Previous day"
         >
-          <Icon name="ChevronLeft" size={20} className="text-[#c9a962]" />
+          <Icon name="ChevronLeft" size={20} style={{ color: '#40352C' }} />
         </button>
 
         <div className="flex-1 text-center">
-          <p className="text-lg font-semibold text-[#faf9f6]">
+          <p className="text-lg font-bold" style={{ color: '#40352C', fontFamily: 'Syne, sans-serif' }}>
             {formatDate(selectedDate)}
           </p>
           {isToday && (
-            <p className="text-xs text-[#c9a962] mt-1">Today</p>
+            <p className="text-xs mt-1 font-medium" style={{ color: 'rgba(64,53,44,0.5)' }}>Today</p>
           )}
         </div>
 
         <button
           onClick={handleNextDay}
           disabled={isFutureDate}
-          className="p-2 rounded-xl bg-white/[0.03] border border-[#c9a962]/10 hover:bg-[#c9a962]/10 hover:border-[#c9a962]/30 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="p-2 rounded-xl transition-all duration-300 hover:bg-stone-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          style={{ border: '1px solid rgba(64,53,44,0.12)' }}
           aria-label="Next day"
         >
-          <Icon name="ChevronRight" size={20} className="text-[#c9a962]" />
+          <Icon name="ChevronRight" size={20} style={{ color: '#40352C' }} />
         </button>
       </div>
 
       {!isToday && (
-        <div className="mt-3 pt-3 border-t border-[#c9a962]/10">
+        <div className="mt-3 pt-3" style={{ borderTop: '1px solid rgba(64,53,44,0.08)' }}>
           <button
             onClick={handleToday}
-            className="w-full flex items-center justify-center gap-2 py-2 rounded-xl bg-white/[0.03] border border-[#c9a962]/20 hover:bg-[#c9a962]/10 hover:border-[#c9a962]/30 transition-all duration-300 text-sm text-[#c9a962]"
+            className="w-full flex items-center justify-center gap-2 py-2 rounded-xl transition-all duration-300 text-sm hover:bg-stone-50"
+            style={{ border: '1px solid rgba(64,53,44,0.12)', color: '#40352C' }}
           >
             <Icon name="Calendar" size={16} />
             Jump to Today

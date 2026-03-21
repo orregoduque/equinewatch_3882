@@ -109,13 +109,7 @@ const Devices: React.FC = () => {
   const needsAttention = mockDevices.filter(d => d.batteryLevel < 30 || d.status !== 'active').length;
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
-      <div className="fixed inset-0 -z-10">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#0a0a0f] via-[#12121a] to-[#0f0f18]" />
-        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-[#c9a962]/5 rounded-full blur-[150px]" />
-        <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-[#c9a962]/3 rounded-full blur-[150px]" />
-      </div>
-
+    <div className="min-h-screen" style={{ backgroundColor: '#F8F6F2' }}>
       <Header />
       
       <main className="pt-24 pb-24 md:pb-12 px-6 md:px-10">
@@ -123,30 +117,30 @@ const Devices: React.FC = () => {
           <div className="flex flex-col gap-8 animate-slide-up">
             <div className="flex flex-col gap-4">
               <div className="flex items-center gap-3">
-                <div className="w-1 h-12 rounded-full bg-gradient-to-b from-[#c9a962] to-[#a88a45]" />
+                <div className="w-1 h-12 rounded-full" style={{ backgroundColor: '#40352C' }} />
                 <div>
-                  <h1 className="font-serif text-4xl md:text-5xl font-light text-[#faf9f6]">
-                    Hardware <span className="gradient-text font-medium">Devices</span>
+                  <h1 className="text-4xl md:text-5xl font-bold" style={{ color: '#40352C', fontFamily: 'Syne, sans-serif' }}>
+                    Hardware Devices
                   </h1>
-                  <p className="text-base mt-2 font-light text-[#a8a8a8] tracking-wide">
+                  <p className="text-base mt-2" style={{ color: 'rgba(64,53,44,0.55)', fontFamily: 'Montserrat, sans-serif' }}>
                     Monitor and manage your stable's camera units
                   </p>
                 </div>
               </div>
               
               <div className="flex items-center gap-4 mt-2">
-                <div className="flex items-center gap-2 px-4 py-2 rounded-xl backdrop-blur-xl bg-[#c9a962]/5 border border-[#c9a962]/15">
-                  <div className="w-2 h-2 rounded-full bg-[#4a9d6b] animate-pulse" />
-                  <span className="text-sm font-medium text-[#a8a8a8]">{activeCount} Active</span>
+                <div className="flex items-center gap-2 px-4 py-2 rounded-xl" style={{ backgroundColor: 'rgba(64,53,44,0.06)', border: '1px solid rgba(64,53,44,0.12)' }}>
+                  <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                  <span className="text-sm font-medium" style={{ color: 'rgba(64,53,44,0.7)' }}>{activeCount} Active</span>
                 </div>
                 {needsAttention > 0 && (
-                  <div className="flex items-center gap-2 px-4 py-2 rounded-xl backdrop-blur-xl bg-[#c75050]/10 border border-[#c75050]/20">
-                    <Icon name="AlertTriangle" size={14} className="text-[#c75050]" />
-                    <span className="text-sm font-medium text-[#c75050]">{needsAttention} Need Attention</span>
+                  <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-50 border border-red-200">
+                    <Icon name="AlertTriangle" size={14} className="text-red-500" />
+                    <span className="text-sm font-medium text-red-600">{needsAttention} Need Attention</span>
                   </div>
                 )}
-                <div className="flex items-center gap-2 px-4 py-2 rounded-xl backdrop-blur-xl bg-white/[0.03] border border-[#c9a962]/10">
-                  <span className="text-sm font-medium text-[#a8a8a8]">{mockDevices.length} Total Devices</span>
+                <div className="flex items-center gap-2 px-4 py-2 rounded-xl" style={{ backgroundColor: 'rgba(64,53,44,0.04)', border: '1px solid rgba(64,53,44,0.1)' }}>
+                  <span className="text-sm font-medium" style={{ color: 'rgba(64,53,44,0.6)' }}>{mockDevices.length} Total Devices</span>
                 </div>
               </div>
             </div>
@@ -155,16 +149,17 @@ const Devices: React.FC = () => {
               {mockDevices.map((device) => (
                 <div
                   key={device.id}
-                  className="glass-card p-6 luxury-border hover:border-[#c9a962]/30 transition-all duration-300"
+                  className="rounded-xl p-6 transition-all duration-300 hover:shadow-md"
+                  style={{ backgroundColor: '#ffffff', border: '1px solid rgba(64,53,44,0.1)', boxShadow: '0 2px 8px rgba(64,53,44,0.05)' }}
                 >
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">
-                      <div className="p-3 rounded-xl bg-[#c9a962]/10 border border-[#c9a962]/20">
-                        <Icon name="Camera" size={20} className="text-[#c9a962]" />
+                      <div className="p-3 rounded-xl" style={{ backgroundColor: 'rgba(64,53,44,0.07)', border: '1px solid rgba(64,53,44,0.12)' }}>
+                        <Icon name="Camera" size={20} style={{ color: '#40352C' }} />
                       </div>
                       <div>
-                        <h3 className="text-lg font-medium text-[#faf9f6]">{device.name}</h3>
-                        <p className="text-sm text-[#a8a8a8]">{device.location}</p>
+                        <h3 className="text-lg font-bold" style={{ color: '#40352C', fontFamily: 'Syne, sans-serif' }}>{device.name}</h3>
+                        <p className="text-sm" style={{ color: 'rgba(64,53,44,0.55)' }}>{device.location}</p>
                       </div>
                     </div>
                     <span className={`px-3 py-1 rounded-full text-xs font-medium border capitalize ${getStatusColor(device.status)}`}>
@@ -174,7 +169,7 @@ const Devices: React.FC = () => {
 
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-[#a8a8a8]">Battery Level</span>
+                      <span className="text-sm" style={{ color: 'rgba(64,53,44,0.55)' }}>Battery Level</span>
                       <div className="flex items-center gap-2">
                         <Icon name="Battery" size={16} className={getBatteryColor(device.batteryLevel)} />
                         <span className={`text-sm font-medium ${getBatteryColor(device.batteryLevel)}`}>
@@ -183,16 +178,16 @@ const Devices: React.FC = () => {
                       </div>
                     </div>
                     
-                    <div className="w-full h-2 rounded-full bg-white/5">
+                    <div className="w-full h-2 rounded-full" style={{ backgroundColor: 'rgba(64,53,44,0.08)' }}>
                       <div
                         className={`h-full rounded-full transition-all duration-500 ${getBatteryBg(device.batteryLevel)}`}
                         style={{ width: `${device.batteryLevel}%` }}
                       />
                     </div>
 
-                    <div className="flex items-center justify-between pt-2 border-t border-[#c9a962]/10">
-                      <span className="text-sm text-[#6b6b6b]">Last Sync</span>
-                      <span className="text-sm text-[#a8a8a8]">{formatLastSync(device.lastSync)}</span>
+                    <div className="flex items-center justify-between pt-2" style={{ borderTop: '1px solid rgba(64,53,44,0.08)' }}>
+                      <span className="text-sm" style={{ color: 'rgba(64,53,44,0.4)' }}>Last Sync</span>
+                      <span className="text-sm" style={{ color: 'rgba(64,53,44,0.55)' }}>{formatLastSync(device.lastSync)}</span>
                     </div>
                   </div>
                 </div>

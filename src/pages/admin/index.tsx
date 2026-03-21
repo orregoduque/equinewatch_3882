@@ -178,13 +178,7 @@ const AdminDashboard: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
-      <div className="fixed inset-0 -z-10">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#0a0a0f] via-[#12121a] to-[#0f0f18]" />
-        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-[#c9a962]/5 rounded-full blur-[150px]" />
-        <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-[#c9a962]/3 rounded-full blur-[150px]" />
-      </div>
-
+    <div className="min-h-screen" style={{ backgroundColor: '#F8F6F2' }}>
       <Header />
 
       <main className="pt-24 pb-24 md:pb-12 px-6 md:px-10">
@@ -192,19 +186,20 @@ const AdminDashboard: React.FC = () => {
           <div className="flex flex-col gap-8 animate-slide-up">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div className="flex items-center gap-3">
-                <div className="w-1 h-12 rounded-full bg-gradient-to-b from-[#c9a962] to-[#a88a45]" />
+                <div className="w-1 h-12 rounded-full" style={{ backgroundColor: '#40352C' }} />
                 <div>
-                  <h1 className="font-serif text-4xl md:text-5xl font-light text-[#faf9f6]">
-                    Admin <span className="gradient-text font-medium">Dashboard</span>
+                  <h1 className="text-4xl md:text-5xl font-bold" style={{ color: '#40352C', fontFamily: 'Syne, sans-serif' }}>
+                    Admin Dashboard
                   </h1>
-                  <p className="text-base mt-2 font-light text-[#a8a8a8] tracking-wide">
+                  <p className="text-base mt-2" style={{ color: 'rgba(64,53,44,0.55)', fontFamily: 'Montserrat, sans-serif' }}>
                     Manage users and system access
                   </p>
                 </div>
               </div>
               <button
                 onClick={handleOpenModal}
-                className="px-6 py-3 luxury-button rounded-xl text-sm font-medium flex items-center gap-2 self-start md:self-auto"
+                className="px-6 py-3 rounded-xl text-sm font-medium flex items-center gap-2 self-start md:self-auto text-white transition-all hover:opacity-80"
+                style={{ backgroundColor: '#40352C' }}
               >
                 <Icon name="UserPlus" size={18} />
                 Create User
@@ -212,73 +207,73 @@ const AdminDashboard: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="glass-card p-5 luxury-border">
+              <div className="rounded-xl p-5" style={{ backgroundColor: '#ffffff', border: '1px solid rgba(64,53,44,0.1)' }}>
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="p-2 rounded-lg bg-[#3b82f6]/10 border border-[#3b82f6]/20">
-                    <Icon name="Users" size={18} className="text-[#3b82f6]" />
+                  <div className="p-2 rounded-lg bg-blue-50 border border-blue-100">
+                    <Icon name="Users" size={18} className="text-blue-500" />
                   </div>
-                  <span className="text-sm text-[#a8a8a8]">Total Users</span>
+                  <span className="text-sm" style={{ color: 'rgba(64,53,44,0.55)' }}>Total Users</span>
                 </div>
-                <p className="text-3xl font-semibold text-[#faf9f6]">{stats.totalUsers}</p>
+                <p className="text-3xl font-bold" style={{ color: '#40352C', fontFamily: 'Syne, sans-serif' }}>{stats.totalUsers}</p>
               </div>
-              <div className="glass-card p-5 luxury-border">
+              <div className="rounded-xl p-5" style={{ backgroundColor: '#ffffff', border: '1px solid rgba(64,53,44,0.1)' }}>
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="p-2 rounded-lg bg-[#4a9d6b]/10 border border-[#4a9d6b]/20">
-                    <Icon name="UserCheck" size={18} className="text-[#4a9d6b]" />
+                  <div className="p-2 rounded-lg bg-green-50 border border-green-100">
+                    <Icon name="UserCheck" size={18} className="text-green-600" />
                   </div>
-                  <span className="text-sm text-[#a8a8a8]">Active</span>
+                  <span className="text-sm" style={{ color: 'rgba(64,53,44,0.55)' }}>Active</span>
                 </div>
-                <p className="text-3xl font-semibold text-[#faf9f6]">{stats.activeUsers}</p>
+                <p className="text-3xl font-bold" style={{ color: '#40352C', fontFamily: 'Syne, sans-serif' }}>{stats.activeUsers}</p>
               </div>
-              <div className="glass-card p-5 luxury-border">
+              <div className="rounded-xl p-5" style={{ backgroundColor: '#ffffff', border: '1px solid rgba(64,53,44,0.1)' }}>
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="p-2 rounded-lg bg-[#c9a962]/10 border border-[#c9a962]/20">
-                    <Icon name="Building" size={18} className="text-[#c9a962]" />
+                  <div className="p-2 rounded-lg" style={{ backgroundColor: 'rgba(64,53,44,0.07)', border: '1px solid rgba(64,53,44,0.12)' }}>
+                    <Icon name="Building" size={18} style={{ color: '#40352C' }} />
                   </div>
-                  <span className="text-sm text-[#a8a8a8]">Stable Owners</span>
+                  <span className="text-sm" style={{ color: 'rgba(64,53,44,0.55)' }}>Stable Owners</span>
                 </div>
-                <p className="text-3xl font-semibold text-[#faf9f6]">{stats.stableOwners}</p>
+                <p className="text-3xl font-bold" style={{ color: '#40352C', fontFamily: 'Syne, sans-serif' }}>{stats.stableOwners}</p>
               </div>
-              <div className="glass-card p-5 luxury-border">
+              <div className="rounded-xl p-5" style={{ backgroundColor: '#ffffff', border: '1px solid rgba(64,53,44,0.1)' }}>
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="p-2 rounded-lg bg-[#f59e0b]/10 border border-[#f59e0b]/20">
-                    <Icon name="Clock" size={18} className="text-[#f59e0b]" />
+                  <div className="p-2 rounded-lg bg-amber-50 border border-amber-100">
+                    <Icon name="Clock" size={18} className="text-amber-500" />
                   </div>
-                  <span className="text-sm text-[#a8a8a8]">Pending</span>
+                  <span className="text-sm" style={{ color: 'rgba(64,53,44,0.55)' }}>Pending</span>
                 </div>
-                <p className="text-3xl font-semibold text-[#faf9f6]">{stats.pendingUsers}</p>
+                <p className="text-3xl font-bold" style={{ color: '#40352C', fontFamily: 'Syne, sans-serif' }}>{stats.pendingUsers}</p>
               </div>
             </div>
 
-            <div className="glass-card luxury-border overflow-hidden">
-              <div className="p-6 border-b border-[#c9a962]/10">
-                <h2 className="text-xl font-medium text-[#faf9f6]">All Users</h2>
+            <div className="rounded-xl overflow-hidden" style={{ backgroundColor: '#ffffff', border: '1px solid rgba(64,53,44,0.1)' }}>
+              <div className="p-6" style={{ borderBottom: '1px solid rgba(64,53,44,0.08)' }}>
+                <h2 className="text-xl font-bold" style={{ color: '#40352C', fontFamily: 'Syne, sans-serif' }}>All Users</h2>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b border-[#c9a962]/10">
-                      <th className="text-left py-4 px-6 text-sm font-medium text-[#a8a8a8]">User</th>
-                      <th className="text-left py-4 px-6 text-sm font-medium text-[#a8a8a8]">Role</th>
-                      <th className="text-left py-4 px-6 text-sm font-medium text-[#a8a8a8]">Stable</th>
-                      <th className="text-left py-4 px-6 text-sm font-medium text-[#a8a8a8]">Status</th>
-                      <th className="text-left py-4 px-6 text-sm font-medium text-[#a8a8a8]">Last Login</th>
-                      <th className="text-right py-4 px-6 text-sm font-medium text-[#a8a8a8]">Actions</th>
+                    <tr style={{ borderBottom: '1px solid rgba(64,53,44,0.08)' }}>
+                      <th className="text-left py-4 px-6 text-sm font-medium" style={{ color: 'rgba(64,53,44,0.5)' }}>User</th>
+                      <th className="text-left py-4 px-6 text-sm font-medium" style={{ color: 'rgba(64,53,44,0.5)' }}>Role</th>
+                      <th className="text-left py-4 px-6 text-sm font-medium" style={{ color: 'rgba(64,53,44,0.5)' }}>Stable</th>
+                      <th className="text-left py-4 px-6 text-sm font-medium" style={{ color: 'rgba(64,53,44,0.5)' }}>Status</th>
+                      <th className="text-left py-4 px-6 text-sm font-medium" style={{ color: 'rgba(64,53,44,0.5)' }}>Last Login</th>
+                      <th className="text-right py-4 px-6 text-sm font-medium" style={{ color: 'rgba(64,53,44,0.5)' }}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {allUsers.map((u) => (
-                      <tr key={u.id} className="border-b border-[#c9a962]/5 hover:bg-white/[0.02] transition-colors">
+                      <tr key={u.id} className="transition-colors hover:bg-stone-50" style={{ borderBottom: '1px solid rgba(64,53,44,0.05)' }}>
                         <td className="py-4 px-6">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-[#c9a962]/10 border border-[#c9a962]/20 flex items-center justify-center">
-                              <span className="text-sm font-medium text-[#c9a962]">
+                            <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: 'rgba(64,53,44,0.08)', border: '1px solid rgba(64,53,44,0.15)' }}>
+                              <span className="text-sm font-medium" style={{ color: '#40352C' }}>
                                 {u.name.split(' ').map((n) => n[0]).join('')}
                               </span>
                             </div>
                             <div>
-                              <p className="text-sm font-medium text-[#faf9f6]">{u.name}</p>
-                              <p className="text-xs text-[#6b6b6b]">{u.email}</p>
+                              <p className="text-sm font-medium" style={{ color: '#40352C' }}>{u.name}</p>
+                              <p className="text-xs" style={{ color: 'rgba(64,53,44,0.45)' }}>{u.email}</p>
                             </div>
                           </div>
                         </td>
@@ -287,7 +282,7 @@ const AdminDashboard: React.FC = () => {
                             {formatRole(u.role)}
                           </span>
                         </td>
-                        <td className="py-4 px-6 text-sm text-[#a8a8a8]">
+                        <td className="py-4 px-6 text-sm" style={{ color: 'rgba(64,53,44,0.55)' }}>
                           {u.stableName || '-'}
                         </td>
                         <td className="py-4 px-6">
@@ -295,18 +290,18 @@ const AdminDashboard: React.FC = () => {
                             {u.status}
                           </span>
                         </td>
-                        <td className="py-4 px-6 text-sm text-[#a8a8a8]">
+                        <td className="py-4 px-6 text-sm" style={{ color: 'rgba(64,53,44,0.55)' }}>
                           {u.lastLogin ? formatDate(u.lastLogin) : 'Never'}
                         </td>
                         <td className="py-4 px-6">
                           <div className="flex items-center justify-end gap-2">
-                            <button className="p-2 rounded-lg hover:bg-white/[0.05] text-[#a8a8a8] hover:text-[#c9a962] transition-colors">
+                            <button className="p-2 rounded-lg transition-colors hover:bg-stone-100" style={{ color: 'rgba(64,53,44,0.5)' }}>
                               <Icon name="Edit" size={16} />
                             </button>
-                            <button className="p-2 rounded-lg hover:bg-white/[0.05] text-[#a8a8a8] hover:text-[#c9a962] transition-colors">
+                            <button className="p-2 rounded-lg transition-colors hover:bg-stone-100" style={{ color: 'rgba(64,53,44,0.5)' }}>
                               <Icon name="Share2" size={16} />
                             </button>
-                            <button className="p-2 rounded-lg hover:bg-[#c75050]/10 text-[#a8a8a8] hover:text-[#c75050] transition-colors">
+                            <button className="p-2 rounded-lg hover:bg-red-50 transition-colors" style={{ color: 'rgba(64,53,44,0.5)' }}>
                               <Icon name="Trash2" size={16} />
                             </button>
                           </div>
@@ -323,40 +318,43 @@ const AdminDashboard: React.FC = () => {
 
       {showCreateModal && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={handleCloseModal} />
-          <div className="relative glass-card p-8 luxury-border max-w-md w-full animate-slide-up">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={handleCloseModal} />
+          <div className="relative rounded-2xl p-8 max-w-md w-full animate-slide-up shadow-2xl" style={{ backgroundColor: '#ffffff', border: '1px solid rgba(64,53,44,0.15)' }}>
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-medium text-[#faf9f6]">Create New User</h2>
+              <h2 className="text-xl font-bold" style={{ color: '#40352C', fontFamily: 'Syne, sans-serif' }}>Create New User</h2>
               <button
                 onClick={handleCloseModal}
-                className="p-2 rounded-lg hover:bg-white/[0.05] text-[#a8a8a8] hover:text-[#faf9f6] transition-colors"
+                className="p-2 rounded-lg transition-colors hover:bg-stone-100"
+                style={{ color: 'rgba(64,53,44,0.5)' }}
               >
                 <Icon name="X" size={20} />
               </button>
             </div>
 
             {formError && (
-              <div className="mb-4 p-3 rounded-xl bg-[#c75050]/10 border border-[#c75050]/30">
-                <p className="text-sm text-[#c75050]">{formError}</p>
+              <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200">
+                <p className="text-sm text-red-600">{formError}</p>
               </div>
             )}
 
             {formSuccess ? (
               <div className="flex flex-col items-center gap-4 py-6 text-center">
-                <div className="w-14 h-14 rounded-full bg-[#4a9d6b]/10 border border-[#4a9d6b]/30 flex items-center justify-center">
-                  <Icon name="CheckCircle" size={28} className="text-[#4a9d6b]" />
+                <div className="w-14 h-14 rounded-full bg-green-50 border border-green-200 flex items-center justify-center">
+                  <Icon name="CheckCircle" size={28} className="text-green-600" />
                 </div>
-                <p className="text-sm text-[#a8a8a8] leading-relaxed">{formSuccess}</p>
+                <p className="text-sm leading-relaxed" style={{ color: 'rgba(64,53,44,0.6)' }}>{formSuccess}</p>
                 <div className="flex gap-3 w-full mt-2">
                   <button
                     onClick={() => { setFormSuccess(''); setNewUser({ name: '', email: '', password: '', role: 'horse_owner', stableName: '' }); }}
-                    className="flex-1 h-12 luxury-button rounded-xl font-medium"
+                    className="flex-1 h-12 rounded-xl font-medium text-white transition-all hover:opacity-80"
+                    style={{ backgroundColor: '#40352C' }}
                   >
                     Create Another
                   </button>
                   <button
                     onClick={handleCloseModal}
-                    className="flex-1 h-12 rounded-xl border border-[#c9a962]/20 text-[#a8a8a8] hover:bg-white/[0.03] transition-colors"
+                    className="flex-1 h-12 rounded-xl border transition-colors hover:bg-stone-50"
+                    style={{ border: '1px solid rgba(64,53,44,0.15)', color: 'rgba(64,53,44,0.6)' }}
                   >
                     Done
                   </button>
@@ -366,64 +364,70 @@ const AdminDashboard: React.FC = () => {
               <>
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-[#a8a8a8] mb-2">Full Name</label>
+                    <label className="block text-sm font-medium mb-2" style={{ color: 'rgba(64,53,44,0.6)' }}>Full Name</label>
                     <input
                       type="text"
                       value={newUser.name}
                       onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
-                      className="w-full h-12 px-4 luxury-input rounded-xl text-[#faf9f6] placeholder:text-[#6b6b6b]"
+                      className="w-full h-12 px-4 rounded-xl outline-none transition-all"
+                      style={{ border: '1px solid rgba(64,53,44,0.15)', color: '#40352C', backgroundColor: '#fafaf9' }}
                       placeholder="Enter full name"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-[#a8a8a8] mb-2">Email Address</label>
+                    <label className="block text-sm font-medium mb-2" style={{ color: 'rgba(64,53,44,0.6)' }}>Email Address</label>
                     <input
                       type="email"
                       value={newUser.email}
                       onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
-                      className="w-full h-12 px-4 luxury-input rounded-xl text-[#faf9f6] placeholder:text-[#6b6b6b]"
+                      className="w-full h-12 px-4 rounded-xl outline-none transition-all"
+                      style={{ border: '1px solid rgba(64,53,44,0.15)', color: '#40352C', backgroundColor: '#fafaf9' }}
                       placeholder="Enter email address"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-[#a8a8a8] mb-2">Password</label>
+                    <label className="block text-sm font-medium mb-2" style={{ color: 'rgba(64,53,44,0.6)' }}>Password</label>
                     <div className="relative">
                       <input
                         type={showPassword ? 'text' : 'password'}
                         value={newUser.password}
                         onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
-                        className="w-full h-12 pl-4 pr-12 luxury-input rounded-xl text-[#faf9f6] placeholder:text-[#6b6b6b]"
+                        className="w-full h-12 pl-4 pr-12 rounded-xl outline-none transition-all"
+                        style={{ border: '1px solid rgba(64,53,44,0.15)', color: '#40352C', backgroundColor: '#fafaf9' }}
                         placeholder="Min. 6 characters"
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 text-[#6b6b6b] hover:text-[#a8a8a8] transition-colors"
+                        className="absolute right-4 top-1/2 -translate-y-1/2 transition-colors"
+                        style={{ color: 'rgba(64,53,44,0.4)' }}
                       >
                         <Icon name={showPassword ? 'EyeOff' : 'Eye'} size={18} />
                       </button>
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-[#a8a8a8] mb-2">Role</label>
+                    <label className="block text-sm font-medium mb-2" style={{ color: 'rgba(64,53,44,0.6)' }}>Role</label>
                     <select
                       value={newUser.role}
                       onChange={(e) => setNewUser({ ...newUser, role: e.target.value as UserRole })}
-                      className="w-full h-12 px-4 luxury-input rounded-xl text-[#faf9f6] bg-transparent"
+                      className="w-full h-12 px-4 rounded-xl outline-none transition-all"
+                      style={{ border: '1px solid rgba(64,53,44,0.15)', color: '#40352C', backgroundColor: '#fafaf9' }}
                     >
-                      <option value="horse_owner" className="bg-[#12121a]">Horse Owner</option>
-                      <option value="stable_owner" className="bg-[#12121a]">Stable Owner</option>
-                      <option value="admin" className="bg-[#12121a]">Admin</option>
+                      <option value="horse_owner">Horse Owner</option>
+                      <option value="stable_owner">Stable Owner</option>
+                      <option value="admin">Admin</option>
                     </select>
                   </div>
                   {(newUser.role === 'horse_owner' || newUser.role === 'stable_owner') && (
                     <div>
-                      <label className="block text-sm font-medium text-[#a8a8a8] mb-2">Stable Name</label>
+                      <label className="block text-sm font-medium mb-2" style={{ color: 'rgba(64,53,44,0.6)' }}>Stable Name</label>
                       <input
                         type="text"
                         value={newUser.stableName}
                         onChange={(e) => setNewUser({ ...newUser, stableName: e.target.value })}
-                        className="w-full h-12 px-4 luxury-input rounded-xl text-[#faf9f6] placeholder:text-[#6b6b6b]"
+                        className="w-full h-12 px-4 rounded-xl outline-none transition-all"
+                        style={{ border: '1px solid rgba(64,53,44,0.15)', color: '#40352C', backgroundColor: '#fafaf9' }}
                         placeholder="Enter stable name"
                       />
                     </div>
@@ -433,14 +437,16 @@ const AdminDashboard: React.FC = () => {
                 <div className="flex gap-3 mt-6">
                   <button
                     onClick={handleCloseModal}
-                    className="flex-1 h-12 rounded-xl border border-[#c9a962]/20 text-[#a8a8a8] hover:bg-white/[0.03] transition-colors"
+                    className="flex-1 h-12 rounded-xl transition-colors hover:bg-stone-50"
+                    style={{ border: '1px solid rgba(64,53,44,0.15)', color: 'rgba(64,53,44,0.6)' }}
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleCreateUser}
                     disabled={isCreating}
-                    className="flex-1 h-12 luxury-button rounded-xl font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    className="flex-1 h-12 rounded-xl font-medium text-white disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all hover:opacity-80"
+                    style={{ backgroundColor: '#40352C' }}
                   >
                     {isCreating ? (
                       <>

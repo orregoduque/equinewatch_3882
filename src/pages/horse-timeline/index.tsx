@@ -244,13 +244,7 @@ const HorseTimeline: React.FC = () => {
         <meta name="description" content="Real-time horse monitoring with photos every 10 minutes" />
       </Helmet>
 
-      <div className="min-h-screen relative overflow-hidden">
-        <div className="fixed inset-0 -z-10">
-          <div className="absolute inset-0 bg-gradient-to-br from-[#0a0a0f] via-[#12121a] to-[#0f0f18]" />
-          <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-[#c9a962]/5 rounded-full blur-[150px]" />
-          <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-[#c9a962]/3 rounded-full blur-[150px]" />
-        </div>
-
+      <div className="min-h-screen" style={{ backgroundColor: '#F8F6F2' }}>
         <Header />
 
         <main className="pt-24 pb-24 md:pb-12 px-4 sm:px-6 lg:px-8">
@@ -258,12 +252,12 @@ const HorseTimeline: React.FC = () => {
             {/* Header */}
             <div className="mb-6">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-1 h-12 rounded-full bg-gradient-to-b from-[#c9a962] to-[#a88a45]" />
+                <div className="w-1 h-12 rounded-full" style={{ backgroundColor: '#40352C' }} />
                 <div>
-                  <h1 className="font-serif text-4xl md:text-5xl font-light text-[#faf9f6]">
-                    Live <span className="gradient-text font-medium">Monitoring</span>
+                  <h1 className="text-4xl md:text-5xl font-bold" style={{ color: '#40352C', fontFamily: 'Syne, sans-serif' }}>
+                    Live Monitoring
                   </h1>
-                  <p className="text-base mt-2 font-light text-[#a8a8a8] tracking-wide">
+                  <p className="text-base mt-2" style={{ color: 'rgba(64,53,44,0.55)', fontFamily: 'Montserrat, sans-serif' }}>
                     Photos captured every 10 minutes
                   </p>
                 </div>
@@ -276,42 +270,42 @@ const HorseTimeline: React.FC = () => {
                 <button
                   key={horse.id}
                   onClick={() => setSelectedHorseId(horse.id)}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-all duration-300 whitespace-nowrap ${
-                    selectedHorseId === horse.id
-                      ? 'bg-[#c9a962]/10 border-[#c9a962]/50 shadow-[0_0_20px_rgba(201,169,98,0.15)]'
-                      : 'bg-white/[0.02] border-[#c9a962]/10 hover:bg-white/[0.04] hover:border-[#c9a962]/20'
-                  }`}
+                  className="flex items-center gap-3 px-4 py-3 rounded-xl border transition-all duration-300 whitespace-nowrap"
+                  style={{
+                    backgroundColor: selectedHorseId === horse.id ? 'rgba(64,53,44,0.08)' : '#ffffff',
+                    border: selectedHorseId === horse.id ? '1px solid rgba(64,53,44,0.4)' : '1px solid rgba(64,53,44,0.1)',
+                  }}
                 >
-                  <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-[#c9a962]/30">
+                  <div className="w-10 h-10 rounded-full overflow-hidden" style={{ border: '2px solid rgba(64,53,44,0.2)' }}>
                     <Image src={horse.profileImage} alt={horse.name} className="w-full h-full object-cover" />
                   </div>
                   <div className="text-left">
-                    <p className={`font-medium ${selectedHorseId === horse.id ? 'text-[#c9a962]' : 'text-[#faf9f6]'}`}>
+                    <p className="font-medium" style={{ color: '#40352C', fontFamily: 'Montserrat, sans-serif' }}>
                       {horse.name}
                     </p>
-                    <p className="text-xs text-[#6b6b6b]">{horse.breed}</p>
+                    <p className="text-xs" style={{ color: 'rgba(64,53,44,0.5)' }}>{horse.breed}</p>
                   </div>
                 </button>
               ))}
             </div>
 
             {isLoading ? (
-              <div className="glass-card luxury-border p-8 animate-pulse">
-                <div className="aspect-video bg-white/5 rounded-xl mb-6" />
-                <div className="h-6 bg-white/5 rounded w-1/3 mb-4" />
-                <div className="h-4 bg-white/5 rounded w-2/3" />
+              <div className="rounded-xl p-8 animate-pulse" style={{ backgroundColor: '#ffffff', border: '1px solid rgba(64,53,44,0.1)' }}>
+                <div className="aspect-video rounded-xl mb-6" style={{ backgroundColor: 'rgba(64,53,44,0.05)' }} />
+                <div className="h-6 rounded w-1/3 mb-4" style={{ backgroundColor: 'rgba(64,53,44,0.05)' }} />
+                <div className="h-4 rounded w-2/3" style={{ backgroundColor: 'rgba(64,53,44,0.05)' }} />
               </div>
             ) : latestObservation ? (
               <div className="space-y-6">
                 {/* Latest Photo - Featured */}
-                <div className="glass-card luxury-border overflow-hidden">
+                <div className="rounded-xl overflow-hidden" style={{ backgroundColor: '#ffffff', border: '1px solid rgba(64,53,44,0.1)', boxShadow: '0 2px 8px rgba(64,53,44,0.05)' }}>
                   {/* Last Updated Banner */}
-                  <div className="flex items-center justify-between px-6 py-3 bg-[#c9a962]/5 border-b border-[#c9a962]/10">
+                  <div className="flex items-center justify-between px-6 py-3" style={{ backgroundColor: 'rgba(64,53,44,0.04)', borderBottom: '1px solid rgba(64,53,44,0.08)' }}>
                     <div className="flex items-center gap-3">
-                      <div className="w-2 h-2 rounded-full bg-[#4a9d6b] animate-pulse" />
-                      <span className="text-sm font-medium text-[#faf9f6]">Latest Photo</span>
+                      <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                      <span className="text-sm font-medium" style={{ color: '#40352C' }}>Latest Photo</span>
                     </div>
-                    <div className="flex items-center gap-2 text-[#c9a962]">
+                    <div className="flex items-center gap-2" style={{ color: 'rgba(64,53,44,0.6)' }}>
                       <Icon name="Clock" size={14} />
                       <span className="text-sm font-medium">
                         {formatDistanceToNow(selectedObservation?.timestamp || latestObservation.timestamp, { addSuffix: true })}
@@ -370,15 +364,15 @@ const HorseTimeline: React.FC = () => {
                   {/* Notes Section */}
                   <div className="p-6">
                     <div className="flex items-start gap-4">
-                      <div className="p-2 rounded-xl bg-[#c9a962]/10">
-                        <Icon name="FileText" size={20} className="text-[#c9a962]" />
+                      <div className="p-2 rounded-xl" style={{ backgroundColor: 'rgba(64,53,44,0.07)' }}>
+                        <Icon name="FileText" size={20} style={{ color: '#40352C' }} />
                       </div>
                       <div className="flex-1">
-                        <h3 className="font-medium text-[#faf9f6] mb-2">Observation Notes</h3>
-                        <p className="text-[#a8a8a8] leading-relaxed">
+                        <h3 className="font-medium mb-2" style={{ color: '#40352C' }}>Observation Notes</h3>
+                        <p className="leading-relaxed" style={{ color: 'rgba(64,53,44,0.6)' }}>
                           {selectedObservation?.notes || latestObservation.notes}
                         </p>
-                        <p className="text-sm text-[#6b6b6b] mt-3">
+                        <p className="text-sm mt-3" style={{ color: 'rgba(64,53,44,0.4)' }}>
                           Recorded by {selectedObservation?.uploadedBy || latestObservation.uploadedBy}
                         </p>
                       </div>
@@ -387,14 +381,15 @@ const HorseTimeline: React.FC = () => {
                 </div>
 
                 {/* Recent Photos Strip */}
-                <div className="glass-card p-6 luxury-border">
+                <div className="rounded-xl p-6" style={{ backgroundColor: '#ffffff', border: '1px solid rgba(64,53,44,0.1)', boxShadow: '0 2px 8px rgba(64,53,44,0.05)' }}>
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-serif text-xl font-medium text-[#faf9f6]">Recent Photos</h3>
+                    <h3 className="text-xl font-bold" style={{ color: '#40352C', fontFamily: 'Syne, sans-serif' }}>Recent Photos</h3>
                     <div className="flex items-center gap-3">
-                      <span className="text-sm text-[#6b6b6b]">{observations.length} photos today</span>
+                      <span className="text-sm" style={{ color: 'rgba(64,53,44,0.5)' }}>{observations.length} photos today</span>
                       <button
                         onClick={handleGenerateVideo}
-                        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-[#c9a962] to-[#a88a45] text-[#0a0a0f] font-semibold text-sm hover:shadow-[0_0_20px_rgba(201,169,98,0.3)] transition-all duration-300"
+                        className="flex items-center gap-2 px-4 py-2 rounded-xl text-white font-semibold text-sm transition-all duration-300 hover:opacity-80"
+                        style={{ backgroundColor: '#40352C' }}
                       >
                         <Icon name="Video" size={16} />
                         Generate Video
@@ -412,9 +407,10 @@ const HorseTimeline: React.FC = () => {
                           onClick={() => setSelectedObservation(obs)}
                           className={`relative flex-shrink-0 w-32 md:w-40 rounded-xl overflow-hidden border-2 transition-all duration-300 ${
                             isSelected
-                              ? 'border-[#c9a962] shadow-[0_0_20px_rgba(201,169,98,0.3)]'
-                              : 'border-transparent hover:border-[#c9a962]/30'
+                              ? 'shadow-md'
+                              : 'border-transparent'
                           }`}
+                          style={isSelected ? { borderColor: '#40352C' } : { borderColor: 'transparent' }}
                         >
                           <div className="aspect-[4/3] bg-black/20">
                             <Image src={obs.imageUrl} alt={obs.imageAlt} className="w-full h-full object-cover" />
@@ -441,35 +437,35 @@ const HorseTimeline: React.FC = () => {
 
                 {/* Quick Stats */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="glass-card p-4 luxury-border text-center">
-                    <Icon name="Camera" size={24} className="text-[#c9a962] mx-auto mb-2" />
-                    <p className="text-2xl font-light text-[#faf9f6]">{observations.length}</p>
-                    <p className="text-xs text-[#6b6b6b]">Photos Today</p>
+                  <div className="rounded-xl p-4 text-center" style={{ backgroundColor: '#ffffff', border: '1px solid rgba(64,53,44,0.1)' }}>
+                    <Icon name="Camera" size={24} style={{ color: '#40352C' }} className="mx-auto mb-2" />
+                    <p className="text-2xl font-bold" style={{ color: '#40352C', fontFamily: 'Syne, sans-serif' }}>{observations.length}</p>
+                    <p className="text-xs" style={{ color: 'rgba(64,53,44,0.5)' }}>Photos Today</p>
                   </div>
-                  <div className="glass-card p-4 luxury-border text-center">
-                    <Icon name="Clock" size={24} className="text-[#c9a962] mx-auto mb-2" />
-                    <p className="text-2xl font-light text-[#faf9f6]">10</p>
-                    <p className="text-xs text-[#6b6b6b]">Min Interval</p>
+                  <div className="rounded-xl p-4 text-center" style={{ backgroundColor: '#ffffff', border: '1px solid rgba(64,53,44,0.1)' }}>
+                    <Icon name="Clock" size={24} style={{ color: '#40352C' }} className="mx-auto mb-2" />
+                    <p className="text-2xl font-bold" style={{ color: '#40352C', fontFamily: 'Syne, sans-serif' }}>10</p>
+                    <p className="text-xs" style={{ color: 'rgba(64,53,44,0.5)' }}>Min Interval</p>
                   </div>
-                  <div className="glass-card p-4 luxury-border text-center">
-                    <Icon name="Thermometer" size={24} className="text-[#c9a962] mx-auto mb-2" />
-                    <p className="text-2xl font-light text-[#faf9f6]">{latestObservation.temperature}°C</p>
-                    <p className="text-xs text-[#6b6b6b]">Last Temp</p>
+                  <div className="rounded-xl p-4 text-center" style={{ backgroundColor: '#ffffff', border: '1px solid rgba(64,53,44,0.1)' }}>
+                    <Icon name="Thermometer" size={24} style={{ color: '#40352C' }} className="mx-auto mb-2" />
+                    <p className="text-2xl font-bold" style={{ color: '#40352C', fontFamily: 'Syne, sans-serif' }}>{latestObservation.temperature}°C</p>
+                    <p className="text-xs" style={{ color: 'rgba(64,53,44,0.5)' }}>Last Temp</p>
                   </div>
-                  <div className="glass-card p-4 luxury-border text-center">
-                    <Icon name="CheckCircle" size={24} className="text-[#4a9d6b] mx-auto mb-2" />
-                    <p className="text-2xl font-light text-[#4a9d6b]">
+                  <div className="rounded-xl p-4 text-center" style={{ backgroundColor: '#ffffff', border: '1px solid rgba(64,53,44,0.1)' }}>
+                    <Icon name="CheckCircle" size={24} className="text-green-500 mx-auto mb-2" />
+                    <p className="text-2xl font-bold text-green-600" style={{ fontFamily: 'Syne, sans-serif' }}>
                       {observations.filter(o => o.behaviorStatus === 'normal').length}
                     </p>
-                    <p className="text-xs text-[#6b6b6b]">Normal Status</p>
+                    <p className="text-xs" style={{ color: 'rgba(64,53,44,0.5)' }}>Normal Status</p>
                   </div>
                 </div>
               </div>
             ) : (
-              <div className="glass-card p-12 luxury-border text-center">
-                <Icon name="Camera" size={48} className="text-[#6b6b6b] mx-auto mb-4" />
-                <h3 className="text-xl font-medium text-[#faf9f6] mb-2">No Photos Yet</h3>
-                <p className="text-[#6b6b6b]">Photos will appear here once monitoring begins</p>
+              <div className="rounded-xl p-12 text-center" style={{ backgroundColor: '#ffffff', border: '1px solid rgba(64,53,44,0.1)' }}>
+                <Icon name="Camera" size={48} style={{ color: 'rgba(64,53,44,0.3)' }} className="mx-auto mb-4" />
+                <h3 className="text-xl font-bold mb-2" style={{ color: '#40352C', fontFamily: 'Syne, sans-serif' }}>No Photos Yet</h3>
+                <p style={{ color: 'rgba(64,53,44,0.5)' }}>Photos will appear here once monitoring begins</p>
               </div>
             )}
           </div>
@@ -490,27 +486,27 @@ const HorseTimeline: React.FC = () => {
               </button>
 
               {/* Video Player Card */}
-              <div className="glass-card luxury-border overflow-hidden">
+              <div className="rounded-xl overflow-hidden" style={{ backgroundColor: '#ffffff', border: '1px solid rgba(64,53,44,0.15)' }}>
                 {/* Header */}
-                <div className="flex items-center justify-between px-6 py-4 bg-[#c9a962]/10 border-b border-[#c9a962]/20">
+                <div className="flex items-center justify-between px-6 py-4" style={{ backgroundColor: 'rgba(64,53,44,0.04)', borderBottom: '1px solid rgba(64,53,44,0.1)' }}>
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-[#c9a962]/50">
-                      <Image 
-                        src={selectedHorse?.profileImage || ''} 
-                        alt={selectedHorse?.name || ''} 
-                        className="w-full h-full object-cover" 
+                    <div className="w-10 h-10 rounded-full overflow-hidden border-2" style={{ borderColor: 'rgba(64,53,44,0.2)' }}>
+                      <Image
+                        src={selectedHorse?.profileImage || ''}
+                        alt={selectedHorse?.name || ''}
+                        className="w-full h-full object-cover"
                       />
                     </div>
                     <div>
-                      <h3 className="font-serif text-lg font-medium text-[#faf9f6]">
+                      <h3 className="text-lg font-bold" style={{ color: '#40352C', fontFamily: 'Syne, sans-serif' }}>
                         {selectedHorse?.name}'s Daily Recap
                       </h3>
-                      <p className="text-sm text-[#a8a8a8]">{observations.length} photos • 15 seconds</p>
+                      <p className="text-sm" style={{ color: 'rgba(64,53,44,0.55)' }}>{observations.length} photos • 15 seconds</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-[#c9a962]/20 border border-[#c9a962]/30">
-                    <Icon name="Video" size={14} className="text-[#c9a962]" />
-                    <span className="text-sm font-medium text-[#c9a962]">Generated Video</span>
+                  <div className="flex items-center gap-2 px-3 py-1 rounded-full" style={{ backgroundColor: 'rgba(64,53,44,0.08)', border: '1px solid rgba(64,53,44,0.15)' }}>
+                    <Icon name="Video" size={14} style={{ color: '#40352C' }} />
+                    <span className="text-sm font-medium" style={{ color: '#40352C' }}>Generated Video</span>
                   </div>
                 </div>
 
@@ -568,12 +564,12 @@ const HorseTimeline: React.FC = () => {
                 </div>
 
                 {/* Progress Bar & Controls */}
-                <div className="px-6 py-4 bg-[#0a0a0f]/50">
+                <div className="px-6 py-4" style={{ backgroundColor: 'rgba(64,53,44,0.04)', borderTop: '1px solid rgba(64,53,44,0.08)' }}>
                   {/* Progress Bar */}
-                  <div className="relative h-2 bg-white/10 rounded-full overflow-hidden mb-4">
-                    <div 
-                      className="absolute inset-y-0 left-0 bg-gradient-to-r from-[#c9a962] to-[#a88a45] transition-all duration-100"
-                      style={{ width: `${videoProgress}%` }}
+                  <div className="relative h-2 rounded-full overflow-hidden mb-4" style={{ backgroundColor: 'rgba(64,53,44,0.1)' }}>
+                    <div
+                      className="absolute inset-y-0 left-0 transition-all duration-100"
+                      style={{ width: `${videoProgress}%`, backgroundColor: '#40352C' }}
                     />
                   </div>
 
@@ -582,25 +578,27 @@ const HorseTimeline: React.FC = () => {
                     <div className="flex items-center gap-4">
                       <button
                         onClick={isVideoPlaying ? () => setIsVideoPlaying(false) : handlePlayVideo}
-                        className="p-3 rounded-full bg-[#c9a962]/20 hover:bg-[#c9a962]/30 transition-colors"
+                        className="p-3 rounded-full transition-colors hover:bg-stone-100"
+                        style={{ backgroundColor: 'rgba(64,53,44,0.08)' }}
                       >
-                        <Icon 
-                          name={isVideoPlaying ? "Pause" : "Play"} 
-                          size={20} 
-                          className="text-[#c9a962]" 
+                        <Icon
+                          name={isVideoPlaying ? "Pause" : "Play"}
+                          size={20}
+                          style={{ color: '#40352C' }}
                         />
                       </button>
-                      <span className="text-sm text-[#a8a8a8]">
+                      <span className="text-sm" style={{ color: 'rgba(64,53,44,0.55)' }}>
                         {Math.round((videoProgress / 100) * 15)}s / 15s
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
                       <button
                         onClick={handlePlayVideo}
-                        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 transition-colors"
+                        className="flex items-center gap-2 px-4 py-2 rounded-xl transition-colors hover:bg-stone-100"
+                        style={{ backgroundColor: 'rgba(64,53,44,0.06)', border: '1px solid rgba(64,53,44,0.1)' }}
                       >
-                        <Icon name="RotateCcw" size={16} className="text-[#a8a8a8]" />
-                        <span className="text-sm text-[#a8a8a8]">Replay</span>
+                        <Icon name="RotateCcw" size={16} style={{ color: 'rgba(64,53,44,0.55)' }} />
+                        <span className="text-sm" style={{ color: 'rgba(64,53,44,0.55)' }}>Replay</span>
                       </button>
                     </div>
                   </div>

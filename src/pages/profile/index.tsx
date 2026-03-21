@@ -87,10 +87,10 @@ const Profile: React.FC = () => {
           <main className="pt-16 pb-20 md:pb-6">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
               <div className="animate-pulse space-y-6">
-                <div className="h-48 bg-white/[0.03] rounded-xl" />
+                <div className="h-48 rounded-xl" style={{ backgroundColor: 'rgba(64,53,44,0.05)' }} />
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   {[1, 2, 3, 4].map((i) => (
-                    <div key={i} className="h-32 bg-white/[0.03] rounded-xl" />
+                    <div key={i} className="h-32 rounded-xl" style={{ backgroundColor: 'rgba(64,53,44,0.05)' }} />
                   ))}
                 </div>
               </div>
@@ -152,8 +152,8 @@ const Profile: React.FC = () => {
               )}
 
               {/* Account Actions */}
-              <div className="backdrop-blur-xl bg-white/[0.03] border border-white/[0.08] rounded-xl p-6">
-                <h2 className="text-xl font-semibold text-text-primary mb-4">
+              <div className="rounded-xl p-6" style={{ backgroundColor: '#ffffff', border: '1px solid rgba(64,53,44,0.1)', boxShadow: '0 2px 8px rgba(64,53,44,0.05)' }}>
+                <h2 className="text-xl font-bold mb-4" style={{ color: '#40352C', fontFamily: 'Syne, sans-serif' }}>
                   Account Settings
                 </h2>
                 <div className="flex flex-col sm:flex-row gap-4">
@@ -182,11 +182,11 @@ const Profile: React.FC = () => {
               </div>
 
               {/* Talk to Us Section */}
-              <div className="backdrop-blur-xl bg-white/[0.03] border border-white/[0.08] rounded-xl p-6">
-                <h2 className="text-xl font-semibold text-text-primary mb-2">
+              <div className="rounded-xl p-6" style={{ backgroundColor: '#ffffff', border: '1px solid rgba(64,53,44,0.1)', boxShadow: '0 2px 8px rgba(64,53,44,0.05)' }}>
+                <h2 className="text-xl font-bold mb-2" style={{ color: '#40352C', fontFamily: 'Syne, sans-serif' }}>
                   Talk to Us
                 </h2>
-                <p className="text-sm text-secondary mb-4">
+                <p className="text-sm mb-4" style={{ color: 'rgba(64,53,44,0.55)' }}>
                   Have questions or need support? Reach out to us directly.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4">
@@ -215,13 +215,13 @@ const Profile: React.FC = () => {
               </div>
 
               {/* Logout Section */}
-              <div className="backdrop-blur-xl bg-white/[0.03] border border-white/[0.08] rounded-xl p-6">
+              <div className="rounded-xl p-6" style={{ backgroundColor: '#ffffff', border: '1px solid rgba(64,53,44,0.1)', boxShadow: '0 2px 8px rgba(64,53,44,0.05)' }}>
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                   <div>
-                    <h3 className="text-lg font-semibold text-text-primary mb-1">
+                    <h3 className="text-lg font-bold mb-1" style={{ color: '#40352C', fontFamily: 'Syne, sans-serif' }}>
                       Sign Out
                     </h3>
-                    <p className="text-sm text-secondary">
+                    <p className="text-sm" style={{ color: 'rgba(64,53,44,0.55)' }}>
                       You will be logged out of your EquineWatch account
                     </p>
                   </div>

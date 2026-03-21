@@ -37,38 +37,40 @@ const MobileNavigation: React.FC = () => {
   };
 
   const navItems = getNavItems();
-
   const isActive = (path: string) => location.pathname === path;
-
   const hasScrollableContent = navItems.length > 5;
 
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 z-[100]">
       <div className="relative">
-        <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#c9a962]/30 to-transparent" />
-        
-        <div className="backdrop-blur-2xl bg-[#0a0a0f]/90 border-t border-[#c9a962]/10">
+        <div
+          style={{
+            backgroundColor: 'rgba(248,246,242,0.97)',
+            backdropFilter: 'blur(20px)',
+            borderTop: '1px solid rgba(64,53,44,0.1)',
+          }}
+        >
           {hasScrollableContent && (
             <>
-              <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-[#0a0a0f] to-transparent z-10 pointer-events-none" />
-              <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-[#0a0a0f] to-transparent z-10 pointer-events-none" />
+              <div className="absolute left-0 top-0 bottom-0 w-8 z-10 pointer-events-none" style={{ background: 'linear-gradient(to right, rgba(248,246,242,1), transparent)' }} />
+              <div className="absolute right-0 top-0 bottom-0 w-8 z-10 pointer-events-none" style={{ background: 'linear-gradient(to left, rgba(248,246,242,1), transparent)' }} />
             </>
           )}
-          <div 
+          <div
             className={`flex items-center py-3 safe-area-inset-bottom ${
-              hasScrollableContent 
-                ? 'overflow-x-auto scrollbar-hide px-6 gap-2 snap-x snap-mandatory scroll-smooth' 
+              hasScrollableContent
+                ? 'overflow-x-auto scrollbar-hide px-6 gap-2 snap-x snap-mandatory scroll-smooth'
                 : 'justify-around px-4'
             }`}
-            style={hasScrollableContent ? { 
-              scrollbarWidth: 'none', 
+            style={hasScrollableContent ? {
+              scrollbarWidth: 'none',
               msOverflowStyle: 'none',
-              WebkitOverflowScrolling: 'touch'
+              WebkitOverflowScrolling: 'touch',
             } : undefined}
           >
             {navItems.map((item) => {
               const active = isActive(item.path);
-              
+
               return (
                 <Link
                   key={item.path}
@@ -78,32 +80,39 @@ const MobileNavigation: React.FC = () => {
                   }`}
                 >
                   {active && (
-                    <div className="absolute inset-0 bg-[#c9a962]/10 rounded-xl shadow-[0_0_20px_rgba(201,169,98,0.15)] animate-fade-in" />
+                    <div
+                      className="absolute inset-0 rounded-xl animate-fade-in"
+                      style={{ backgroundColor: 'rgba(64,53,44,0.08)' }}
+                    />
                   )}
-                  
+
                   <div className="relative">
-                    <div className={`p-2 rounded-xl transition-all duration-300 ${
-                      active 
-                        ? 'bg-[#c9a962]/20 shadow-[0_0_15px_rgba(201,169,98,0.2)]' 
-                        : 'bg-white/[0.03] group-active:bg-white/[0.06]'
-                    }`}>
-                      <Icon 
-                        name={item.icon} 
-                        size={20} 
-                        className={`transition-colors duration-300 ${
-                          active ? 'text-[#c9a962]' : 'text-[#6b6b6b] group-active:text-[#a8a8a8]'
-                        }`}
+                    <div
+                      className="p-2 rounded-xl transition-all duration-300"
+                      style={{
+                        backgroundColor: active ? 'rgba(64,53,44,0.12)' : 'transparent',
+                      }}
+                    >
+                      <Icon
+                        name={item.icon}
+                        size={20}
+                        style={{ color: active ? '#40352C' : 'rgba(64,53,44,0.4)' }}
+                        className="transition-colors duration-300"
                       />
                     </div>
-                    
+
                     {active && (
-                      <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-[#c9a962] rounded-full shadow-[0_0_10px_rgba(201,169,98,0.6)] animate-pulse" />
+                      <div
+                        className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full"
+                        style={{ backgroundColor: '#40352C' }}
+                      />
                     )}
                   </div>
-                  
-                  <span className={`text-[10px] font-semibold transition-colors duration-300 whitespace-nowrap ${
-                    active ? 'text-[#c9a962]' : 'text-[#6b6b6b] group-active:text-[#a8a8a8]'
-                  }`}>
+
+                  <span
+                    className="text-[10px] font-semibold transition-colors duration-300 whitespace-nowrap"
+                    style={{ color: active ? '#40352C' : 'rgba(64,53,44,0.4)', fontFamily: 'Montserrat, sans-serif' }}
+                  >
                     {item.label}
                   </span>
                 </Link>

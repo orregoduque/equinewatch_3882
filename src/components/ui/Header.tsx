@@ -52,22 +52,19 @@ const Header = ({ className = '' }: HeaderProps) => {
       <div
         className="relative"
         style={{
-          backgroundColor: 'rgba(40, 33, 26, 0.92)',
+          backgroundColor: 'rgba(248,246,242,0.97)',
           backdropFilter: 'blur(20px)',
-          borderBottom: '1px solid rgba(248,246,242,0.07)',
+          borderBottom: '1px solid rgba(64,53,44,0.1)',
         }}
       >
-        <div className="absolute bottom-0 left-0 right-0 h-px" style={{ background: 'linear-gradient(90deg, transparent, rgba(248,246,242,0.12), transparent)' }} />
-
         <div className="flex items-center h-20 px-6 md:px-10">
           <Link to="/horse-list" className="flex items-center gap-3 mr-8 group">
             <img
               src="/logo-icon-dark.png"
               alt="Stable Eye"
-              className="h-9 w-auto transition-all duration-300"
-              style={{ filter: 'brightness(0) invert(1)', opacity: 0.88 }}
+              className="h-9 w-auto transition-all duration-300 group-hover:opacity-70"
             />
-            <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '1.15rem', color: 'rgba(248,246,242,0.88)', letterSpacing: '-0.01em' }}>Stable Eye</span>
+            <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '1.15rem', color: '#40352C', letterSpacing: '-0.01em' }}>Stable Eye</span>
           </Link>
 
           <nav className="hidden md:flex items-center gap-1 ml-auto">
@@ -81,18 +78,12 @@ const Header = ({ className = '' }: HeaderProps) => {
                   className="flex items-center gap-2.5 px-5 py-2.5 rounded-xl text-sm font-medium transition-all duration-300"
                   style={{
                     fontFamily: 'Montserrat, sans-serif',
-                    color: isActive(item.path) ? '#F8F6F2' : 'rgba(248,246,242,0.45)',
-                    backgroundColor: isActive(item.path) ? 'rgba(248,246,242,0.1)' : 'transparent',
+                    color: isActive(item.path) ? '#40352C' : 'rgba(64,53,44,0.45)',
+                    backgroundColor: isActive(item.path) ? 'rgba(64,53,44,0.08)' : 'transparent',
                   }}
                 >
                   <Icon name={item.icon} size={17} />
                   <span>{item.label}</span>
-                  {isActive(item.path) && (
-                    <div
-                      className="absolute bottom-0 left-1/2 -translate-x-1/2 w-6 h-0.5 rounded-full"
-                      style={{ background: 'linear-gradient(90deg, transparent, rgba(248,246,242,0.6), transparent)' }}
-                    />
-                  )}
                 </div>
               </Link>
             ))}
@@ -100,23 +91,23 @@ const Header = ({ className = '' }: HeaderProps) => {
 
           <div
             className="hidden md:flex items-center gap-3 ml-6 pl-6"
-            style={{ borderLeft: '1px solid rgba(248,246,242,0.07)' }}
+            style={{ borderLeft: '1px solid rgba(64,53,44,0.1)' }}
           >
             {user && (
               <div
                 className="flex items-center gap-2 px-3 py-1.5 rounded-lg"
                 style={{
-                  backgroundColor: 'rgba(248,246,242,0.04)',
-                  border: '1px solid rgba(248,246,242,0.08)',
+                  backgroundColor: 'rgba(64,53,44,0.05)',
+                  border: '1px solid rgba(64,53,44,0.1)',
                 }}
               >
-                <span className="text-xs" style={{ color: 'rgba(248,246,242,0.5)', fontFamily: 'Montserrat, sans-serif' }}>{user.name}</span>
+                <span className="text-xs" style={{ color: 'rgba(64,53,44,0.6)', fontFamily: 'Montserrat, sans-serif' }}>{user.name}</span>
                 <span
                   className="px-2 py-0.5 rounded-full text-[10px] font-semibold capitalize"
                   style={{
-                    backgroundColor: 'rgba(248,246,242,0.1)',
-                    color: 'rgba(248,246,242,0.7)',
-                    border: '1px solid rgba(248,246,242,0.15)',
+                    backgroundColor: 'rgba(64,53,44,0.08)',
+                    color: 'rgba(64,53,44,0.7)',
+                    border: '1px solid rgba(64,53,44,0.15)',
                     fontFamily: 'Montserrat, sans-serif',
                   }}
                 >
@@ -126,24 +117,24 @@ const Header = ({ className = '' }: HeaderProps) => {
             )}
             <Link
               to="/profile"
-              className="p-2.5 rounded-xl transition-all duration-300"
+              className="p-2.5 rounded-xl transition-all duration-300 hover:bg-[rgba(64,53,44,0.06)]"
               style={{
-                backgroundColor: 'rgba(248,246,242,0.04)',
-                border: '1px solid rgba(248,246,242,0.08)',
+                backgroundColor: 'rgba(64,53,44,0.04)',
+                border: '1px solid rgba(64,53,44,0.1)',
               }}
             >
-              <Icon name="User" size={17} style={{ color: 'rgba(248,246,242,0.5)' }} />
+              <Icon name="User" size={17} style={{ color: 'rgba(64,53,44,0.55)' }} />
             </Link>
             {isAuthenticated && (
               <button
                 onClick={handleLogout}
-                className="p-2.5 rounded-xl transition-all duration-300"
+                className="p-2.5 rounded-xl transition-all duration-300 hover:bg-red-50"
                 style={{
-                  backgroundColor: 'rgba(248,246,242,0.04)',
-                  border: '1px solid rgba(248,246,242,0.08)',
+                  backgroundColor: 'rgba(64,53,44,0.04)',
+                  border: '1px solid rgba(64,53,44,0.1)',
                 }}
               >
-                <Icon name="LogOut" size={17} style={{ color: 'rgba(248,246,242,0.5)' }} />
+                <Icon name="LogOut" size={17} style={{ color: 'rgba(64,53,44,0.55)' }} />
               </button>
             )}
           </div>

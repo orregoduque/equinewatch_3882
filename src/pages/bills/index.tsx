@@ -96,13 +96,7 @@ const Bills: React.FC = () => {
     .reduce((sum, b) => sum + b.amount, 0);
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
-      <div className="fixed inset-0 -z-10">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#0a0a0f] via-[#12121a] to-[#0f0f18]" />
-        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-[#c9a962]/5 rounded-full blur-[150px]" />
-        <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-[#c9a962]/3 rounded-full blur-[150px]" />
-      </div>
-
+    <div className="min-h-screen" style={{ backgroundColor: '#F8F6F2' }}>
       <Header />
       
       <main className="pt-24 pb-24 md:pb-12 px-6 md:px-10">
@@ -110,12 +104,12 @@ const Bills: React.FC = () => {
           <div className="flex flex-col gap-8 animate-slide-up">
             <div className="flex flex-col gap-4">
               <div className="flex items-center gap-3">
-                <div className="w-1 h-12 rounded-full bg-gradient-to-b from-[#c9a962] to-[#a88a45]" />
+                <div className="w-1 h-12 rounded-full" style={{ backgroundColor: '#40352C' }} />
                 <div>
-                  <h1 className="font-serif text-4xl md:text-5xl font-light text-[#faf9f6]">
-                    Billing <span className="gradient-text font-medium">History</span>
+                  <h1 className="text-4xl md:text-5xl font-bold" style={{ color: '#40352C', fontFamily: 'Syne, sans-serif' }}>
+                    Billing History
                   </h1>
-                  <p className="text-base mt-2 font-light text-[#a8a8a8] tracking-wide">
+                  <p className="text-base mt-2" style={{ color: 'rgba(64,53,44,0.55)', fontFamily: 'Montserrat, sans-serif' }}>
                     View and manage your subscription invoices
                   </p>
                 </div>
@@ -123,18 +117,18 @@ const Bills: React.FC = () => {
             </div>
 
             {totalOutstanding > 0 && (
-              <div className="glass-card p-6 luxury-border bg-[#c9a962]/5">
+              <div className="rounded-xl p-6" style={{ backgroundColor: '#fff8ee', border: '1px solid rgba(64,53,44,0.15)' }}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                    <div className="p-3 rounded-xl bg-[#c9a962]/10 border border-[#c9a962]/20">
-                      <Icon name="CreditCard" size={24} className="text-[#c9a962]" />
+                    <div className="p-3 rounded-xl" style={{ backgroundColor: 'rgba(64,53,44,0.08)', border: '1px solid rgba(64,53,44,0.15)' }}>
+                      <Icon name="CreditCard" size={24} style={{ color: '#40352C' }} />
                     </div>
                     <div>
-                      <p className="text-sm text-[#a8a8a8]">Outstanding Balance</p>
-                      <p className="text-2xl font-semibold text-[#c9a962]">{formatCurrency(totalOutstanding)}</p>
+                      <p className="text-sm" style={{ color: 'rgba(64,53,44,0.55)' }}>Outstanding Balance</p>
+                      <p className="text-2xl font-bold" style={{ color: '#40352C', fontFamily: 'Syne, sans-serif' }}>{formatCurrency(totalOutstanding)}</p>
                     </div>
                   </div>
-                  <button className="px-6 py-3 luxury-button rounded-xl text-sm font-medium flex items-center gap-2">
+                  <button className="px-6 py-3 rounded-xl text-sm font-medium flex items-center gap-2 text-white transition-all hover:opacity-80" style={{ backgroundColor: '#40352C' }}>
                     <Icon name="CreditCard" size={16} />
                     Pay Now
                   </button>
@@ -146,17 +140,18 @@ const Bills: React.FC = () => {
               {mockBills.map((bill) => (
                 <div
                   key={bill.id}
-                  className="glass-card luxury-border overflow-hidden"
+                  className="rounded-xl overflow-hidden"
+                  style={{ backgroundColor: '#ffffff', border: '1px solid rgba(64,53,44,0.1)', boxShadow: '0 2px 8px rgba(64,53,44,0.05)' }}
                 >
                   <div className="p-6">
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center gap-4">
-                        <div className="p-3 rounded-xl bg-white/[0.03] border border-[#c9a962]/10">
-                          <Icon name="FileText" size={20} className="text-[#c9a962]" />
+                        <div className="p-3 rounded-xl" style={{ backgroundColor: 'rgba(64,53,44,0.06)', border: '1px solid rgba(64,53,44,0.1)' }}>
+                          <Icon name="FileText" size={20} style={{ color: '#40352C' }} />
                         </div>
                         <div>
-                          <h3 className="text-lg font-medium text-[#faf9f6]">{bill.period}</h3>
-                          <p className="text-sm text-[#a8a8a8]">
+                          <h3 className="text-lg font-bold" style={{ color: '#40352C', fontFamily: 'Syne, sans-serif' }}>{bill.period}</h3>
+                          <p className="text-sm" style={{ color: 'rgba(64,53,44,0.55)' }}>
                             {bill.status === 'paid' 
                               ? `Paid on ${formatDate(bill.paidDate!)}` 
                               : `Due ${formatDate(bill.dueDate)}`}
@@ -164,32 +159,32 @@ const Bills: React.FC = () => {
                         </div>
                       </div>
                       <div className="flex items-center gap-4">
-                        <span className="text-xl font-semibold text-[#faf9f6]">{formatCurrency(bill.amount)}</span>
+                        <span className="text-xl font-bold" style={{ color: '#40352C', fontFamily: 'Syne, sans-serif' }}>{formatCurrency(bill.amount)}</span>
                         <span className={`px-3 py-1 rounded-full text-xs font-medium border capitalize ${getStatusColor(bill.status)}`}>
                           {bill.status}
                         </span>
                       </div>
                     </div>
 
-                    <div className="border-t border-[#c9a962]/10 pt-4 mt-4">
+                    <div className="pt-4 mt-4" style={{ borderTop: '1px solid rgba(64,53,44,0.08)' }}>
                       <div className="space-y-2">
                         {bill.items.map((item, idx) => (
                           <div key={idx} className="flex items-center justify-between text-sm">
-                            <span className="text-[#a8a8a8]">{item.description}</span>
-                            <span className="text-[#faf9f6]">{formatCurrency(item.amount)}</span>
+                            <span style={{ color: 'rgba(64,53,44,0.55)' }}>{item.description}</span>
+                            <span style={{ color: '#40352C' }}>{formatCurrency(item.amount)}</span>
                           </div>
                         ))}
                       </div>
                     </div>
                   </div>
 
-                  <div className="px-6 py-3 bg-white/[0.02] border-t border-[#c9a962]/10 flex items-center justify-end gap-3">
-                    <button className="text-sm text-[#a8a8a8] hover:text-[#c9a962] transition-colors flex items-center gap-2">
+                  <div className="px-6 py-3 flex items-center justify-end gap-3" style={{ backgroundColor: 'rgba(64,53,44,0.03)', borderTop: '1px solid rgba(64,53,44,0.08)' }}>
+                    <button className="text-sm flex items-center gap-2 transition-colors hover:opacity-70" style={{ color: 'rgba(64,53,44,0.55)' }}>
                       <Icon name="Download" size={14} />
                       Download PDF
                     </button>
                     {bill.status !== 'paid' && (
-                      <button className="px-4 py-2 rounded-lg bg-[#c9a962]/10 border border-[#c9a962]/20 text-sm text-[#c9a962] hover:bg-[#c9a962]/20 transition-colors flex items-center gap-2">
+                      <button className="px-4 py-2 rounded-lg text-sm flex items-center gap-2 text-white transition-all hover:opacity-80" style={{ backgroundColor: '#40352C' }}>
                         <Icon name="CreditCard" size={14} />
                         Pay Invoice
                       </button>

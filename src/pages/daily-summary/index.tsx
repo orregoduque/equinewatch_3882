@@ -267,41 +267,37 @@ const DailySummary: React.FC = () => {
         <meta name="description" content="Comprehensive colic monitoring and early warning system for equine health" />
       </Helmet>
 
-      <div className="min-h-screen relative overflow-hidden">
-        <div className="fixed inset-0 -z-10">
-          <div className="absolute inset-0 bg-gradient-to-br from-[#0a0a0f] via-[#12121a] to-[#0f0f18]" />
-          <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-[#c9a962]/5 rounded-full blur-[150px]" />
-          <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-[#c9a962]/3 rounded-full blur-[150px]" />
-        </div>
-
+      <div className="min-h-screen" style={{ backgroundColor: '#F8F6F2' }}>
         <Header />
 
         {showProPopup && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-            <div className="relative mx-4 max-w-md w-full bg-gradient-to-br from-[#1a1a24] to-[#12121a] border border-[#c9a962]/30 rounded-2xl p-8 shadow-[0_0_50px_rgba(201,169,98,0.15)]">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+            <div className="relative mx-4 max-w-md w-full rounded-2xl p-8 shadow-2xl" style={{ backgroundColor: '#ffffff', border: '1px solid rgba(64,53,44,0.15)' }}>
               <button
                 onClick={() => setShowProPopup(false)}
-                className="absolute top-4 right-4 text-[#a8a8a8] hover:text-white transition-colors"
+                className="absolute top-4 right-4 transition-colors"
+                style={{ color: 'rgba(64,53,44,0.5)' }}
               >
                 <Icon name="X" size={24} />
               </button>
               
               <div className="text-center">
-                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-[#c9a962] to-[#a88a45] flex items-center justify-center">
-                  <Icon name="Sparkles" size={32} className="text-[#0a0a0f]" />
+                <div className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center" style={{ backgroundColor: '#40352C' }}>
+                  <Icon name="Sparkles" size={32} className="text-white" />
                 </div>
                 
-                <h3 className="text-2xl font-serif text-white mb-3">
-                  AI <span className="gradient-text">Monitoring</span>
+                <h3 className="text-2xl font-bold mb-3" style={{ color: '#40352C', fontFamily: 'Syne, sans-serif' }}>
+                  AI Monitoring
                 </h3>
                 
-                <p className="text-lg text-[#a8a8a8] mb-6">
-                  Unlock ai monitoring with you PRO subscription
+                <p className="text-base mb-6" style={{ color: 'rgba(64,53,44,0.6)', fontFamily: 'Montserrat, sans-serif' }}>
+                  Unlock AI monitoring with your PRO subscription
                 </p>
                 
                 <button
                   onClick={() => setShowProPopup(false)}
-                  className="w-full py-3 px-6 rounded-xl bg-gradient-to-r from-[#c9a962] to-[#a88a45] text-[#0a0a0f] font-semibold hover:shadow-[0_0_20px_rgba(201,169,98,0.4)] transition-all duration-300"
+                  className="w-full py-3 px-6 rounded-xl font-semibold text-white transition-all duration-300"
+                  style={{ backgroundColor: '#40352C' }}
                 >
                   Got it
                 </button>
@@ -314,28 +310,29 @@ const DailySummary: React.FC = () => {
           <div className="max-w-7xl mx-auto">
             <div className="mb-8">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-1 h-12 rounded-full bg-gradient-to-b from-[#c9a962] to-[#a88a45]" />
+                <div className="w-1 h-12 rounded-full" style={{ backgroundColor: '#40352C' }} />
                 <div>
-                  <h1 className="font-serif text-4xl md:text-5xl font-light text-[#faf9f6]">
-                    Colic <span className="gradient-text font-medium">Monitoring</span>
+                  <h1 className="text-4xl md:text-5xl font-bold" style={{ color: '#40352C', fontFamily: 'Syne, sans-serif' }}>
+                    Colic Monitoring
                   </h1>
-                  <p className="text-base mt-2 font-light text-[#a8a8a8] tracking-wide">
+                  <p className="text-base mt-2" style={{ color: 'rgba(64,53,44,0.55)', fontFamily: 'Montserrat, sans-serif' }}>
                     Early warning system & vital sign tracking
                   </p>
                 </div>
               </div>
 
               <div className="flex flex-wrap items-center gap-3 mt-4">
-                <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#d4a84b]/10 border border-[#d4a84b]/30">
-                  <div className="w-2 h-2 rounded-full bg-[#d4a84b] animate-pulse" />
-                  <span className="text-sm font-medium text-[#d4a84b]">Colic Watch Active</span>
+                <div className="flex items-center gap-2 px-4 py-2 rounded-xl" style={{ backgroundColor: 'rgba(212,168,75,0.1)', border: '1px solid rgba(212,168,75,0.35)' }}>
+                  <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                  <span className="text-sm font-medium" style={{ color: '#d4a84b' }}>Colic Watch Active</span>
                 </div>
-                <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.03] border border-[#c9a962]/10">
-                  <span className="text-sm font-medium text-[#a8a8a8]">Thunder - Barn A</span>
+                <div className="flex items-center gap-2 px-4 py-2 rounded-xl" style={{ backgroundColor: 'rgba(64,53,44,0.05)', border: '1px solid rgba(64,53,44,0.1)' }}>
+                  <span className="text-sm font-medium" style={{ color: 'rgba(64,53,44,0.6)' }}>Thunder - Barn A</span>
                 </div>
                 <button
                   onClick={generatePDFReport}
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-[#c9a962] to-[#a88a45] text-[#0a0a0f] font-semibold text-sm hover:shadow-[0_0_20px_rgba(201,169,98,0.3)] transition-all duration-300"
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl text-white font-semibold text-sm transition-all duration-300 hover:opacity-80"
+                  style={{ backgroundColor: '#40352C' }}
                 >
                   <Icon name="FileText" size={16} />
                   Export Health Report
@@ -378,8 +375,8 @@ const DailySummary: React.FC = () => {
             ) : (
               <div className="flex items-center justify-center h-96">
                 <div className="text-center">
-                  <p className="text-lg text-[#a8a8a8] mb-2">No data available for this date</p>
-                  <p className="text-sm text-[#6b6b6b]">Try selecting a different date</p>
+                  <p className="text-lg mb-2" style={{ color: 'rgba(64,53,44,0.6)' }}>No data available for this date</p>
+                  <p className="text-sm" style={{ color: 'rgba(64,53,44,0.4)' }}>Try selecting a different date</p>
                 </div>
               </div>
             )}

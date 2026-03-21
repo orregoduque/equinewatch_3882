@@ -11,9 +11,9 @@
     --brand-dark-10: rgba(64, 53, 44, 0.1);
     --brand-dark-05: rgba(64, 53, 44, 0.05);
 
-    --color-background: #0a0a0f;
-    --color-surface: rgba(255, 255, 255, 0.02);
-    --color-muted: rgba(255, 255, 255, 0.04);
+    --color-background: #F8F6F2;
+    --color-surface: rgba(64, 53, 44, 0.03);
+    --color-muted: rgba(64, 53, 44, 0.05);
 
     --color-primary: #40352C;
     --color-primary-light: #5a4a3e;
@@ -31,9 +31,9 @@
     --color-secondary-dark: #6b6b6b;
     --color-secondary-foreground: #F8F6F2;
 
-    --color-text-primary: #F8F6F2;
-    --color-text-secondary: #a8a8a8;
-    --color-text-tertiary: #6b6b6b;
+    --color-text-primary: #40352C;
+    --color-text-secondary: rgba(64, 53, 44, 0.55);
+    --color-text-tertiary: rgba(64, 53, 44, 0.4);
     --color-text-accent: #40352C;
 
     --color-success: #4a9d6b;
@@ -75,16 +75,16 @@
     --color-inactive: #6b6b6b;
     --color-pending: #d4a84b;
 
-    --color-card: rgba(20, 20, 28, 0.8);
-    --color-card-foreground: #F8F6F2;
-    --color-popover: rgba(20, 20, 28, 0.95);
-    --color-popover-foreground: #F8F6F2;
-    --color-input: rgba(64, 53, 44, 0.15);
+    --color-card: #ffffff;
+    --color-card-foreground: #40352C;
+    --color-popover: #ffffff;
+    --color-popover-foreground: #40352C;
+    --color-input: rgba(64, 53, 44, 0.12);
     --color-ring: #40352C;
-    --color-foreground: #F8F6F2;
+    --color-foreground: #40352C;
     --color-destructive: #c75050;
     --color-destructive-foreground: #F8F6F2;
-    --color-muted-foreground: #8b8b8b;
+    --color-muted-foreground: rgba(64, 53, 44, 0.5);
 
     --radius: 0.75rem;
   }
@@ -98,10 +98,9 @@
   }
 
   body {
-    background: linear-gradient(145deg, #0a0a0f 0%, #12121a 40%, #0f0f18 70%, #0a0a0f 100%);
-    background-attachment: fixed;
+    background: #F8F6F2;
     font-family: 'Montserrat', system-ui, -apple-system, sans-serif;
-    color: #F8F6F2;
+    color: #40352C;
     min-height: 100vh;
   }
 
