@@ -82,8 +82,9 @@ const Landing: React.FC = () => {
         >
           <div className="max-w-7xl mx-auto px-6 lg:px-16">
             <div className="flex items-center justify-between h-20">
-              <div className="flex items-center">
-                <img src="/logo-dark.png" alt="Stable Eye" className="h-9 w-auto" />
+              <div className="flex items-center gap-3">
+                <img src="/logo-icon-dark.png" alt="Stable Eye" className="h-10 w-auto" />
+                <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '1.25rem', color: '#40352C', letterSpacing: '-0.01em' }}>Stable Eye</span>
               </div>
 
               <nav className="hidden md:flex items-center gap-10">
@@ -627,8 +628,9 @@ const Landing: React.FC = () => {
         <footer style={{ backgroundColor: '#2a2219', borderTop: '1px solid rgba(248,246,242,0.06)' }} className="py-16 px-6 lg:px-16">
           <div className="max-w-7xl mx-auto">
             <div className="flex flex-col md:flex-row items-center justify-between gap-8">
-              <div className="flex items-center">
-                <img src="/logo-white.png" alt="Stable Eye" className="h-8 w-auto opacity-80" />
+              <div className="flex items-center gap-3">
+                <img src="/logo-icon-dark.png" alt="Stable Eye" className="h-9 w-auto" style={{ filter: 'brightness(0) invert(1)', opacity: 0.7 }} />
+                <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '1.1rem', color: 'rgba(248,246,242,0.7)', letterSpacing: '-0.01em' }}>Stable Eye</span>
               </div>
 
               <div className="flex items-center gap-8 text-sm" style={{ color: 'rgba(248,246,242,0.35)', fontFamily: 'Montserrat, sans-serif' }}>

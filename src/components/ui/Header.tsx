@@ -62,11 +62,12 @@ const Header = ({ className = '' }: HeaderProps) => {
         <div className="flex items-center h-20 px-6 md:px-10">
           <Link to="/horse-list" className="flex items-center gap-3 mr-8 group">
             <img
-              src="/logo-white.png"
+              src="/logo-icon-dark.png"
               alt="Stable Eye"
-              className="h-8 w-auto transition-all duration-300 group-hover:opacity-80"
-              style={{ opacity: 0.92 }}
+              className="h-9 w-auto transition-all duration-300"
+              style={{ filter: 'brightness(0) invert(1)', opacity: 0.88 }}
             />
+            <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '1.15rem', color: 'rgba(248,246,242,0.88)', letterSpacing: '-0.01em' }}>Stable Eye</span>
           </Link>
 
           <nav className="hidden md:flex items-center gap-1 ml-auto">
