@@ -1,8 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../../components/ui/Header';
 import MobileNavigation from '../../components/ui/MobileNavigation';
-import SearchBar from './components/SearchBar';
 import HorseCard from './components/HorseCard';
 import HorseCardSkeleton from './components/HorseCardSkeleton';
 import EmptyState from './components/EmptyState';
@@ -10,7 +9,6 @@ import { Horse, User } from './types';
 
 const HorseList: React.FC = () => {
   const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const currentUser: User = {
@@ -33,17 +31,6 @@ const HorseList: React.FC = () => {
     notes: 'Active and alert during morning rounds. Eating well and showing good energy levels.'
   }];
 
-
-  const filteredHorses = useMemo(() => {
-    if (!searchQuery.trim()) return mockHorses;
-
-    const query = searchQuery.toLowerCase();
-    return mockHorses.filter((horse) =>
-    horse.name.toLowerCase().includes(query) ||
-    horse.ownerName.toLowerCase().includes(query) ||
-    horse.notes.toLowerCase().includes(query)
-    );
-  }, [searchQuery, mockHorses]);
 
   const handleHorseClick = (horseId: string) => {
     navigate('/horse-timeline', { state: { horseId } });
@@ -80,23 +67,15 @@ const HorseList: React.FC = () => {
               </div>
             </div>
 
-            <div className="max-w-2xl">
-              <SearchBar
-                value={searchQuery}
-                onChange={setSearchQuery}
-                placeholder="Search by horse name, owner, or notes..."
-              />
-            </div>
-
             {isLoading ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                 {[...Array(6)].map((_, index) => (
                   <HorseCardSkeleton key={index} />
                 ))}
               </div>
-            ) : filteredHorses.length > 0 ? (
+            ) : mockHorses.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                {filteredHorses.map((horse) => (
+                {mockHorses.map((horse) => (
                   <HorseCard
                     key={horse.id}
                     horse={horse}
@@ -107,10 +86,7 @@ const HorseList: React.FC = () => {
             ) : (
               <EmptyState
                 message="No horses found"
-                description={
-                  searchQuery
-                    ? "Try adjusting your search terms or clear the search to see all horses" :"No horses are currently registered in the system"
-                }
+                description="No horses are currently registered in the system"
               />
             )}
           </div>
