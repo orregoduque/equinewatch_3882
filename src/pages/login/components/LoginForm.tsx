@@ -91,17 +91,17 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSubmit, isLoading }) => {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {errors.general && (
-        <div className="p-4 bg-[#c75050]/10 border border-[#c75050]/30 rounded-xl backdrop-blur-sm">
-          <p className="text-sm text-[#c75050] whitespace-pre-line">{errors.general}</p>
+        <div className="p-4 rounded-xl" style={{ backgroundColor: 'rgba(199,80,80,0.08)', border: '1px solid rgba(199,80,80,0.25)' }}>
+          <p className="text-sm whitespace-pre-line" style={{ color: '#c75050' }}>{errors.general}</p>
         </div>
       )}
 
       <div className="space-y-2">
-        <label className="block text-sm font-medium text-[#a8a8a8] tracking-wide mb-2">
-          Email Address <span className="text-[#c9a962]">*</span>
+        <label className="block text-sm font-semibold tracking-wide mb-2" style={{ color: 'rgba(64,53,44,0.7)', fontFamily: 'Montserrat, sans-serif' }}>
+          Email Address <span style={{ color: '#c75050' }}>*</span>
         </label>
         <div className="relative">
-          <div className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors duration-300 ${focusedField === 'email' ? 'text-[#c9a962]' : 'text-[#6b6b6b]'}`}>
+          <div className="absolute left-4 top-1/2 -translate-y-1/2 transition-colors duration-300" style={{ color: focusedField === 'email' ? '#40352C' : 'rgba(64,53,44,0.4)' }}>
             <Icon name="Mail" size={18} />
           </div>
           <input
@@ -113,18 +113,19 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSubmit, isLoading }) => {
             onFocus={() => setFocusedField('email')}
             onBlur={() => setFocusedField(null)}
             disabled={isLoading}
-            className={`w-full h-14 pl-12 pr-4 luxury-input rounded-xl text-[#faf9f6] placeholder:text-[#6b6b6b] focus:outline-none ${errors.email ? 'border-[#c75050]' : ''}`}
+            className={`w-full h-14 pl-12 pr-4 luxury-input rounded-xl focus:outline-none ${errors.email ? 'border-[#c75050]' : ''}`}
+            style={{ color: '#40352C', fontFamily: 'Montserrat, sans-serif' }}
           />
         </div>
-        {errors.email && <p className="text-sm text-[#c75050] mt-1">{errors.email}</p>}
+        {errors.email && <p className="text-sm mt-1" style={{ color: '#c75050' }}>{errors.email}</p>}
       </div>
 
       <div className="space-y-2">
-        <label className="block text-sm font-medium text-[#a8a8a8] tracking-wide mb-2">
-          Password <span className="text-[#c9a962]">*</span>
+        <label className="block text-sm font-semibold tracking-wide mb-2" style={{ color: 'rgba(64,53,44,0.7)', fontFamily: 'Montserrat, sans-serif' }}>
+          Password <span style={{ color: '#c75050' }}>*</span>
         </label>
         <div className="relative">
-          <div className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors duration-300 ${focusedField === 'password' ? 'text-[#c9a962]' : 'text-[#6b6b6b]'}`}>
+          <div className="absolute left-4 top-1/2 -translate-y-1/2 transition-colors duration-300" style={{ color: focusedField === 'password' ? '#40352C' : 'rgba(64,53,44,0.4)' }}>
             <Icon name="Lock" size={18} />
           </div>
           <input
@@ -136,16 +137,18 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSubmit, isLoading }) => {
             onFocus={() => setFocusedField('password')}
             onBlur={() => setFocusedField(null)}
             disabled={isLoading}
-            className={`w-full h-14 pl-12 pr-4 luxury-input rounded-xl text-[#faf9f6] placeholder:text-[#6b6b6b] focus:outline-none ${errors.password ? 'border-[#c75050]' : ''}`}
+            className={`w-full h-14 pl-12 pr-4 luxury-input rounded-xl focus:outline-none ${errors.password ? 'border-[#c75050]' : ''}`}
+            style={{ color: '#40352C', fontFamily: 'Montserrat, sans-serif' }}
           />
         </div>
-        {errors.password && <p className="text-sm text-[#c75050] mt-1">{errors.password}</p>}
+        {errors.password && <p className="text-sm mt-1" style={{ color: '#c75050' }}>{errors.password}</p>}
       </div>
 
       <div className="flex items-center justify-end">
         <button
           type="button"
-          className="text-sm font-medium text-[#a8a8a8] hover:text-[#c9a962] transition-colors duration-300"
+          className="text-sm font-medium transition-colors duration-300"
+          style={{ color: 'rgba(64,53,44,0.55)', fontFamily: 'Montserrat, sans-serif' }}
           disabled={isLoading}
         >
           Forgot Password?

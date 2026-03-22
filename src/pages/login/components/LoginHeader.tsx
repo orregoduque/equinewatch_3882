@@ -4,24 +4,21 @@ const LoginHeader: React.FC = () => {
   return (
     <div className="text-center mb-10">
       <div className="flex justify-center mb-8">
-        <div className="relative">
-          <div className="absolute inset-0 bg-[#c9a962]/20 rounded-full blur-2xl scale-150" />
-          <img 
-            src="/assets/images/HQ_logo-1765539668496.png" 
-            alt="Stable Eye" 
-            className="h-24 w-auto relative z-10 drop-shadow-2xl"
-          />
-        </div>
+        <img 
+          src="/logo-dark.png" 
+          alt="Stable Eye" 
+          className="h-14 w-auto"
+        />
       </div>
 
-      <h1 className="font-serif text-4xl md:text-5xl font-light text-[#faf9f6] mb-4 tracking-wide">
+      <h1 className="text-4xl md:text-5xl font-bold mb-2 tracking-wide" style={{ color: '#40352C', fontFamily: 'Syne, sans-serif' }}>
         Welcome to{' '}
-        <span className="gradient-text font-medium">Stable Eye</span>
+        <span style={{ color: '#40352C' }}>Stable Eye</span>
       </h1>
       
-      <div className="divider-luxury w-24 mx-auto my-6" />
+      <div className="w-16 mx-auto my-5" style={{ height: '2px', backgroundColor: 'rgba(64,53,44,0.15)' }} />
       
-      <p className="text-lg text-[#a8a8a8] font-light tracking-wide leading-relaxed max-w-sm mx-auto">
+      <p className="text-base font-medium leading-relaxed max-w-sm mx-auto" style={{ color: 'rgba(64,53,44,0.55)', fontFamily: 'Montserrat, sans-serif' }}>
         Premium equine health monitoring for the discerning owner
       </p>
     </div>

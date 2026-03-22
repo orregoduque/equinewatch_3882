@@ -56,29 +56,24 @@ const Login: React.FC = () => {
         />
       </Helmet>
 
-      <div className="min-h-screen flex items-center justify-center px-4 py-12 relative overflow-hidden">
+      <div className="min-h-screen flex items-center justify-center px-4 py-12 relative overflow-hidden" style={{ backgroundColor: '#F8F6F2' }}>
         <Link
           to="/#team"
-          className="absolute top-6 left-6 flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.03] border border-[#c9a962]/20 text-[#a8a8a8] hover:text-[#c9a962] hover:border-[#c9a962]/40 transition-all duration-300 z-20"
+          className="absolute top-6 left-6 flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-300 z-20"
+          style={{ backgroundColor: '#ffffff', border: '1px solid rgba(64,53,44,0.15)', color: '#40352C' }}
         >
           <Icon name="ArrowLeft" size={18} />
-          <span className="text-sm font-medium">Back</span>
+          <span className="text-sm font-medium" style={{ fontFamily: 'Montserrat, sans-serif' }}>Back</span>
         </Link>
 
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-1/4 -left-32 w-96 h-96 bg-[#c9a962]/5 rounded-full blur-3xl" />
-          <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-[#c9a962]/3 rounded-full blur-3xl" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[#c9a962]/2 rounded-full blur-3xl" />
-        </div>
-
         <div className="w-full max-w-md relative z-10 animate-slide-up">
-          <div className="glass-card p-10 md:p-12 luxury-border">
+          <div className="rounded-2xl p-10 md:p-12" style={{ backgroundColor: '#ffffff', border: '1px solid rgba(64,53,44,0.1)', boxShadow: '0 4px 24px rgba(64,53,44,0.08)' }}>
             <LoginHeader />
             <LoginForm onSubmit={handleLogin} isLoading={isLoading} />
             <TrustSignals badges={trustBadges} />
           </div>
 
-          <p className="text-center text-sm text-[#6b6b6b] mt-8 tracking-wide">
+          <p className="text-center text-sm mt-8 tracking-wide" style={{ color: 'rgba(64,53,44,0.45)', fontFamily: 'Montserrat, sans-serif' }}>
             &copy; {new Date().getFullYear()} Stable Eye. All rights reserved.
           </p>
         </div>
