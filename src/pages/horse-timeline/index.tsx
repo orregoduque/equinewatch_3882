@@ -315,7 +315,7 @@ const HorseTimeline: React.FC = () => {
 
                   {/* Main Photo */}
                   <div className="relative">
-                    <div className="aspect-video md:aspect-[21/9] overflow-hidden bg-black/20">
+                    <div className="aspect-video md:h-64 md:aspect-auto overflow-hidden bg-black/20">
                       <Image
                         src={selectedObservation?.imageUrl || latestObservation.imageUrl}
                         alt={selectedObservation?.imageAlt || latestObservation.imageAlt}
