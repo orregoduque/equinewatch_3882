@@ -57,11 +57,6 @@ const Landing: React.FC = () => {
     { question: 'Can multiple people receive alerts?', answer: 'Yes! You can add unlimited team members to receive alerts. Perfect for farms with multiple caretakers or families sharing horse care responsibilities.' },
   ];
 
-  const team = [
-    { name: 'Juan Jose Orrego', role: 'CEO', title: 'Electronic Engineer', image: 'https://www.stable-eye.co/_next/image?url=%2Fproducts%2FCEO.jpg&w=640&q=75' },
-    { name: 'Valentina Hurtado', role: 'COO', title: 'Architect', image: 'https://www.stable-eye.co/_next/image?url=%2Fproducts%2FCDO.jpeg&w=640&q=75' },
-  ];
-
   return (
     <>
       <Helmet>
@@ -516,38 +511,6 @@ const Landing: React.FC = () => {
                       <p className="text-sm leading-relaxed" style={{ color: 'rgba(248,246,242,0.5)', fontFamily: 'Montserrat, sans-serif' }}>{faq.answer}</p>
                     </div>
                   )}
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* TEAM */}
-        <section id="team" style={{ backgroundColor: '#F8F6F2' }} className="py-28 px-6 lg:px-16">
-          <div className="max-w-7xl mx-auto">
-            <div className="mb-20">
-              <p className="text-xs font-semibold uppercase tracking-widest mb-4" style={{ color: 'rgba(64,53,44,0.45)', fontFamily: 'Montserrat, sans-serif' }}>Team</p>
-              <h2
-                className="text-4xl md:text-5xl font-bold"
-                style={{ fontFamily: 'Syne, sans-serif', color: '#40352C' }}
-              >
-                Meet Our Team
-              </h2>
-            </div>
-
-            <div className="flex justify-start gap-12 flex-wrap">
-              {team.map((member, index) => (
-                <div key={index} className="text-left">
-                  <div className="w-44 h-44 overflow-hidden mb-5" style={{ borderRadius: '4px', border: '1px solid rgba(64,53,44,0.1)' }}>
-                    <img
-                      src={member.image}
-                      alt={member.name}
-                      className="w-full h-full object-cover"
-                      loading="lazy"
-                    />
-                  </div>
-                  <h3 className="text-lg font-bold" style={{ fontFamily: 'Syne, sans-serif', color: '#40352C' }}>{member.name}</h3>
-                  <p className="text-sm font-semibold mt-0.5" style={{ color: '#40352C', opacity: 0.55, fontFamily: 'Montserrat, sans-serif' }}>{member.role} · {member.title}</p>
                 </div>
               ))}
             </div>
