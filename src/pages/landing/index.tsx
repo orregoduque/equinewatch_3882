@@ -166,7 +166,7 @@ const Landing: React.FC = () => {
               <div className="relative">
                 <div className="aspect-[4/3] overflow-hidden shadow-2xl" style={{ borderRadius: '6px' }}>
                   <img
-                    src="https://www.stable-eye.co/_next/image?url=%2Fproducts%2Fhorse_ground_2.png&w=1920&q=75"
+                    src="/hero-horse.png"
                     alt="Horse being monitored by Stable Eye device"
                     className="w-full h-full object-cover"
                     loading="eager"
