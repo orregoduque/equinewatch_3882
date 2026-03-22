@@ -114,18 +114,6 @@ const Landing: React.FC = () => {
           <div className="max-w-7xl mx-auto w-full">
             <div className="grid lg:grid-cols-2 gap-20 items-center">
               <div>
-                <div
-                  className="inline-flex items-center gap-2 px-4 py-2 mb-10"
-                  style={{
-                    border: '1px solid rgba(64,53,44,0.2)',
-                    borderRadius: '2px',
-                    backgroundColor: 'rgba(64,53,44,0.05)',
-                  }}
-                >
-                  <div className="w-1.5 h-1.5 rounded-full bg-green-600 animate-pulse" />
-                  <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: '#40352C', fontFamily: 'Montserrat, sans-serif' }}>Trusted by 500+ Horse Owners</span>
-                </div>
-
                 <h1
                   className="text-5xl md:text-6xl lg:text-[68px] font-bold leading-[1.05] mb-8 tracking-tight"
                   style={{ fontFamily: 'Syne, sans-serif', color: '#40352C' }}
