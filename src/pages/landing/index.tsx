@@ -166,7 +166,7 @@ const Landing: React.FC = () => {
               <div className="relative">
                 <div className="aspect-[4/3] overflow-hidden shadow-2xl" style={{ borderRadius: '6px' }}>
                   <img
-                    src="/hero-horse.png"
+                    src="/hero-horse.webp"
                     alt="Horse being monitored by Stable Eye device"
                     className="w-full h-full object-cover"
                     loading="eager"
@@ -252,7 +252,7 @@ const Landing: React.FC = () => {
               <div className="relative">
                 <div className="aspect-square overflow-hidden shadow-2xl" style={{ borderRadius: '6px', border: '1px solid rgba(248,246,242,0.1)' }}>
                   <img
-                    src="/iphone-mockup.png"
+                    src="/iphone-mockup.webp"
                     alt="Stable Eye App showing horse monitoring alerts"
                     className="w-full h-full object-cover"
                     loading="lazy"

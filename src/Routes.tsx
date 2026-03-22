@@ -3,8 +3,8 @@ import { BrowserRouter, Routes as RouterRoutes, Route } from "react-router-dom";
 import ScrollToTop from "components/ScrollToTop";
 import ErrorBoundary from "components/ErrorBoundary";
 import NotFound from "pages/NotFound";
-import Landing from './pages/landing';
 
+const Landing = lazy(() => import('./pages/landing'));
 const Login = lazy(() => import('./pages/login'));
 const Contact = lazy(() => import('./pages/contact'));
 const DailySummary = lazy(() => import('./pages/daily-summary'));
@@ -18,8 +18,8 @@ const AdminDashboard = lazy(() => import('./pages/admin'));
 const AdminStables = lazy(() => import('./pages/admin/stables'));
 
 const PageLoader = () => (
-  <div className="min-h-screen flex items-center justify-center bg-[#0a0a0f]">
-    <div className="w-8 h-8 border-2 border-[#c9a962] border-t-transparent rounded-full animate-spin" />
+  <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#F8F6F2' }}>
+    <div className="w-7 h-7 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: '#40352C', borderTopColor: 'transparent' }} />
   </div>
 );
 
