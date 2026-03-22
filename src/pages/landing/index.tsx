@@ -21,7 +21,7 @@ const Landing: React.FC = () => {
   ];
 
   const features = [
-    { icon: 'Activity', title: 'Behavioral Analysis', description: 'Detects pacing, abnormal lying down, distress signals, and subtle behavior changes.' },
+    { icon: 'Activity', title: 'Behavioral Analysis', description: 'Detects pacing, abnormal lying, distress signals, and subtle behavior changes.' },
     { icon: 'Moon', title: 'Night Vision', description: 'Crystal clear monitoring in complete darkness with infrared technology.' },
     { icon: 'Package', title: 'Portable Design', description: 'Easily move between stalls or take to shows and events.' },
     { icon: 'Smartphone', title: 'Smart Notifications', description: 'Mobile alerts with image evidence—know exactly what triggered the alert.' },
@@ -64,7 +64,7 @@ const Landing: React.FC = () => {
         <meta name="description" content="AI-powered preventive infrastructure for the global equine industry. Detect colic, stress, and behavioral changes before they become emergencies." />
       </Helmet>
 
-      <div className="min-h-screen" style={{ backgroundColor: '#F8F6F2', color: '#40352C', fontFamily: 'Montserrat, sans-serif' }}>
+      <div style={{ backgroundColor: '#F8F6F2', color: '#40352C', fontFamily: 'Montserrat, sans-serif' }}>
 
         {/* NAV */}
         <header
@@ -75,22 +75,22 @@ const Landing: React.FC = () => {
             borderBottom: scrolled ? '1px solid rgba(64,53,44,0.1)' : 'none',
           }}
         >
-          <div className="max-w-7xl mx-auto px-6 lg:px-16">
-            <div className="flex items-center justify-between h-20">
-              <div className="flex items-center gap-3">
-                <img src="/logo-icon-dark.png" alt="Stable Eye" className="h-10 w-auto" />
-                <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '1.25rem', color: '#40352C', letterSpacing: '-0.01em' }}>Stable Eye</span>
+          <div className="max-w-5xl mx-auto px-6">
+            <div className="flex items-center justify-between h-14">
+              <div className="flex items-center gap-2.5">
+                <img src="/logo-icon-dark.png" alt="Stable Eye" className="h-7 w-auto" />
+                <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '1rem', color: '#40352C', letterSpacing: '-0.01em' }}>Stable Eye</span>
               </div>
 
-              <nav className="hidden md:flex items-center gap-10">
-                <a href="#how-it-works" style={{ color: 'rgba(64,53,44,0.65)', fontFamily: 'Montserrat, sans-serif' }} className="hover:opacity-100 transition-opacity text-sm font-medium tracking-wide">How It Works</a>
-                <a href="#features" style={{ color: 'rgba(64,53,44,0.65)', fontFamily: 'Montserrat, sans-serif' }} className="hover:opacity-100 transition-opacity text-sm font-medium tracking-wide">Features</a>
-                <a href="#faq" style={{ color: 'rgba(64,53,44,0.65)', fontFamily: 'Montserrat, sans-serif' }} className="hover:opacity-100 transition-opacity text-sm font-medium tracking-wide">FAQ</a>
+              <nav className="hidden md:flex items-center gap-8">
+                <a href="#how-it-works" style={{ color: 'rgba(64,53,44,0.55)', fontFamily: 'Montserrat, sans-serif' }} className="hover:opacity-100 transition-opacity text-xs font-medium tracking-wide">How It Works</a>
+                <a href="#features" style={{ color: 'rgba(64,53,44,0.55)', fontFamily: 'Montserrat, sans-serif' }} className="hover:opacity-100 transition-opacity text-xs font-medium tracking-wide">Features</a>
+                <a href="#faq" style={{ color: 'rgba(64,53,44,0.55)', fontFamily: 'Montserrat, sans-serif' }} className="hover:opacity-100 transition-opacity text-xs font-medium tracking-wide">FAQ</a>
               </nav>
 
               <Link
                 to="/login"
-                className="px-6 py-2.5 text-sm font-semibold tracking-wide transition-all duration-200"
+                className="px-4 py-2 text-xs font-semibold tracking-wide transition-all duration-200"
                 style={{
                   backgroundColor: '#40352C',
                   color: '#F8F6F2',
@@ -105,29 +105,29 @@ const Landing: React.FC = () => {
         </header>
 
         {/* HERO */}
-        <section className="relative pt-36 pb-28 lg:pb-36 px-6 lg:px-16 min-h-screen flex items-center" style={{ backgroundColor: '#F8F6F2' }}>
-          <div className="max-w-7xl mx-auto w-full">
-            <div className="grid lg:grid-cols-2 gap-20 items-center">
+        <section className="relative pt-24 pb-16 px-6" style={{ backgroundColor: '#F8F6F2' }}>
+          <div className="max-w-5xl mx-auto">
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
               <div>
                 <h1
-                  className="text-4xl md:text-5xl lg:text-[52px] font-bold leading-[1.05] mb-8 tracking-tight"
-                  style={{ fontFamily: 'Syne, sans-serif', color: '#40352C' }}
+                  className="font-bold leading-[1.08] mb-5 tracking-tight"
+                  style={{ fontFamily: 'Syne, sans-serif', color: '#40352C', fontSize: 'clamp(28px, 4vw, 42px)' }}
                 >
                   Never Miss a<br />Warning Sign
                 </h1>
 
-                <p className="text-xl leading-relaxed mb-4 font-medium" style={{ color: '#40352C', opacity: 0.75, fontFamily: 'Montserrat, sans-serif' }}>
+                <p className="text-sm leading-relaxed mb-3 font-medium" style={{ color: '#40352C', opacity: 0.7, fontFamily: 'Montserrat, sans-serif' }}>
                   AI-powered preventive infrastructure for the global equine industry
                 </p>
 
-                <p className="text-base leading-relaxed mb-12 max-w-lg" style={{ color: '#40352C', opacity: 0.5, fontFamily: 'Montserrat, sans-serif' }}>
+                <p className="text-xs leading-relaxed mb-8 max-w-sm" style={{ color: '#40352C', opacity: 0.45, fontFamily: 'Montserrat, sans-serif' }}>
                   Portable camera system with intelligent alerts when your horse needs attention. Detect colic, stress, and abnormal behaviors before they become emergencies.
                 </p>
 
-                <div className="flex flex-wrap gap-4 mb-12">
+                <div className="flex flex-wrap gap-3 mb-8">
                   <Link
                     to="/login"
-                    className="px-8 py-4 text-base font-semibold tracking-wide transition-all duration-200 hover:-translate-y-0.5"
+                    className="px-6 py-2.5 text-xs font-semibold tracking-wide transition-all duration-200 hover:-translate-y-0.5"
                     style={{
                       backgroundColor: '#40352C',
                       color: '#F8F6F2',
@@ -139,9 +139,9 @@ const Landing: React.FC = () => {
                   </Link>
                   <a
                     href="#how-it-works"
-                    className="px-8 py-4 text-base font-semibold tracking-wide transition-all duration-200"
+                    className="px-6 py-2.5 text-xs font-semibold tracking-wide transition-all duration-200"
                     style={{
-                      border: '1.5px solid rgba(64,53,44,0.4)',
+                      border: '1px solid rgba(64,53,44,0.3)',
                       color: '#40352C',
                       borderRadius: '4px',
                       fontFamily: 'Montserrat, sans-serif',
@@ -151,20 +151,20 @@ const Landing: React.FC = () => {
                   </a>
                 </div>
 
-                <div className="flex items-center gap-8">
-                  <div className="flex items-center gap-2">
-                    <Icon name="Shield" size={16} className="text-green-600" />
-                    <span className="text-sm font-medium" style={{ color: 'rgba(64,53,44,0.6)', fontFamily: 'Montserrat, sans-serif' }}>Veterinarian Approved</span>
+                <div className="flex items-center gap-6">
+                  <div className="flex items-center gap-1.5">
+                    <Icon name="Shield" size={13} className="text-green-600" />
+                    <span className="text-xs" style={{ color: 'rgba(64,53,44,0.5)', fontFamily: 'Montserrat, sans-serif' }}>Veterinarian Approved</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Icon name="Award" size={16} style={{ color: '#40352C' }} />
-                    <span className="text-sm font-medium" style={{ color: 'rgba(64,53,44,0.6)', fontFamily: 'Montserrat, sans-serif' }}>30-Day Guarantee</span>
+                  <div className="flex items-center gap-1.5">
+                    <Icon name="Award" size={13} style={{ color: '#40352C' }} />
+                    <span className="text-xs" style={{ color: 'rgba(64,53,44,0.5)', fontFamily: 'Montserrat, sans-serif' }}>30-Day Guarantee</span>
                   </div>
                 </div>
               </div>
 
               <div className="relative">
-                <div className="aspect-[4/3] overflow-hidden shadow-2xl" style={{ borderRadius: '6px' }}>
+                <div className="aspect-[4/3] overflow-hidden shadow-xl" style={{ borderRadius: '6px' }}>
                   <img
                     src="/hero-horse.webp"
                     alt="Horse being monitored by Stable Eye device"
@@ -173,20 +173,20 @@ const Landing: React.FC = () => {
                   />
                 </div>
                 <div
-                  className="absolute -bottom-6 -left-6 p-5 shadow-lg"
+                  className="absolute -bottom-4 -left-4 p-3.5 shadow-md"
                   style={{
                     backgroundColor: '#F8F6F2',
                     border: '1px solid rgba(64,53,44,0.12)',
                     borderRadius: '4px',
                   }}
                 >
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-                      <Icon name="Shield" size={20} className="text-green-600" />
+                  <div className="flex items-center gap-3">
+                    <div className="w-7 h-7 rounded-full bg-green-100 flex items-center justify-center">
+                      <Icon name="Shield" size={14} className="text-green-600" />
                     </div>
                     <div>
-                      <p className="text-sm font-semibold" style={{ color: '#40352C', fontFamily: 'Syne, sans-serif' }}>Protected</p>
-                      <p className="text-xs" style={{ color: 'rgba(64,53,44,0.5)', fontFamily: 'Montserrat, sans-serif' }}>24/7 Monitoring Active</p>
+                      <p className="text-xs font-semibold" style={{ color: '#40352C', fontFamily: 'Syne, sans-serif' }}>Protected</p>
+                      <p style={{ fontSize: '10px', color: 'rgba(64,53,44,0.5)', fontFamily: 'Montserrat, sans-serif' }}>24/7 Monitoring Active</p>
                     </div>
                   </div>
                 </div>
@@ -195,13 +195,18 @@ const Landing: React.FC = () => {
           </div>
         </section>
 
+        {/* DIVIDER */}
+        <div className="max-w-5xl mx-auto px-6">
+          <div style={{ height: '1px', backgroundColor: 'rgba(64,53,44,0.1)' }} />
+        </div>
+
         {/* PROBLEM */}
-        <section style={{ backgroundColor: '#40352C', color: '#F8F6F2' }} className="py-28 px-6 lg:px-16">
-          <div className="max-w-7xl mx-auto">
-            <div className="grid lg:grid-cols-2 gap-20 items-center">
+        <section style={{ backgroundColor: '#40352C', color: '#F8F6F2' }} className="py-16 px-6">
+          <div className="max-w-5xl mx-auto">
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
               <div>
                 <div
-                  className="inline-flex items-center gap-2 px-4 py-2 mb-10"
+                  className="inline-flex items-center gap-2 px-3 py-1.5 mb-7"
                   style={{
                     border: '1px solid rgba(248,246,242,0.2)',
                     borderRadius: '2px',
@@ -209,21 +214,21 @@ const Landing: React.FC = () => {
                   }}
                 >
                   <div className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse" />
-                  <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'rgba(248,246,242,0.7)', fontFamily: 'Montserrat, sans-serif' }}>The Problem</span>
+                  <span style={{ fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(248,246,242,0.6)', fontFamily: 'Montserrat, sans-serif' }}>The Problem</span>
                 </div>
 
                 <h2
-                  className="text-4xl md:text-5xl font-bold leading-tight mb-8"
-                  style={{ fontFamily: 'Syne, sans-serif', color: '#F8F6F2' }}
+                  className="font-bold leading-tight mb-5"
+                  style={{ fontFamily: 'Syne, sans-serif', color: '#F8F6F2', fontSize: 'clamp(22px, 3vw, 34px)' }}
                 >
                   You can't be there<br />every moment
                 </h2>
 
-                <p className="text-lg leading-relaxed mb-10" style={{ color: 'rgba(248,246,242,0.65)', fontFamily: 'Montserrat, sans-serif' }}>
+                <p className="text-sm leading-relaxed mb-7" style={{ color: 'rgba(248,246,242,0.6)', fontFamily: 'Montserrat, sans-serif' }}>
                   Late-night colic episodes. Undetected injuries. Behavioral changes while you're away. Every horse owner knows the anxiety of not being able to constantly watch over their animals.
                 </p>
 
-                <div className="grid grid-cols-3 gap-4 mb-10">
+                <div className="grid grid-cols-3 gap-3 mb-7">
                   {[
                     { value: '920K+', label: 'Colic cases yearly in the US', highlight: '#F8F6F2' },
                     { value: '11%', label: 'Fatality rate without early detection', highlight: '#f87171' },
@@ -231,26 +236,26 @@ const Landing: React.FC = () => {
                   ].map((stat, i) => (
                     <div
                       key={i}
-                      className="p-5 text-center"
+                      className="p-4 text-center"
                       style={{
                         backgroundColor: 'rgba(248,246,242,0.05)',
                         border: '1px solid rgba(248,246,242,0.1)',
                         borderRadius: '4px',
                       }}
                     >
-                      <p className="text-2xl md:text-3xl font-bold mb-2" style={{ fontFamily: 'Syne, sans-serif', color: stat.highlight }}>{stat.value}</p>
-                      <p className="text-xs leading-tight" style={{ color: 'rgba(248,246,242,0.45)', fontFamily: 'Montserrat, sans-serif' }}>{stat.label}</p>
+                      <p className="text-xl font-bold mb-1" style={{ fontFamily: 'Syne, sans-serif', color: stat.highlight }}>{stat.value}</p>
+                      <p style={{ fontSize: '10px', lineHeight: '1.4', color: 'rgba(248,246,242,0.4)', fontFamily: 'Montserrat, sans-serif' }}>{stat.label}</p>
                     </div>
                   ))}
                 </div>
 
-                <p className="leading-relaxed" style={{ color: 'rgba(248,246,242,0.55)', fontFamily: 'Montserrat, sans-serif' }}>
+                <p className="text-xs leading-relaxed" style={{ color: 'rgba(248,246,242,0.5)', fontFamily: 'Montserrat, sans-serif' }}>
                   Colic is the <span style={{ color: '#F8F6F2', fontWeight: 600 }}>#1 cause of premature death</span> in horses—but it doesn't have to be. With the right monitoring, most cases can be caught and treated before they become life-threatening.
                 </p>
               </div>
 
-              <div className="relative">
-                <div className="aspect-square overflow-hidden shadow-2xl" style={{ borderRadius: '6px', border: '1px solid rgba(248,246,242,0.1)' }}>
+              <div>
+                <div className="aspect-square overflow-hidden shadow-xl" style={{ borderRadius: '6px', border: '1px solid rgba(248,246,242,0.1)' }}>
                   <img
                     src="/iphone-mockup.webp"
                     alt="Stable Eye App showing horse monitoring alerts"
@@ -264,23 +269,23 @@ const Landing: React.FC = () => {
         </section>
 
         {/* HOW IT WORKS */}
-        <section id="how-it-works" style={{ backgroundColor: '#F8F6F2' }} className="py-28 px-6 lg:px-16">
-          <div className="max-w-7xl mx-auto">
-            <div className="mb-20">
-              <p className="text-xs font-semibold uppercase tracking-widest mb-4" style={{ color: 'rgba(64,53,44,0.45)', fontFamily: 'Montserrat, sans-serif' }}>Process</p>
+        <section id="how-it-works" style={{ backgroundColor: '#F8F6F2' }} className="py-16 px-6">
+          <div className="max-w-5xl mx-auto">
+            <div className="mb-10">
+              <p style={{ fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(64,53,44,0.4)', fontFamily: 'Montserrat, sans-serif', marginBottom: '6px' }}>Process</p>
               <h2
-                className="text-4xl md:text-5xl font-bold"
-                style={{ fontFamily: 'Syne, sans-serif', color: '#40352C' }}
+                className="font-bold"
+                style={{ fontFamily: 'Syne, sans-serif', color: '#40352C', fontSize: 'clamp(20px, 2.5vw, 28px)' }}
               >
                 How It Works
               </h2>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-8">
+            <div className="grid md:grid-cols-3 gap-5">
               {howItWorks.map((step, index) => (
                 <div
                   key={index}
-                  className="p-10 transition-all duration-300 group"
+                  className="p-6 transition-all duration-300"
                   style={{
                     border: '1px solid rgba(64,53,44,0.1)',
                     borderRadius: '4px',
@@ -295,12 +300,12 @@ const Landing: React.FC = () => {
                     (e.currentTarget as HTMLElement).style.color = '#40352C';
                   }}
                 >
-                  <p className="text-6xl font-bold mb-8 opacity-15" style={{ fontFamily: 'Syne, sans-serif' }}>{step.step}</p>
-                  <div className="w-12 h-12 flex items-center justify-center mb-6" style={{ backgroundColor: 'rgba(64,53,44,0.08)', borderRadius: '4px' }}>
-                    <Icon name={step.icon} size={24} style={{ color: '#40352C' }} />
+                  <p className="text-3xl font-bold mb-5 opacity-15" style={{ fontFamily: 'Syne, sans-serif' }}>{step.step}</p>
+                  <div className="w-9 h-9 flex items-center justify-center mb-4" style={{ backgroundColor: 'rgba(64,53,44,0.08)', borderRadius: '4px' }}>
+                    <Icon name={step.icon} size={18} style={{ color: 'currentColor' }} />
                   </div>
-                  <h3 className="text-xl font-bold mb-3" style={{ fontFamily: 'Syne, sans-serif' }}>{step.title}</h3>
-                  <p className="text-sm leading-relaxed" style={{ fontFamily: 'Montserrat, sans-serif', opacity: 0.6 }}>{step.description}</p>
+                  <h3 className="text-sm font-bold mb-2" style={{ fontFamily: 'Syne, sans-serif' }}>{step.title}</h3>
+                  <p style={{ fontSize: '12px', lineHeight: '1.6', fontFamily: 'Montserrat, sans-serif', opacity: 0.55 }}>{step.description}</p>
                 </div>
               ))}
             </div>
@@ -308,23 +313,23 @@ const Landing: React.FC = () => {
         </section>
 
         {/* FEATURES */}
-        <section id="features" style={{ backgroundColor: '#40352C' }} className="py-28 px-6 lg:px-16">
-          <div className="max-w-7xl mx-auto">
-            <div className="mb-20">
-              <p className="text-xs font-semibold uppercase tracking-widest mb-4" style={{ color: 'rgba(248,246,242,0.35)', fontFamily: 'Montserrat, sans-serif' }}>Capabilities</p>
+        <section id="features" style={{ backgroundColor: '#40352C' }} className="py-16 px-6">
+          <div className="max-w-5xl mx-auto">
+            <div className="mb-10">
+              <p style={{ fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(248,246,242,0.3)', fontFamily: 'Montserrat, sans-serif', marginBottom: '6px' }}>Capabilities</p>
               <h2
-                className="text-4xl md:text-5xl font-bold"
-                style={{ fontFamily: 'Syne, sans-serif', color: '#F8F6F2' }}
+                className="font-bold"
+                style={{ fontFamily: 'Syne, sans-serif', color: '#F8F6F2', fontSize: 'clamp(20px, 2.5vw, 28px)' }}
               >
                 Key Features
               </h2>
             </div>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
               {features.map((feature, index) => (
                 <div
                   key={index}
-                  className="p-7 transition-all duration-300"
+                  className="p-5"
                   style={{
                     border: '1px solid rgba(248,246,242,0.08)',
                     borderRadius: '4px',
@@ -332,13 +337,13 @@ const Landing: React.FC = () => {
                   }}
                 >
                   <div
-                    className="w-11 h-11 flex items-center justify-center mb-5"
+                    className="w-8 h-8 flex items-center justify-center mb-4"
                     style={{ backgroundColor: 'rgba(248,246,242,0.08)', borderRadius: '4px' }}
                   >
-                    <Icon name={feature.icon} size={22} style={{ color: '#F8F6F2' }} />
+                    <Icon name={feature.icon} size={16} style={{ color: '#F8F6F2' }} />
                   </div>
-                  <h3 className="text-base font-bold mb-2" style={{ fontFamily: 'Syne, sans-serif', color: '#F8F6F2' }}>{feature.title}</h3>
-                  <p className="text-sm leading-relaxed" style={{ color: 'rgba(248,246,242,0.45)', fontFamily: 'Montserrat, sans-serif' }}>{feature.description}</p>
+                  <h3 className="text-xs font-bold mb-1.5" style={{ fontFamily: 'Syne, sans-serif', color: '#F8F6F2' }}>{feature.title}</h3>
+                  <p style={{ fontSize: '11px', lineHeight: '1.6', color: 'rgba(248,246,242,0.4)', fontFamily: 'Montserrat, sans-serif' }}>{feature.description}</p>
                 </div>
               ))}
             </div>
@@ -346,36 +351,36 @@ const Landing: React.FC = () => {
         </section>
 
         {/* USE CASES */}
-        <section style={{ backgroundColor: '#F8F6F2' }} className="py-28 px-6 lg:px-16">
-          <div className="max-w-7xl mx-auto">
-            <div className="mb-20">
-              <p className="text-xs font-semibold uppercase tracking-widest mb-4" style={{ color: 'rgba(64,53,44,0.45)', fontFamily: 'Montserrat, sans-serif' }}>Use Cases</p>
+        <section style={{ backgroundColor: '#F8F6F2' }} className="py-16 px-6">
+          <div className="max-w-5xl mx-auto">
+            <div className="mb-10">
+              <p style={{ fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(64,53,44,0.4)', fontFamily: 'Montserrat, sans-serif', marginBottom: '6px' }}>Use Cases</p>
               <h2
-                className="text-4xl md:text-5xl font-bold"
-                style={{ fontFamily: 'Syne, sans-serif', color: '#40352C' }}
+                className="font-bold"
+                style={{ fontFamily: 'Syne, sans-serif', color: '#40352C', fontSize: 'clamp(20px, 2.5vw, 28px)' }}
               >
                 Perfect For Every Scenario
               </h2>
             </div>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
               {useCases.map((useCase, index) => (
                 <div
                   key={index}
-                  className="p-8"
+                  className="p-5"
                   style={{
                     border: '1px solid rgba(64,53,44,0.1)',
                     borderRadius: '4px',
                   }}
                 >
                   <div
-                    className="w-11 h-11 flex items-center justify-center mb-5"
-                    style={{ backgroundColor: 'rgba(64,53,44,0.08)', borderRadius: '4px' }}
+                    className="w-8 h-8 flex items-center justify-center mb-4"
+                    style={{ backgroundColor: 'rgba(64,53,44,0.07)', borderRadius: '4px' }}
                   >
-                    <Icon name={useCase.icon} size={22} style={{ color: '#40352C' }} />
+                    <Icon name={useCase.icon} size={16} style={{ color: '#40352C' }} />
                   </div>
-                  <h3 className="text-base font-bold mb-2" style={{ fontFamily: 'Syne, sans-serif', color: '#40352C' }}>{useCase.title}</h3>
-                  <p className="text-sm leading-relaxed" style={{ color: 'rgba(64,53,44,0.5)', fontFamily: 'Montserrat, sans-serif' }}>{useCase.description}</p>
+                  <h3 className="text-xs font-bold mb-1.5" style={{ fontFamily: 'Syne, sans-serif', color: '#40352C' }}>{useCase.title}</h3>
+                  <p style={{ fontSize: '11px', lineHeight: '1.6', color: 'rgba(64,53,44,0.5)', fontFamily: 'Montserrat, sans-serif' }}>{useCase.description}</p>
                 </div>
               ))}
             </div>
@@ -383,38 +388,38 @@ const Landing: React.FC = () => {
         </section>
 
         {/* AI TECHNOLOGY */}
-        <section style={{ backgroundColor: '#40352C' }} className="py-28 px-6 lg:px-16">
-          <div className="max-w-7xl mx-auto">
-            <div className="grid lg:grid-cols-2 gap-20 items-center">
+        <section style={{ backgroundColor: '#40352C' }} className="py-16 px-6">
+          <div className="max-w-5xl mx-auto">
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-widest mb-4" style={{ color: 'rgba(248,246,242,0.35)', fontFamily: 'Montserrat, sans-serif' }}>AI Technology</p>
+                <p style={{ fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(248,246,242,0.3)', fontFamily: 'Montserrat, sans-serif', marginBottom: '6px' }}>AI Technology</p>
                 <h2
-                  className="text-4xl md:text-5xl font-bold leading-tight mb-8"
-                  style={{ fontFamily: 'Syne, sans-serif', color: '#F8F6F2' }}
+                  className="font-bold leading-tight mb-5"
+                  style={{ fontFamily: 'Syne, sans-serif', color: '#F8F6F2', fontSize: 'clamp(20px, 2.5vw, 30px)' }}
                 >
                   Trained on 10,000+<br />Hours of Equine Behavior
                 </h2>
-                <p className="text-lg leading-relaxed mb-10" style={{ color: 'rgba(248,246,242,0.55)', fontFamily: 'Montserrat, sans-serif' }}>
+                <p className="text-sm leading-relaxed mb-6" style={{ color: 'rgba(248,246,242,0.5)', fontFamily: 'Montserrat, sans-serif' }}>
                   Our machine learning model has been developed in partnership with equine veterinarians and behavioral specialists. It understands what "normal" looks like for horses—and when something is wrong.
                 </p>
-                <ul className="space-y-4">
+                <ul className="space-y-3">
                   {[
                     'Trained on real stable footage from 200+ facilities',
                     'Validated by board-certified equine veterinarians',
                     '97% accuracy in detecting early colic indicators',
                     'Continuously learning and improving from new data',
                   ].map((item, i) => (
-                    <li key={i} className="flex items-start gap-3">
-                      <div className="w-5 h-5 rounded-full flex items-center justify-center mt-0.5 flex-shrink-0" style={{ backgroundColor: 'rgba(74,222,128,0.15)' }}>
-                        <Icon name="Check" size={11} className="text-green-400" />
+                    <li key={i} className="flex items-start gap-2.5">
+                      <div className="w-4 h-4 rounded-full flex items-center justify-center mt-0.5 flex-shrink-0" style={{ backgroundColor: 'rgba(74,222,128,0.15)' }}>
+                        <Icon name="Check" size={10} className="text-green-400" />
                       </div>
-                      <span className="text-sm" style={{ color: 'rgba(248,246,242,0.6)', fontFamily: 'Montserrat, sans-serif' }}>{item}</span>
+                      <span style={{ fontSize: '12px', color: 'rgba(248,246,242,0.55)', fontFamily: 'Montserrat, sans-serif' }}>{item}</span>
                     </li>
                   ))}
                 </ul>
               </div>
               <div>
-                <div className="aspect-[4/3] overflow-hidden shadow-2xl" style={{ borderRadius: '6px' }}>
+                <div className="aspect-[4/3] overflow-hidden shadow-xl" style={{ borderRadius: '6px' }}>
                   <img
                     src="https://www.stable-eye.co/_next/image?url=%2Fproducts%2Fhorse_outside.png&w=1200&q=75"
                     alt="Horse being analyzed by AI"
@@ -428,13 +433,13 @@ const Landing: React.FC = () => {
         </section>
 
         {/* COMPARISON */}
-        <section style={{ backgroundColor: '#F8F6F2' }} className="py-28 px-6 lg:px-16">
-          <div className="max-w-5xl mx-auto">
-            <div className="mb-20">
-              <p className="text-xs font-semibold uppercase tracking-widest mb-4" style={{ color: 'rgba(64,53,44,0.45)', fontFamily: 'Montserrat, sans-serif' }}>Comparison</p>
+        <section style={{ backgroundColor: '#F8F6F2' }} className="py-16 px-6">
+          <div className="max-w-4xl mx-auto">
+            <div className="mb-10">
+              <p style={{ fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(64,53,44,0.4)', fontFamily: 'Montserrat, sans-serif', marginBottom: '6px' }}>Comparison</p>
               <h2
-                className="text-4xl md:text-5xl font-bold"
-                style={{ fontFamily: 'Syne, sans-serif', color: '#40352C' }}
+                className="font-bold"
+                style={{ fontFamily: 'Syne, sans-serif', color: '#40352C', fontSize: 'clamp(20px, 2.5vw, 28px)' }}
               >
                 Compare Your Options
               </h2>
@@ -444,24 +449,24 @@ const Landing: React.FC = () => {
               <table className="w-full">
                 <thead>
                   <tr style={{ borderBottom: '1px solid rgba(64,53,44,0.1)', backgroundColor: 'rgba(64,53,44,0.03)' }}>
-                    <th className="py-4 px-6 text-left text-sm font-semibold" style={{ color: 'rgba(64,53,44,0.5)', fontFamily: 'Montserrat, sans-serif' }}>Feature</th>
-                    <th className="py-4 px-6 text-center text-sm font-semibold" style={{ color: 'rgba(64,53,44,0.5)', fontFamily: 'Montserrat, sans-serif' }}>Manual Checks</th>
-                    <th className="py-4 px-6 text-center text-sm font-semibold" style={{ color: 'rgba(64,53,44,0.5)', fontFamily: 'Montserrat, sans-serif' }}>Standard Camera</th>
-                    <th className="py-4 px-6 text-center text-sm font-bold" style={{ color: '#40352C', fontFamily: 'Syne, sans-serif' }}>Stable Eye</th>
+                    <th className="py-3 px-5 text-left" style={{ fontSize: '11px', fontWeight: 600, color: 'rgba(64,53,44,0.45)', fontFamily: 'Montserrat, sans-serif' }}>Feature</th>
+                    <th className="py-3 px-5 text-center" style={{ fontSize: '11px', fontWeight: 600, color: 'rgba(64,53,44,0.45)', fontFamily: 'Montserrat, sans-serif' }}>Manual Checks</th>
+                    <th className="py-3 px-5 text-center" style={{ fontSize: '11px', fontWeight: 600, color: 'rgba(64,53,44,0.45)', fontFamily: 'Montserrat, sans-serif' }}>Standard Camera</th>
+                    <th className="py-3 px-5 text-center" style={{ fontSize: '11px', fontWeight: 700, color: '#40352C', fontFamily: 'Syne, sans-serif' }}>Stable Eye</th>
                   </tr>
                 </thead>
                 <tbody>
                   {comparison.map((row, index) => (
                     <tr key={index} style={{ borderBottom: index < comparison.length - 1 ? '1px solid rgba(64,53,44,0.07)' : 'none', backgroundColor: '#F8F6F2' }}>
-                      <td className="py-4 px-6 text-sm font-medium" style={{ color: '#40352C', fontFamily: 'Montserrat, sans-serif' }}>{row.feature}</td>
-                      <td className="py-4 px-6 text-center">
-                        {row.manual ? <Icon name="Check" size={18} className="text-green-600 mx-auto" /> : <Icon name="X" size={18} className="mx-auto" style={{ color: 'rgba(64,53,44,0.2)' }} />}
+                      <td className="py-3 px-5" style={{ fontSize: '12px', fontWeight: 500, color: '#40352C', fontFamily: 'Montserrat, sans-serif' }}>{row.feature}</td>
+                      <td className="py-3 px-5 text-center">
+                        {row.manual ? <Icon name="Check" size={15} className="text-green-600 mx-auto" /> : <Icon name="X" size={15} className="mx-auto" style={{ color: 'rgba(64,53,44,0.2)' }} />}
                       </td>
-                      <td className="py-4 px-6 text-center">
-                        {row.camera ? <Icon name="Check" size={18} className="text-green-600 mx-auto" /> : <Icon name="X" size={18} className="mx-auto" style={{ color: 'rgba(64,53,44,0.2)' }} />}
+                      <td className="py-3 px-5 text-center">
+                        {row.camera ? <Icon name="Check" size={15} className="text-green-600 mx-auto" /> : <Icon name="X" size={15} className="mx-auto" style={{ color: 'rgba(64,53,44,0.2)' }} />}
                       </td>
-                      <td className="py-4 px-6 text-center" style={{ backgroundColor: 'rgba(64,53,44,0.04)' }}>
-                        {row.stableEye ? <Icon name="Check" size={18} className="text-green-600 mx-auto" /> : <Icon name="X" size={18} className="mx-auto" style={{ color: 'rgba(64,53,44,0.2)' }} />}
+                      <td className="py-3 px-5 text-center" style={{ backgroundColor: 'rgba(64,53,44,0.04)' }}>
+                        {row.stableEye ? <Icon name="Check" size={15} className="text-green-600 mx-auto" /> : <Icon name="X" size={15} className="mx-auto" style={{ color: 'rgba(64,53,44,0.2)' }} />}
                       </td>
                     </tr>
                   ))}
@@ -472,19 +477,19 @@ const Landing: React.FC = () => {
         </section>
 
         {/* FAQ */}
-        <section id="faq" style={{ backgroundColor: '#40352C' }} className="py-28 px-6 lg:px-16">
-          <div className="max-w-3xl mx-auto">
-            <div className="mb-20">
-              <p className="text-xs font-semibold uppercase tracking-widest mb-4" style={{ color: 'rgba(248,246,242,0.35)', fontFamily: 'Montserrat, sans-serif' }}>FAQ</p>
+        <section id="faq" style={{ backgroundColor: '#40352C' }} className="py-16 px-6">
+          <div className="max-w-2xl mx-auto">
+            <div className="mb-10">
+              <p style={{ fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(248,246,242,0.3)', fontFamily: 'Montserrat, sans-serif', marginBottom: '6px' }}>FAQ</p>
               <h2
-                className="text-3xl md:text-4xl font-bold"
-                style={{ fontFamily: 'Syne, sans-serif', color: '#F8F6F2' }}
+                className="font-bold"
+                style={{ fontFamily: 'Syne, sans-serif', color: '#F8F6F2', fontSize: 'clamp(20px, 2.5vw, 28px)' }}
               >
                 Frequently Asked Questions
               </h2>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-2">
               {faqs.map((faq, index) => (
                 <div
                   key={index}
@@ -497,18 +502,18 @@ const Landing: React.FC = () => {
                 >
                   <button
                     onClick={() => setOpenFaq(openFaq === index ? null : index)}
-                    className="w-full p-6 flex items-center justify-between text-left transition-colors"
+                    className="w-full px-5 py-4 flex items-center justify-between text-left"
                   >
-                    <span className="font-semibold pr-4 text-sm" style={{ color: '#F8F6F2', fontFamily: 'Montserrat, sans-serif' }}>{faq.question}</span>
+                    <span style={{ fontSize: '12px', fontWeight: 600, color: '#F8F6F2', fontFamily: 'Montserrat, sans-serif', paddingRight: '1rem' }}>{faq.question}</span>
                     <Icon
                       name={openFaq === index ? 'ChevronUp' : 'ChevronDown'}
-                      size={18}
+                      size={15}
                       style={{ color: 'rgba(248,246,242,0.4)', flexShrink: 0 }}
                     />
                   </button>
                   {openFaq === index && (
-                    <div className="px-6 pb-6">
-                      <p className="text-sm leading-relaxed" style={{ color: 'rgba(248,246,242,0.5)', fontFamily: 'Montserrat, sans-serif' }}>{faq.answer}</p>
+                    <div className="px-5 pb-4">
+                      <p style={{ fontSize: '12px', lineHeight: '1.7', color: 'rgba(248,246,242,0.45)', fontFamily: 'Montserrat, sans-serif' }}>{faq.answer}</p>
                     </div>
                   )}
                 </div>
@@ -518,22 +523,22 @@ const Landing: React.FC = () => {
         </section>
 
         {/* CTA */}
-        <section style={{ backgroundColor: '#40352C' }} className="py-28 px-6 lg:px-16">
-          <div className="max-w-4xl mx-auto text-center">
+        <section style={{ backgroundColor: '#40352C', borderTop: '1px solid rgba(248,246,242,0.08)' }} className="py-16 px-6">
+          <div className="max-w-2xl mx-auto text-center">
             <h2
-              className="text-3xl md:text-4xl lg:text-5xl font-bold mb-8 leading-tight"
-              style={{ fontFamily: 'Syne, sans-serif', color: '#F8F6F2' }}
+              className="font-bold mb-4 leading-tight"
+              style={{ fontFamily: 'Syne, sans-serif', color: '#F8F6F2', fontSize: 'clamp(22px, 3vw, 34px)' }}
             >
               Give Your Horse the<br />Protection They Deserve
             </h2>
-            <p className="text-lg mb-12 max-w-2xl mx-auto" style={{ color: 'rgba(248,246,242,0.55)', fontFamily: 'Montserrat, sans-serif' }}>
+            <p className="text-sm mb-8 mx-auto" style={{ color: 'rgba(248,246,242,0.45)', fontFamily: 'Montserrat, sans-serif' }}>
               Join hundreds of horse owners who sleep better knowing their animals are protected. 30-day money-back guarantee.
             </p>
 
-            <div className="flex flex-wrap justify-center gap-4 mb-12">
+            <div className="flex flex-wrap justify-center gap-3 mb-8">
               <Link
                 to="/login"
-                className="px-10 py-4 text-base font-semibold tracking-wide transition-all duration-200 hover:-translate-y-0.5"
+                className="px-7 py-2.5 text-xs font-semibold tracking-wide transition-all duration-200 hover:-translate-y-0.5"
                 style={{
                   backgroundColor: '#F8F6F2',
                   color: '#40352C',
@@ -545,9 +550,9 @@ const Landing: React.FC = () => {
               </Link>
               <Link
                 to="/login"
-                className="px-10 py-4 text-base font-semibold tracking-wide transition-all duration-200"
+                className="px-7 py-2.5 text-xs font-semibold tracking-wide transition-all duration-200"
                 style={{
-                  border: '1.5px solid rgba(248,246,242,0.3)',
+                  border: '1px solid rgba(248,246,242,0.25)',
                   color: '#F8F6F2',
                   borderRadius: '4px',
                   fontFamily: 'Montserrat, sans-serif',
@@ -557,17 +562,17 @@ const Landing: React.FC = () => {
               </Link>
             </div>
 
-            <div className="flex flex-wrap justify-center gap-8 text-sm" style={{ color: 'rgba(248,246,242,0.4)', fontFamily: 'Montserrat, sans-serif' }}>
-              <div className="flex items-center gap-2">
-                <Icon name="Shield" size={15} style={{ color: 'rgba(248,246,242,0.4)' }} />
+            <div className="flex flex-wrap justify-center gap-6" style={{ color: 'rgba(248,246,242,0.35)', fontFamily: 'Montserrat, sans-serif', fontSize: '11px' }}>
+              <div className="flex items-center gap-1.5">
+                <Icon name="Shield" size={12} style={{ color: 'rgba(248,246,242,0.35)' }} />
                 <span>30-Day Money-Back Guarantee</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Icon name="Zap" size={15} style={{ color: 'rgba(248,246,242,0.4)' }} />
+              <div className="flex items-center gap-1.5">
+                <Icon name="Zap" size={12} style={{ color: 'rgba(248,246,242,0.35)' }} />
                 <span>Free Shipping</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Icon name="Headphones" size={15} style={{ color: 'rgba(248,246,242,0.4)' }} />
+              <div className="flex items-center gap-1.5">
+                <Icon name="Headphones" size={12} style={{ color: 'rgba(248,246,242,0.35)' }} />
                 <span>24/7 Support</span>
               </div>
             </div>
@@ -575,21 +580,21 @@ const Landing: React.FC = () => {
         </section>
 
         {/* FOOTER */}
-        <footer style={{ backgroundColor: '#2a2219', borderTop: '1px solid rgba(248,246,242,0.06)' }} className="py-16 px-6 lg:px-16">
-          <div className="max-w-7xl mx-auto">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-8">
-              <div className="flex items-center gap-3">
-                <img src="/logo-icon-dark.png" alt="Stable Eye" className="h-9 w-auto" style={{ filter: 'brightness(0) invert(1)', opacity: 0.7 }} />
-                <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '1.1rem', color: 'rgba(248,246,242,0.7)', letterSpacing: '-0.01em' }}>Stable Eye</span>
+        <footer style={{ backgroundColor: '#2a2219', borderTop: '1px solid rgba(248,246,242,0.06)' }} className="py-8 px-6">
+          <div className="max-w-5xl mx-auto">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-5">
+              <div className="flex items-center gap-2.5">
+                <img src="/logo-icon-dark.png" alt="Stable Eye" className="h-6 w-auto" style={{ filter: 'brightness(0) invert(1)', opacity: 0.6 }} />
+                <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '0.9rem', color: 'rgba(248,246,242,0.6)', letterSpacing: '-0.01em' }}>Stable Eye</span>
               </div>
 
-              <div className="flex items-center gap-8 text-sm" style={{ color: 'rgba(248,246,242,0.35)', fontFamily: 'Montserrat, sans-serif' }}>
+              <div className="flex items-center gap-6" style={{ fontSize: '11px', color: 'rgba(248,246,242,0.3)', fontFamily: 'Montserrat, sans-serif' }}>
                 <a href="#how-it-works" className="hover:opacity-70 transition-opacity">How It Works</a>
                 <a href="#features" className="hover:opacity-70 transition-opacity">Features</a>
                 <a href="#faq" className="hover:opacity-70 transition-opacity">FAQ</a>
               </div>
 
-              <p className="text-xs text-center" style={{ color: 'rgba(248,246,242,0.25)', fontFamily: 'Montserrat, sans-serif' }}>
+              <p style={{ fontSize: '10px', color: 'rgba(248,246,242,0.2)', fontFamily: 'Montserrat, sans-serif' }}>
                 © {new Date().getFullYear()} Stable Eye. All rights reserved.
               </p>
             </div>
