@@ -89,7 +89,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSubmit, isLoading }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-4">
       {errors.general && (
         <div className="p-4 rounded-xl" style={{ backgroundColor: 'rgba(199,80,80,0.08)', border: '1px solid rgba(199,80,80,0.25)' }}>
           <p className="text-sm whitespace-pre-line" style={{ color: '#c75050' }}>{errors.general}</p>
@@ -113,7 +113,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSubmit, isLoading }) => {
             onFocus={() => setFocusedField('email')}
             onBlur={() => setFocusedField(null)}
             disabled={isLoading}
-            className={`w-full h-14 pl-12 pr-4 luxury-input rounded-xl focus:outline-none ${errors.email ? 'border-[#c75050]' : ''}`}
+            className={`w-full h-10 pl-10 pr-4 luxury-input rounded-xl focus:outline-none ${errors.email ? 'border-[#c75050]' : ''}`}
             style={{ color: '#40352C', fontFamily: 'Montserrat, sans-serif' }}
           />
         </div>
@@ -137,7 +137,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSubmit, isLoading }) => {
             onFocus={() => setFocusedField('password')}
             onBlur={() => setFocusedField(null)}
             disabled={isLoading}
-            className={`w-full h-14 pl-12 pr-4 luxury-input rounded-xl focus:outline-none ${errors.password ? 'border-[#c75050]' : ''}`}
+            className={`w-full h-10 pl-10 pr-4 luxury-input rounded-xl focus:outline-none ${errors.password ? 'border-[#c75050]' : ''}`}
             style={{ color: '#40352C', fontFamily: 'Montserrat, sans-serif' }}
           />
         </div>
@@ -158,7 +158,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSubmit, isLoading }) => {
       <button
         type="submit"
         disabled={isLoading}
-        className="w-full h-14 luxury-button rounded-xl text-base font-semibold tracking-wide disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
+        className="w-full h-10 luxury-button rounded-xl text-sm font-semibold tracking-wide disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
       >
         {isLoading ? (
           <>

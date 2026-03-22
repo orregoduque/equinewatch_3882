@@ -66,8 +66,8 @@ const Login: React.FC = () => {
           <span className="text-sm font-medium" style={{ fontFamily: 'Montserrat, sans-serif' }}>Back</span>
         </Link>
 
-        <div className="w-full max-w-md relative z-10 animate-slide-up">
-          <div className="rounded-2xl p-10 md:p-12" style={{ backgroundColor: '#ffffff', border: '1px solid rgba(64,53,44,0.1)', boxShadow: '0 4px 24px rgba(64,53,44,0.08)' }}>
+        <div className="w-full max-w-sm relative z-10 animate-slide-up">
+          <div className="rounded-2xl p-7 md:p-8" style={{ backgroundColor: '#ffffff', border: '1px solid rgba(64,53,44,0.1)', boxShadow: '0 4px 24px rgba(64,53,44,0.08)' }}>
             <LoginHeader />
             <LoginForm onSubmit={handleLogin} isLoading={isLoading} />
             <TrustSignals badges={trustBadges} />
