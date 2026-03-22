@@ -313,68 +313,71 @@ const HorseTimeline: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Main Photo */}
-                  <div className="relative">
-                    <div className="aspect-video md:h-64 md:aspect-auto overflow-hidden bg-black/20">
-                      <Image
-                        src={selectedObservation?.imageUrl || latestObservation.imageUrl}
-                        alt={selectedObservation?.imageAlt || latestObservation.imageAlt}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
+                  {/* Main Photo + Notes side by side on desktop */}
+                  <div className="flex flex-col md:flex-row">
+                    {/* Image */}
+                    <div className="relative md:w-1/2 flex-shrink-0">
+                      <div className="aspect-video md:aspect-auto md:h-full min-h-[220px] overflow-hidden bg-black/20">
+                        <Image
+                          src={selectedObservation?.imageUrl || latestObservation.imageUrl}
+                          alt={selectedObservation?.imageAlt || latestObservation.imageAlt}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
 
-                    {/* Status Badge */}
-                    <div className="absolute top-4 left-4">
-                      {(() => {
-                        const status = getStatusConfig(selectedObservation?.behaviorStatus || latestObservation.behaviorStatus);
-                        return (
-                          <div className={`flex items-center gap-2 px-4 py-2 rounded-xl ${status.bg} ${status.border} border backdrop-blur-xl`}>
-                            <div className={`w-2 h-2 rounded-full ${status.dot} animate-pulse`} />
-                            <span className={`text-sm font-semibold uppercase tracking-wide ${status.text}`}>
-                              {selectedObservation?.behaviorStatus || latestObservation.behaviorStatus}
-                            </span>
-                          </div>
-                        );
-                      })()}
-                    </div>
+                      {/* Status Badge */}
+                      <div className="absolute top-4 left-4">
+                        {(() => {
+                          const status = getStatusConfig(selectedObservation?.behaviorStatus || latestObservation.behaviorStatus);
+                          return (
+                            <div className={`flex items-center gap-2 px-3 py-1.5 rounded-xl ${status.bg} ${status.border} border backdrop-blur-xl`}>
+                              <div className={`w-2 h-2 rounded-full ${status.dot} animate-pulse`} />
+                              <span className={`text-xs font-semibold uppercase tracking-wide ${status.text}`}>
+                                {selectedObservation?.behaviorStatus || latestObservation.behaviorStatus}
+                              </span>
+                            </div>
+                          );
+                        })()}
+                      </div>
 
-                    {/* Temperature Badge */}
-                    <div className="absolute top-4 right-4">
-                      <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-black/40 border border-white/20 backdrop-blur-xl">
-                        <Icon name="Thermometer" size={16} className="text-[#c9a962]" />
-                        <span className="text-lg font-semibold text-[#faf9f6]">
-                          {(selectedObservation?.temperature || latestObservation.temperature).toFixed(1)}°C
-                        </span>
+                      {/* Temperature Badge */}
+                      <div className="absolute top-4 right-4">
+                        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-black/40 border border-white/20 backdrop-blur-xl">
+                          <Icon name="Thermometer" size={14} className="text-[#c9a962]" />
+                          <span className="text-sm font-semibold text-[#faf9f6]">
+                            {(selectedObservation?.temperature || latestObservation.temperature).toFixed(1)}°C
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Timestamp */}
+                      <div className="absolute bottom-4 left-4">
+                        <div className="px-3 py-1.5 rounded-xl bg-black/50 border border-white/10 backdrop-blur-xl">
+                          <p className="text-xs font-medium text-[#faf9f6]">
+                            {format(selectedObservation?.timestamp || latestObservation.timestamp, 'EEEE, MMMM d, yyyy')}
+                          </p>
+                          <p className="text-sm font-semibold text-[#c9a962]">
+                            {format(selectedObservation?.timestamp || latestObservation.timestamp, 'HH:mm:ss')}
+                          </p>
+                        </div>
                       </div>
                     </div>
 
-                    {/* Timestamp */}
-                    <div className="absolute bottom-4 left-4">
-                      <div className="px-4 py-2 rounded-xl bg-black/50 border border-white/10 backdrop-blur-xl">
-                        <p className="text-sm font-medium text-[#faf9f6]">
-                          {format(selectedObservation?.timestamp || latestObservation.timestamp, 'EEEE, MMMM d, yyyy')}
-                        </p>
-                        <p className="text-lg font-semibold text-[#c9a962]">
-                          {format(selectedObservation?.timestamp || latestObservation.timestamp, 'HH:mm:ss')}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Notes Section */}
-                  <div className="p-6">
-                    <div className="flex items-start gap-4">
-                      <div className="p-2 rounded-xl" style={{ backgroundColor: 'rgba(64,53,44,0.07)' }}>
-                        <Icon name="FileText" size={20} style={{ color: '#40352C' }} />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-medium mb-2" style={{ color: '#40352C' }}>Observation Notes</h3>
-                        <p className="leading-relaxed" style={{ color: 'rgba(64,53,44,0.6)' }}>
-                          {selectedObservation?.notes || latestObservation.notes}
-                        </p>
-                        <p className="text-sm mt-3" style={{ color: 'rgba(64,53,44,0.4)' }}>
-                          Recorded by {selectedObservation?.uploadedBy || latestObservation.uploadedBy}
-                        </p>
+                    {/* Notes Section */}
+                    <div className="flex-1 p-6 flex flex-col justify-center" style={{ borderLeft: '1px solid rgba(64,53,44,0.08)' }}>
+                      <div className="flex items-start gap-3">
+                        <div className="p-2 rounded-xl flex-shrink-0" style={{ backgroundColor: 'rgba(64,53,44,0.07)' }}>
+                          <Icon name="FileText" size={18} style={{ color: '#40352C' }} />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="font-medium mb-2" style={{ color: '#40352C' }}>Observation Notes</h3>
+                          <p className="leading-relaxed text-sm" style={{ color: 'rgba(64,53,44,0.6)' }}>
+                            {selectedObservation?.notes || latestObservation.notes}
+                          </p>
+                          <p className="text-xs mt-3" style={{ color: 'rgba(64,53,44,0.4)' }}>
+                            Recorded by {selectedObservation?.uploadedBy || latestObservation.uploadedBy}
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </div>
