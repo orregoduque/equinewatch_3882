@@ -269,10 +269,9 @@ const Landing: React.FC = () => {
               <div className="relative">
                 <div className="aspect-square overflow-hidden shadow-2xl" style={{ borderRadius: '6px', border: '1px solid rgba(248,246,242,0.1)' }}>
                   <img
-                    src="https://www.stable-eye.co/_next/image?url=%2Fproducts%2Fiphone.png&w=1080&q=75"
+                    src="/iphone-mockup.png"
                     alt="Stable Eye App showing horse monitoring alerts"
-                    className="w-full h-full object-contain p-10"
-                    style={{ backgroundColor: 'rgba(248,246,242,0.03)' }}
+                    className="w-full h-full object-cover"
                     loading="lazy"
                   />
                 </div>
