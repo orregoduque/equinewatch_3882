@@ -115,7 +115,7 @@ const Landing: React.FC = () => {
             <div className="grid lg:grid-cols-2 gap-20 items-center">
               <div>
                 <h1
-                  className="text-5xl md:text-6xl lg:text-[68px] font-bold leading-[1.05] mb-8 tracking-tight"
+                  className="text-4xl md:text-5xl lg:text-[52px] font-bold leading-[1.05] mb-8 tracking-tight"
                   style={{ fontFamily: 'Syne, sans-serif', color: '#40352C' }}
                 >
                   Never Miss a<br />Warning Sign
@@ -482,7 +482,7 @@ const Landing: React.FC = () => {
             <div className="mb-20">
               <p className="text-xs font-semibold uppercase tracking-widest mb-4" style={{ color: 'rgba(248,246,242,0.35)', fontFamily: 'Montserrat, sans-serif' }}>FAQ</p>
               <h2
-                className="text-4xl md:text-5xl font-bold"
+                className="text-3xl md:text-4xl font-bold"
                 style={{ fontFamily: 'Syne, sans-serif', color: '#F8F6F2' }}
               >
                 Frequently Asked Questions
@@ -558,7 +558,7 @@ const Landing: React.FC = () => {
         <section style={{ backgroundColor: '#40352C' }} className="py-28 px-6 lg:px-16">
           <div className="max-w-4xl mx-auto text-center">
             <h2
-              className="text-4xl md:text-5xl lg:text-6xl font-bold mb-8 leading-tight"
+              className="text-3xl md:text-4xl lg:text-5xl font-bold mb-8 leading-tight"
               style={{ fontFamily: 'Syne, sans-serif', color: '#F8F6F2' }}
             >
               Give Your Horse the<br />Protection They Deserve
