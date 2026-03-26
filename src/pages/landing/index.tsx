@@ -78,8 +78,8 @@ const Landing: React.FC = () => {
           <div className="max-w-5xl mx-auto px-6">
             <div className="flex items-center justify-between h-14">
               <div className="flex items-center gap-2.5">
-                <img src="/logo-icon-dark.png" alt="Stable Eye" className="h-7 w-auto" />
-                <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '1rem', color: '#40352C', letterSpacing: '-0.01em' }}>Stable Eye</span>
+                <img src="/logo-icon-dark.png" alt="Stable Eye" className="h-9 w-auto" />
+                <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '1.15rem', color: '#40352C', letterSpacing: '-0.01em' }}>Stable Eye</span>
               </div>
 
               <nav className="hidden md:flex items-center gap-8">
@@ -254,8 +254,8 @@ const Landing: React.FC = () => {
                 </p>
               </div>
 
-              <div>
-                <div className="aspect-square overflow-hidden shadow-xl" style={{ borderRadius: '6px', border: '1px solid rgba(248,246,242,0.1)' }}>
+              <div className="flex justify-center">
+                <div className="aspect-square overflow-hidden shadow-xl max-w-xs w-full" style={{ borderRadius: '6px', border: '1px solid rgba(248,246,242,0.1)' }}>
                   <img
                     src="/iphone-mockup.webp"
                     alt="Stable Eye App showing horse monitoring alerts"
