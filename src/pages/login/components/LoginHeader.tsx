@@ -7,7 +7,7 @@ const LoginHeader: React.FC = () => {
         <img 
           src="/logo-dark.png" 
           alt="Stable Eye" 
-          className="h-9 w-auto"
+          className="h-24 w-auto"
         />
       </div>
 
