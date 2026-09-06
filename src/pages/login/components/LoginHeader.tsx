@@ -7,8 +7,8 @@ const LoginHeader: React.FC = () => {
         <div
           role="img"
           aria-label="Stable Eye"
-          className="h-14 w-64 bg-center bg-no-repeat"
-          style={{ backgroundImage: 'url(/logo-dark.png)', backgroundSize: '430px 430px' }}
+          className="h-16 w-full bg-center bg-no-repeat bg-[length:520px_520px] sm:h-14 sm:w-64 sm:bg-[length:430px_430px]"
+          style={{ backgroundImage: 'url(/logo-dark.png)' }}
         />
       </div>
 
