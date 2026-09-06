@@ -241,7 +241,7 @@ const HorseTimeline: React.FC = () => {
     <>
       <Helmet>
         <title>Live Monitoring - Stable Eye</title>
-        <meta name="description" content="Real-time horse monitoring with photos every 10 minutes" />
+        <meta name="description" content="Real-time horse monitoring with photos every 10 seconds" />
       </Helmet>
 
       <div className="min-h-screen" style={{ backgroundColor: '#F8F6F2' }}>
@@ -258,7 +258,7 @@ const HorseTimeline: React.FC = () => {
                     Live Monitoring
                   </h1>
                   <p className="text-base mt-2" style={{ color: 'rgba(64,53,44,0.55)', fontFamily: 'Montserrat, sans-serif' }}>
-                    Photos captured every 10 minutes
+                    Photos captured every 10 seconds
                   </p>
                 </div>
               </div>
