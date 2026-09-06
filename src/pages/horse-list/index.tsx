@@ -1,35 +1,60 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../../components/ui/Header';
 import MobileNavigation from '../../components/ui/MobileNavigation';
 import HorseCard from './components/HorseCard';
 import HorseCardSkeleton from './components/HorseCardSkeleton';
 import EmptyState from './components/EmptyState';
-import { Horse, User } from './types';
+import { Horse } from './types';
+import { fetchHorses } from '../../utils/supabase';
 
 const HorseList: React.FC = () => {
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
+  const [horses, setHorses] = useState<Horse[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
 
-  const currentUser: User = {
-    id: 'user-1',
-    role: 'caretaker',
-    name: 'Sarah Johnson'
-  };
+  useEffect(() => {
+    let isMounted = true;
 
-  const mockHorses: Horse[] = [
-  {
-    id: 'horse-1',
-    name: 'Thunder',
-    image: "https://zmxppbpywizdjlhstfkf.supabase.co/storage/v1/object/public/images/image_111_enhanced.jpg",
-    alt: 'Majestic brown thoroughbred horse with white blaze standing in green pasture',
-    lastObservation: new Date(Date.now() - 1800000),
-    status: 'normal',
-    ownerId: 'owner-1',
-    ownerName: 'Michael Anderson',
-    temperatureC: 37.8,
-    notes: 'Active and alert during morning rounds. Eating well and showing good energy levels.'
-  }];
+    const loadHorses = async () => {
+      try {
+        const records = await fetchHorses();
+        if (!isMounted) return;
+
+        setHorses(records.map((horse) => {
+          const details = [
+            horse.breed,
+            horse.color,
+            horse.gender,
+            typeof horse.age === 'number' ? `${horse.age} years old` : null,
+          ].filter(Boolean).join(' · ');
+
+          return {
+            id: horse.id,
+            name: horse.name,
+            image: 'https://zmxppbpywizdjlhstfkf.supabase.co/storage/v1/object/public/images/image_111_enhanced.jpg',
+            alt: `${horse.name}${horse.breed ? `, ${horse.breed}` : ''}`,
+            lastObservation: new Date(horse.updated_at || horse.created_at),
+            status: horse.is_active ? 'normal' : 'inactive',
+            ownerId: horse.owner_id || '',
+            ownerName: horse.breed || 'Stable Eye',
+            notes: details,
+          };
+        }));
+      } catch (error) {
+        if (!isMounted) return;
+        setLoadError(error instanceof Error ? error.message : 'Unable to load horses');
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    };
+
+    loadHorses();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
 
   const handleHorseClick = (horseId: string) => {
@@ -59,10 +84,10 @@ const HorseList: React.FC = () => {
               <div className="flex items-center gap-4 mt-2">
                 <div className="flex items-center gap-2 px-4 py-2 rounded-xl" style={{ backgroundColor: 'rgba(64,53,44,0.06)', border: '1px solid rgba(64,53,44,0.12)' }}>
                   <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                  <span className="text-sm font-medium" style={{ color: 'rgba(64,53,44,0.7)', fontFamily: 'Montserrat, sans-serif' }}>{mockHorses.filter(h => h.status === 'normal').length} Active</span>
+                  <span className="text-sm font-medium" style={{ color: 'rgba(64,53,44,0.7)', fontFamily: 'Montserrat, sans-serif' }}>{horses.filter(h => h.status === 'normal').length} Active</span>
                 </div>
                 <div className="flex items-center gap-2 px-4 py-2 rounded-xl" style={{ backgroundColor: 'rgba(64,53,44,0.04)', border: '1px solid rgba(64,53,44,0.1)' }}>
-                  <span className="text-sm font-medium" style={{ color: 'rgba(64,53,44,0.6)', fontFamily: 'Montserrat, sans-serif' }}>{mockHorses.length} Total Horses</span>
+                  <span className="text-sm font-medium" style={{ color: 'rgba(64,53,44,0.6)', fontFamily: 'Montserrat, sans-serif' }}>{horses.length} Total Horses</span>
                 </div>
               </div>
             </div>
@@ -73,9 +98,14 @@ const HorseList: React.FC = () => {
                   <HorseCardSkeleton key={index} />
                 ))}
               </div>
-            ) : mockHorses.length > 0 ? (
+            ) : loadError ? (
+              <EmptyState
+                message="Unable to load horses"
+                description={loadError}
+              />
+            ) : horses.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                {mockHorses.map((horse) => (
+                {horses.map((horse) => (
                   <HorseCard
                     key={horse.id}
                     horse={horse}

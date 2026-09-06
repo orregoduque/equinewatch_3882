@@ -57,6 +57,7 @@ const HorseCard: React.FC<HorseCardProps> = ({ horse, onClick }) => {
             </div>
           )}
 
+          {typeof horse.temperatureC === 'number' && (
           <div className="flex items-center gap-2 pt-2">
             <div
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all duration-300"
@@ -65,9 +66,10 @@ const HorseCard: React.FC<HorseCardProps> = ({ horse, onClick }) => {
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{ color: '#40352C' }}>
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <span className="text-xs font-medium" style={{ color: 'rgba(64,53,44,0.7)', fontFamily: 'Montserrat, sans-serif' }}>{horse.temperatureC}°C</span>
+              <span className="text-xs font-medium" style={{ color: 'rgba(64,53,44,0.7)', fontFamily: 'Montserrat, sans-serif' }}>{horse.temperatureC.toFixed(1)}°C</span>
             </div>
           </div>
+          )}
         </div>
 
         <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-2 group-hover:translate-x-0">

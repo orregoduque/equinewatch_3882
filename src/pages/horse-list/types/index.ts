@@ -7,7 +7,7 @@ export interface Horse {
   status: 'normal' | 'suspicious' | 'inactive';
   ownerId: string;
   ownerName: string;
-  temperatureC: number;
+  temperatureC?: number;
   notes: string;
 }
 

@@ -1,1 +1,2 @@
 - [Login logo asset](login-logo-asset.md) — use the cropped wordmark; the original square PNG contains excessive transparent padding.
+- [Horse visibility](horse-visibility.md) — every authenticated user should see every horse; Supabase RLS provides the access boundary.

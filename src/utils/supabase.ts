@@ -37,6 +37,19 @@ export interface UserProfile {
   created_at: string;
 }
 
+export interface SupabaseHorse {
+  id: string;
+  name: string;
+  breed: string | null;
+  owner_id: string | null;
+  age: number | null;
+  gender: string | null;
+  color: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string | null;
+}
+
 export const getImageUrl = (storagePath: string): string => {
   return `${supabaseUrl}/storage/v1/object/public/images/${storagePath}`;
 };
@@ -59,6 +72,19 @@ export const fetchHorseImages = async (limit: number = 20): Promise<HorseImage[]
     console.error('Exception fetching images:', err);
     return [];
   }
+};
+
+export const fetchHorses = async (): Promise<SupabaseHorse[]> => {
+  const { data, error } = await supabase
+    .from('horses')
+    .select('id, name, breed, owner_id, age, gender, color, is_active, created_at, updated_at')
+    .order('created_at', { ascending: true });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data || [];
 };
 
 export const fetchUserProfiles = async (): Promise<UserProfile[]> => {
