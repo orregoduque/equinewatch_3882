@@ -241,7 +241,7 @@ const HorseTimeline: React.FC = () => {
     <>
       <Helmet>
         <title>Live Monitoring - Stable Eye</title>
-        <meta name="description" content="Real-time horse monitoring with photos every 10 minutes" />
+        <meta name="description" content="Real-time horse monitoring with photos every 10 seconds" />
       </Helmet>
 
       <div className="min-h-screen" style={{ backgroundColor: '#F8F6F2' }}>
@@ -258,7 +258,7 @@ const HorseTimeline: React.FC = () => {
                     Live Monitoring
                   </h1>
                   <p className="text-base mt-2" style={{ color: 'rgba(64,53,44,0.55)', fontFamily: 'Montserrat, sans-serif' }}>
-                    Photos captured every 10 minutes
+                    Photos captured every 10 seconds
                   </p>
                 </div>
               </div>
@@ -433,7 +433,7 @@ const HorseTimeline: React.FC = () => {
                   </div>
                   <div className="rounded-xl p-4 text-center" style={{ backgroundColor: '#ffffff', border: '1px solid rgba(64,53,44,0.1)' }}>
                     <Icon name="Thermometer" size={24} style={{ color: '#40352C' }} className="mx-auto mb-2" />
-                    <p className="text-2xl font-bold" style={{ color: '#40352C', fontFamily: 'Syne, sans-serif' }}>{latestObservation.temperature}°C</p>
+                    <p className="text-2xl font-bold" style={{ color: '#40352C', fontFamily: 'Syne, sans-serif' }}>{latestObservation.temperature.toFixed(1)}°C</p>
                     <p className="text-xs" style={{ color: 'rgba(64,53,44,0.5)' }}>Last Temp</p>
                   </div>
                   <div className="rounded-xl p-4 text-center" style={{ backgroundColor: '#ffffff', border: '1px solid rgba(64,53,44,0.1)' }}>

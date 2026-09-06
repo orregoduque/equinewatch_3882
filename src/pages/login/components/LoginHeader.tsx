@@ -4,10 +4,11 @@ const LoginHeader: React.FC = () => {
   return (
     <div className="text-center mb-7">
       <div className="flex justify-center mb-5">
-        <img 
-          src="/logo-dark.png" 
-          alt="Stable Eye" 
-          className="h-9 w-auto"
+        <div
+          role="img"
+          aria-label="Stable Eye"
+          className="h-14 w-64 bg-center bg-no-repeat"
+          style={{ backgroundImage: 'url(/logo-dark.png)', backgroundSize: '430px 430px' }}
         />
       </div>
 
