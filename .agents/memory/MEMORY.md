@@ -1,0 +1,1 @@
+- [Login logo asset](login-logo-asset.md) — use the cropped wordmark; the original square PNG contains excessive transparent padding.

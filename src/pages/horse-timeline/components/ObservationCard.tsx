@@ -72,7 +72,7 @@ const ObservationCard: React.FC<ObservationCardProps> = ({ observation }) => {
           <div className="absolute top-4 right-4">
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full backdrop-blur-xl bg-white/[0.08] border border-white/[0.12]">
               <Icon name="Thermometer" size={14} className="text-[#00f0ff]" />
-              <span className="text-xs font-bold text-white">{observation.temperature}°C</span>
+              <span className="text-xs font-bold text-white">{observation.temperature.toFixed(1)}°C</span>
             </div>
           </div>
 

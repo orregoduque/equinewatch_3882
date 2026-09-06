@@ -429,7 +429,7 @@ const HorseTimeline: React.FC = () => {
                   <div className="rounded-xl p-4 text-center" style={{ backgroundColor: '#ffffff', border: '1px solid rgba(64,53,44,0.1)' }}>
                     <Icon name="Clock" size={24} style={{ color: '#40352C' }} className="mx-auto mb-2" />
                     <p className="text-2xl font-bold" style={{ color: '#40352C', fontFamily: 'Syne, sans-serif' }}>10</p>
-                    <p className="text-xs" style={{ color: 'rgba(64,53,44,0.5)' }}>Min Interval</p>
+                    <p className="text-xs" style={{ color: 'rgba(64,53,44,0.5)' }}>Sec Interval</p>
                   </div>
                   <div className="rounded-xl p-4 text-center" style={{ backgroundColor: '#ffffff', border: '1px solid rgba(64,53,44,0.1)' }}>
                     <Icon name="Thermometer" size={24} style={{ color: '#40352C' }} className="mx-auto mb-2" />
