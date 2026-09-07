@@ -6,7 +6,7 @@ import HorseCard from './components/HorseCard';
 import HorseCardSkeleton from './components/HorseCardSkeleton';
 import EmptyState from './components/EmptyState';
 import { Horse } from './types';
-import { fetchHorses } from '../../utils/supabase';
+import { fetchHorses, getImageUrl } from '../../utils/supabase';
 
 const HorseList: React.FC = () => {
   const navigate = useNavigate();
@@ -29,11 +29,15 @@ const HorseList: React.FC = () => {
             horse.gender,
             typeof horse.age === 'number' ? `${horse.age} years old` : null,
           ].filter(Boolean).join(' · ');
+          const profilePhoto = horse.profile_photo_url?.trim();
+          const imageUrl = profilePhoto
+            ? (/^https?:\/\//i.test(profilePhoto) ? profilePhoto : getImageUrl(profilePhoto))
+            : '';
 
           return {
             id: horse.id,
             name: horse.name,
-            image: 'https://zmxppbpywizdjlhstfkf.supabase.co/storage/v1/object/public/images/image_111_enhanced.jpg',
+            image: imageUrl,
             alt: `${horse.name}${horse.breed ? `, ${horse.breed}` : ''}`,
             lastObservation: new Date(horse.updated_at || horse.created_at),
             status: horse.is_active ? 'normal' : 'inactive',

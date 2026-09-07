@@ -41,6 +41,7 @@ export interface SupabaseHorse {
   id: string;
   name: string;
   breed: string | null;
+  profile_photo_url: string | null;
   owner_id: string | null;
   age: number | null;
   gender: string | null;
@@ -77,7 +78,7 @@ export const fetchHorseImages = async (limit: number = 20): Promise<HorseImage[]
 export const fetchHorses = async (): Promise<SupabaseHorse[]> => {
   const { data, error } = await supabase
     .from('horses')
-    .select('id, name, breed, owner_id, age, gender, color, is_active, created_at, updated_at')
+    .select('id, name, breed, profile_photo_url, owner_id, age, gender, color, is_active, created_at, updated_at')
     .order('created_at', { ascending: true });
 
   if (error) {
