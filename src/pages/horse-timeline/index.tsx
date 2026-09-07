@@ -1,15 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
 import { format, formatDistanceToNow } from 'date-fns';
+import { useSearchParams } from 'react-router-dom';
 import Header from '../../components/ui/Header';
 import MobileNavigation from '../../components/ui/MobileNavigation';
 import Image from '../../components/AppImage';
 import Icon from '../../components/AppIcon';
 import { Observation, Horse } from './types';
-import { fetchHorseImages, getImageUrl, HorseImage } from '../../utils/supabase';
+import { fetchHorseImages, fetchHorses, getImageUrl, HorseImage } from '../../utils/supabase';
 
 const HorseTimeline: React.FC = () => {
-  const [selectedHorseId, setSelectedHorseId] = useState<string>('horse-1');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const requestedHorseId = searchParams.get('horseId') || '';
+  const [selectedHorseId, setSelectedHorseId] = useState<string>(requestedHorseId);
+  const [horses, setHorses] = useState<Horse[]>([]);
   const [observations, setObservations] = useState<Observation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedObservation, setSelectedObservation] = useState<Observation | null>(null);
@@ -18,118 +22,65 @@ const HorseTimeline: React.FC = () => {
   const [currentVideoFrame, setCurrentVideoFrame] = useState(0);
   const [videoProgress, setVideoProgress] = useState(0);
 
-  const horses: Horse[] = [
-    {
-      id: 'horse-1',
-      name: 'Thunder',
-      breed: 'Thoroughbred',
-      age: 5,
-      owner: 'John Smith',
-      lastObservation: new Date(),
-      profileImage: "https://zmxppbpywizdjlhstfkf.supabase.co/storage/v1/object/public/images/image_111_enhanced.jpg",
-      profileImageAlt: 'Majestic brown thoroughbred horse'
-    }
-  ];
+  useEffect(() => {
+    let isMounted = true;
 
-  const mockObservations: Observation[] = [
-    {
-      id: 'obs-1',
-      horseId: 'horse-1',
-      horseName: 'Thunder',
-      imageUrl: "https://img.rocket.new/generatedImages/rocket_gen_img_189a2df76-1765536993983.png",
-      imageAlt: 'Thunder standing calmly in stable',
-      timestamp: new Date(Date.now() - 600000),
-      temperature: 37.8,
-      behaviorStatus: 'normal',
-      notes: 'Horse appears calm and alert. Eating normally and responding well to commands.',
-      uploadedBy: 'Emily Carter'
-    },
-    {
-      id: 'obs-2',
-      horseId: 'horse-1',
-      horseName: 'Thunder',
-      imageUrl: "https://img.rocket.new/generatedImages/rocket_gen_img_130253821-1765536994698.png",
-      imageAlt: 'Thunder lying down in straw bedding',
-      timestamp: new Date(Date.now() - 1200000),
-      temperature: 38.2,
-      behaviorStatus: 'suspicious',
-      notes: 'Horse showing signs of restlessness. Lying down more frequently than usual.',
-      uploadedBy: 'David Martinez'
-    },
-    {
-      id: 'obs-3',
-      horseId: 'horse-1',
-      horseName: 'Thunder',
-      imageUrl: "https://images.unsplash.com/photo-1626617158255-152c32b4b957",
-      imageAlt: 'Thunder grazing peacefully in pasture',
-      timestamp: new Date(Date.now() - 1800000),
-      temperature: 37.5,
-      behaviorStatus: 'normal',
-      notes: 'Morning check completed. Horse is grazing normally.',
-      uploadedBy: 'Emily Carter'
-    },
-    {
-      id: 'obs-4',
-      horseId: 'horse-1',
-      horseName: 'Thunder',
-      imageUrl: "https://img.rocket.new/generatedImages/rocket_gen_img_1d2835970-1765536992071.png",
-      imageAlt: 'Thunder drinking water from trough',
-      timestamp: new Date(Date.now() - 2400000),
-      temperature: 37.6,
-      behaviorStatus: 'normal',
-      notes: 'Hydration check - drinking water regularly.',
-      uploadedBy: 'David Martinez'
-    },
-    {
-      id: 'obs-5',
-      horseId: 'horse-1',
-      horseName: 'Thunder',
-      imageUrl: "https://img.rocket.new/generatedImages/rocket_gen_img_1ec8e5470-1765536992858.png",
-      imageAlt: 'Thunder in stable morning light',
-      timestamp: new Date(Date.now() - 3000000),
-      temperature: 37.4,
-      behaviorStatus: 'normal',
-      notes: 'Early morning observation. All vitals normal.',
-      uploadedBy: 'Emily Carter'
-    },
-    {
-      id: 'obs-6',
-      horseId: 'horse-2',
-      horseName: 'Midnight',
-      imageUrl: "https://img.rocket.new/generatedImages/rocket_gen_img_1ec8e5470-1765536992858.png",
-      imageAlt: 'Midnight trotting in arena',
-      timestamp: new Date(Date.now() - 600000),
-      temperature: 37.9,
-      behaviorStatus: 'normal',
-      notes: 'Exercise session completed successfully.',
-      uploadedBy: 'Emily Carter'
-    },
-    {
-      id: 'obs-7',
-      horseId: 'horse-3',
-      horseName: 'Spirit',
-      imageUrl: "https://img.rocket.new/generatedImages/rocket_gen_img_1d09d4e88-1765536992034.png",
-      imageAlt: 'Spirit standing in paddock',
-      timestamp: new Date(Date.now() - 600000),
-      temperature: 37.7,
-      behaviorStatus: 'normal',
-      notes: 'Routine health check completed.',
-      uploadedBy: 'David Martinez'
-    }
-  ];
+    const loadHorses = async () => {
+      try {
+        const records = await fetchHorses();
+        if (!isMounted) return;
+
+        const loadedHorses: Horse[] = records.map((horse) => {
+          const profilePhoto = horse.profile_photo_url?.trim();
+          return {
+            id: horse.id,
+            name: horse.name,
+            breed: horse.breed || 'Horse',
+            age: horse.age || 0,
+            owner: horse.owner_id || '',
+            lastObservation: new Date(horse.updated_at || horse.created_at),
+            profileImage: profilePhoto
+              ? (/^https?:\/\//i.test(profilePhoto) ? profilePhoto : getImageUrl(profilePhoto))
+              : '',
+            profileImageAlt: horse.name,
+          };
+        });
+
+        setHorses(loadedHorses);
+
+        const requestedExists = loadedHorses.some((horse) => horse.id === requestedHorseId);
+        const initialHorseId = requestedExists ? requestedHorseId : loadedHorses[0]?.id || '';
+        setSelectedHorseId(initialHorseId);
+        if (initialHorseId && initialHorseId !== requestedHorseId) {
+          setSearchParams({ horseId: initialHorseId }, { replace: true });
+        }
+      } catch (error) {
+        console.error('Error loading horses:', error);
+        setHorses([]);
+        setIsLoading(false);
+      }
+    };
+
+    loadHorses();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     const loadImages = async () => {
+      if (!selectedHorseId) return;
       setIsLoading(true);
       try {
-        const images = await fetchHorseImages(30);
+        const selectedHorse = horses.find((horse) => horse.id === selectedHorseId);
+        const images = await fetchHorseImages(30, selectedHorseId);
         
         const realObservations: Observation[] = images.map((img: HorseImage, index: number) => ({
           id: `obs-${img.id}`,
-          horseId: 'horse-1',
-          horseName: 'Thunder',
+          horseId: selectedHorseId,
+          horseName: selectedHorse?.name || 'Horse',
           imageUrl: getImageUrl(img.storage_path_enhanced),
-          imageAlt: `Horse observation ${img.image_number}`,
+          imageAlt: `${selectedHorse?.name || 'Horse'} observation ${img.image_number}`,
           timestamp: new Date(img.created_at),
           temperature: 37.5 + (Math.random() * 1.5 - 0.5),
           behaviorStatus: index === 0 ? 'normal' : (Math.random() > 0.8 ? 'suspicious' : 'normal') as 'normal' | 'suspicious',
@@ -137,25 +88,18 @@ const HorseTimeline: React.FC = () => {
           uploadedBy: 'Stable Eye Camera'
         }));
 
-        const filtered = selectedHorseId === 'horse-1' 
-          ? realObservations 
-          : mockObservations.filter((obs) => obs.horseId === selectedHorseId);
-        
-        setObservations(filtered);
-        setSelectedObservation(filtered[0] || null);
+        setObservations(realObservations);
+        setSelectedObservation(realObservations[0] || null);
       } catch (error) {
         console.error('Error loading images:', error);
-        const filtered = mockObservations
-          .filter((obs) => obs.horseId === selectedHorseId)
-          .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
-        setObservations(filtered);
-        setSelectedObservation(filtered[0] || null);
+        setObservations([]);
+        setSelectedObservation(null);
       }
       setIsLoading(false);
     };
 
     loadImages();
-  }, [selectedHorseId]);
+  }, [selectedHorseId, horses]);
 
   // Video playback effect - 15 seconds total, divided by number of photos
   useEffect(() => {
@@ -269,7 +213,10 @@ const HorseTimeline: React.FC = () => {
               {horses.map((horse) => (
                 <button
                   key={horse.id}
-                  onClick={() => setSelectedHorseId(horse.id)}
+                  onClick={() => {
+                    setSelectedHorseId(horse.id);
+                    setSearchParams({ horseId: horse.id });
+                  }}
                   className="flex items-center gap-3 px-4 py-3 rounded-xl border transition-all duration-300 whitespace-nowrap"
                   style={{
                     backgroundColor: selectedHorseId === horse.id ? 'rgba(64,53,44,0.08)' : '#ffffff',

@@ -14,6 +14,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export interface HorseImage {
   id: number;
+  horse_id: string;
   image_number: number;
   filename_raw: string;
   filename_enhanced: string;
@@ -55,14 +56,20 @@ export const getImageUrl = (storagePath: string): string => {
   return `${supabaseUrl}/storage/v1/object/public/images/${storagePath}`;
 };
 
-export const fetchHorseImages = async (limit: number = 20): Promise<HorseImage[]> => {
-  console.log('Fetching images from Supabase...', { supabaseUrl, limit });
+export const fetchHorseImages = async (limit: number = 20, horseId?: string): Promise<HorseImage[]> => {
+  console.log('Fetching images from Supabase...', { supabaseUrl, limit, horseId });
   try {
-    const { data, error } = await supabase
+    let query = supabase
       .from('images')
       .select('*')
       .order('created_at', { ascending: false })
       .limit(limit);
+
+    if (horseId) {
+      query = query.eq('horse_id', horseId);
+    }
+
+    const { data, error } = await query;
     if (error) {
       console.error('Supabase error fetching images:', error);
       return [];

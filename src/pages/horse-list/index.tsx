@@ -62,7 +62,7 @@ const HorseList: React.FC = () => {
 
 
   const handleHorseClick = (horseId: string) => {
-    navigate('/horse-timeline', { state: { horseId } });
+    navigate(`/horse-timeline?horseId=${encodeURIComponent(horseId)}`);
   };
 
   return (
