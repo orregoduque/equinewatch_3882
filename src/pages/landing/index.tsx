@@ -548,8 +548,10 @@ const Landing: React.FC = () => {
               >
                 Get Early Access
               </Link>
-              <Link
-                to="/login"
+              <a
+                href="https://wa.me/14422077905"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="px-7 py-2.5 text-xs font-semibold tracking-wide transition-all duration-200"
                 style={{
                   border: '1px solid rgba(248,246,242,0.25)',
@@ -559,7 +561,7 @@ const Landing: React.FC = () => {
                 }}
               >
                 Request Demo
-              </Link>
+              </a>
             </div>
 
             <div className="flex flex-wrap justify-center gap-6" style={{ color: 'rgba(248,246,242,0.35)', fontFamily: 'Montserrat, sans-serif', fontSize: '11px' }}>
