@@ -21,7 +21,6 @@ const DailySummary: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [summaryData, setSummaryData] = useState<DailySummaryData | null>(null);
-  const [showProPopup, setShowProPopup] = useState<boolean>(true);
 
   const vitalSigns: VitalSign[] = [
     { id: '1', name: 'Heart Rate', value: 48, unit: 'bpm', normalMin: 28, normalMax: 44, status: 'elevated', icon: 'Heart', trend: [36, 38, 42, 44, 46, 48, 47, 48] },
@@ -270,42 +269,6 @@ const DailySummary: React.FC = () => {
       <div className="min-h-screen" style={{ backgroundColor: '#F8F6F2' }}>
         <Header />
 
-        {showProPopup && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-            <div className="relative mx-4 max-w-md w-full rounded-2xl p-8 shadow-2xl" style={{ backgroundColor: '#ffffff', border: '1px solid rgba(64,53,44,0.15)' }}>
-              <button
-                onClick={() => setShowProPopup(false)}
-                className="absolute top-4 right-4 transition-colors"
-                style={{ color: 'rgba(64,53,44,0.5)' }}
-              >
-                <Icon name="X" size={24} />
-              </button>
-              
-              <div className="text-center">
-                <div className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center" style={{ backgroundColor: '#40352C' }}>
-                  <Icon name="Sparkles" size={32} className="text-white" />
-                </div>
-                
-                <h3 className="text-2xl font-bold mb-3" style={{ color: '#40352C', fontFamily: 'Syne, sans-serif' }}>
-                  AI Monitoring
-                </h3>
-                
-                <p className="text-base mb-6" style={{ color: 'rgba(64,53,44,0.6)', fontFamily: 'Montserrat, sans-serif' }}>
-                  Unlock AI monitoring with your PRO subscription
-                </p>
-                
-                <button
-                  onClick={() => setShowProPopup(false)}
-                  className="w-full py-3 px-6 rounded-xl font-semibold text-white transition-all duration-300"
-                  style={{ backgroundColor: '#40352C' }}
-                >
-                  Got it
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-        
         <main className="pt-24 pb-24 md:pb-12 px-4 sm:px-6 lg:px-8">
           <div className="max-w-7xl mx-auto">
             <div className="mb-8">
