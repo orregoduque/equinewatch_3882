@@ -146,26 +146,23 @@ const DailySummary: React.FC = () => {
       try {
         setTemperatureError('');
         const temperatureRecords = await fetchTemperaturesForDay(selectedHorseId, dayStart, dayEnd);
-        const recordsByHour = new Map<number, number[]>();
+        temperatureTrends = temperatureRecords.map((record) => {
+          const recordedAt = new Date(record.created_at);
+          const temperature = record.temperature;
 
-        temperatureRecords.forEach((record) => {
-          const hour = new Date(record.created_at).getHours();
-          const readings = recordsByHour.get(hour) || [];
-          readings.push(record.temperature);
-          recordsByHour.set(hour, readings);
-        });
-
-        temperatureTrends = Array.from(recordsByHour.entries())
-          .sort(([hourA], [hourB]) => hourA - hourB)
-          .map(([hour, readings]) => ({
-            time: new Date(2000, 0, 1, hour).toLocaleTimeString([], {
-              hour: 'numeric',
-              hour12: true,
+          return {
+            time: recordedAt.toLocaleTimeString([], {
+              hour: '2-digit',
+              minute: '2-digit',
             }),
-            avgTemp: readings.reduce((sum, reading) => sum + reading, 0) / readings.length,
-            minTemp: Math.min(...readings),
-            maxTemp: Math.max(...readings),
-          }));
+            hour: recordedAt.getHours()
+              + recordedAt.getMinutes() / 60
+              + recordedAt.getSeconds() / 3600,
+            avgTemp: temperature,
+            minTemp: temperature,
+            maxTemp: temperature,
+          };
+        });
       } catch (error) {
         console.error('Error loading temperature records:', error);
         setTemperatureError(error instanceof Error ? error.message : 'Unknown Supabase error');

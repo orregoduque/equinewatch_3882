@@ -13,12 +13,15 @@ const TemperatureTrendChart: React.FC<TemperatureTrendChartProps> = ({ data, err
   const allTemps = hasData ? data.flatMap(d => [d.avgTemp, d.minTemp, d.maxTemp]) : [];
   const minTemp = Math.min(...allTemps);
   const maxTemp = Math.max(...allTemps);
-  const tempRange = maxTemp - minTemp || 1;
-  const getXPosition = (index: number) => data.length === 1 ? 200 : (index / (data.length - 1)) * 400;
-
-  const getYPosition = (temp: number) => {
-    return ((maxTemp - temp) / tempRange) * 100;
-  };
+  const chartWidth = 720;
+  const chartHeight = 240;
+  const margin = { top: 16, right: 18, bottom: 38, left: 46 };
+  const plotWidth = chartWidth - margin.left - margin.right;
+  const plotHeight = chartHeight - margin.top - margin.bottom;
+  const hourTicks = Array.from({ length: 25 }, (_, hour) => hour);
+  const temperatureTicks = [0, 10, 20, 30, 40];
+  const getXPosition = (hour: number) => margin.left + (Math.min(Math.max(hour, 0), 24) / 24) * plotWidth;
+  const getYPosition = (temperature: number) => margin.top + ((40 - Math.min(Math.max(temperature, 0), 40)) / 40) * plotHeight;
 
   return (
     <div
@@ -49,8 +52,8 @@ const TemperatureTrendChart: React.FC<TemperatureTrendChartProps> = ({ data, err
         </div>
       ) : (
         <>
-      <div className="relative h-48 mb-4">
-        <svg className="w-full h-full" viewBox="0 0 400 192" preserveAspectRatio="none">
+      <div className="relative mb-4 overflow-x-auto">
+        <svg className="h-60 min-w-[720px] w-full" viewBox={`0 0 ${chartWidth} ${chartHeight}`} role="img" aria-label="Temperature readings across the 24 hours of the selected day">
           <defs>
             <linearGradient id="tempGradient" x1="0%" y1="0%" x2="0%" y2="100%">
               <stop offset="0%" stopColor="#40352C" stopOpacity="0.12" />
@@ -58,50 +61,81 @@ const TemperatureTrendChart: React.FC<TemperatureTrendChartProps> = ({ data, err
             </linearGradient>
           </defs>
 
-          {data.length > 1 && (
-            <>
-              <path
-                d={`M ${data.map((d, i) =>
-                  `${getXPosition(i)},${getYPosition(d.avgTemp) * 1.92}`
-                ).join(' L ')}`}
-                fill="none"
-                stroke="#40352C"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d={`M ${data.map((d, i) =>
-                  `${getXPosition(i)},${getYPosition(d.avgTemp) * 1.92}`
-                ).join(' L ')} L 400,192 L 0,192 Z`}
-                fill="url(#tempGradient)"
-              />
-            </>
-          )}
+          {temperatureTicks.map((temperature) => {
+            const y = getYPosition(temperature);
+            return (
+              <g key={temperature}>
+                <line
+                  x1={margin.left}
+                  x2={chartWidth - margin.right}
+                  y1={y}
+                  y2={y}
+                  stroke="rgba(64,53,44,0.12)"
+                  strokeWidth="1"
+                />
+                <text
+                  x={margin.left - 9}
+                  y={y + 4}
+                  textAnchor="end"
+                  fontSize="10"
+                  fill="rgba(64,53,44,0.55)"
+                >
+                  {temperature}°
+                </text>
+              </g>
+            );
+          })}
 
-          {data.map((d, i) => (
+          {hourTicks.map((hour) => {
+            const x = getXPosition(hour);
+            return (
+              <g key={hour}>
+                <line
+                  x1={x}
+                  x2={x}
+                  y1={margin.top}
+                  y2={chartHeight - margin.bottom}
+                  stroke="rgba(64,53,44,0.07)"
+                  strokeWidth="1"
+                />
+                <text
+                  x={x}
+                  y={chartHeight - 17}
+                  textAnchor="middle"
+                  fontSize="8"
+                  fill="rgba(64,53,44,0.5)"
+                >
+                  {String(hour).padStart(2, '0')}
+                </text>
+              </g>
+            );
+          })}
+
+          <text
+            x={12}
+            y={margin.top + plotHeight / 2}
+            textAnchor="middle"
+            fontSize="10"
+            fill="rgba(64,53,44,0.6)"
+            transform={`rotate(-90 12 ${margin.top + plotHeight / 2})`}
+          >
+            Temperature (°C)
+          </text>
+
+          {data.map((reading, index) => (
             <circle
-              key={i}
-              cx={getXPosition(i)}
-              cy={getYPosition(d.avgTemp) * 1.92}
-              r="5"
+              key={`${reading.time}-${index}`}
+              cx={getXPosition(reading.hour)}
+              cy={getYPosition(reading.avgTemp)}
+              r="4.5"
               fill="#40352C"
               stroke="#F8F6F2"
               strokeWidth="2"
-            />
+            >
+              <title>{`${reading.time}: ${reading.avgTemp.toFixed(1)}°C`}</title>
+            </circle>
           ))}
         </svg>
-      </div>
-
-      <div className="flex items-center justify-between text-xs pt-4" style={{ borderTop: '1px solid rgba(64,53,44,0.08)' }}>
-        {data.map((item, index) => (
-          <div key={index} className="text-center">
-            <p className="font-bold mb-1" style={{ color: '#40352C' }}>
-              {item.avgTemp.toFixed(1)}°C
-            </p>
-            <p style={{ color: 'rgba(64,53,44,0.45)' }}>{item.time}</p>
-          </div>
-        ))}
       </div>
 
       <div className="mt-4 grid grid-cols-3 gap-4">

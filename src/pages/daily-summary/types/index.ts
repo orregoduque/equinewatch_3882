@@ -18,6 +18,7 @@ export interface TimeDistribution {
 
 export interface TemperatureTrend {
   time: string;
+  hour: number;
   avgTemp: number;
   minTemp: number;
   maxTemp: number;
