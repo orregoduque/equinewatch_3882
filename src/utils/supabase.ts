@@ -136,7 +136,7 @@ export const fetchTemperaturesForDay = async (
 ): Promise<TemperatureRecord[]> => {
   const { data, error } = await supabase
     .from('temperatura')
-    .select('*')
+    .select('id, horse_id, box_temperature, created_at')
     .eq('horse_id', horseId)
     .gte('created_at', dayStart.toISOString())
     .lt('created_at', dayEnd.toISOString())
@@ -146,22 +146,14 @@ export const fetchTemperaturesForDay = async (
     throw new Error(error.message);
   }
 
-  return (data || []).flatMap((record) => {
-    const temperatureEntry = Object.entries(record).find(([key, rawValue]) => {
-      if (['id', 'horse_id', 'created_at', 'updated_at'].includes(key)) return false;
-      const value = typeof rawValue === 'number' ? rawValue : Number(rawValue);
-      return Number.isFinite(value) && value >= 30 && value <= 45;
-    });
-
-    if (!temperatureEntry) return [];
-
-    return [{
+  return (data || [])
+    .map((record) => ({
       id: record.id,
       horse_id: record.horse_id,
-      temperature: Number(temperatureEntry[1]),
+      temperature: Number(record.box_temperature),
       created_at: record.created_at,
-    }];
-  });
+    }))
+    .filter((record) => Number.isFinite(record.temperature));
 };
 
 export const fetchUserProfiles = async (): Promise<UserProfile[]> => {
