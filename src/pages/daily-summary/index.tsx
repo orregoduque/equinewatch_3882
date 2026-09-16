@@ -143,9 +143,6 @@ const DailySummary: React.FC = () => {
         date: selectedDate,
         metrics: [
           { id: '1', title: 'Observations Today', value: 42, unit: 'checks', trend: 15, trendLabel: 'vs. yesterday', icon: 'Eye', description: 'Health checks performed', status: 'normal' },
-          { id: '2', title: 'Alert Level', value: 3, unit: '/5', trend: 50, trendLabel: 'elevated', icon: 'AlertTriangle', description: 'Current colic watch status', status: 'warning' },
-          { id: '3', title: 'Water Intake', value: 18, unit: 'L', trend: -25, trendLabel: 'below normal', icon: 'Droplets', description: 'Last 12 hours', status: 'warning' },
-          { id: '4', title: 'Last Manure', value: 4, unit: 'hrs ago', trend: 0, trendLabel: 'monitoring', icon: 'Clock', description: 'Time since last passage', status: 'normal' },
         ],
         timeDistribution: [
           { hour: 0, count: 2, label: '12 AM' }, { hour: 1, count: 2, label: '1 AM' }, { hour: 2, count: 1, label: '2 AM' },
