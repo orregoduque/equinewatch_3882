@@ -7,51 +7,61 @@ import ProfileHeader from './components/ProfileHeader';
 import StatCard from './components/StatCard';
 import { UserProfile, ProfileStats } from './types';
 import { useAuth } from '../../contexts/AuthContext';
-import { fetchUserProfiles } from '../../utils/supabase';
+import { fetchProfileStats, fetchUserProfileByEmail } from '../../utils/supabase';
 
 const Profile: React.FC = () => {
   const { user, logout } = useAuth();
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [stats, setStats] = useState<ProfileStats | null>(null);
+  const [profileError, setProfileError] = useState('');
 
   useEffect(() => {
     const loadProfileData = async () => {
       setIsLoading(true);
+      setProfileError('');
 
-      let memberSince = new Date();
-
-      // Try to fetch created_at from Supabase profiles table
-      if (user?.email) {
-        try {
-          const profiles = await fetchUserProfiles();
-          const found = profiles.find((p) => p.email === user.email);
-          if (found?.created_at) {
-            memberSince = new Date(found.created_at);
-          }
-        } catch {
-          // fallback to today
-        }
+      if (!user?.email) {
+        setProfile(null);
+        setStats(null);
+        setProfileError('No authenticated user profile is available.');
+        setIsLoading(false);
+        return;
       }
 
-      const appProfile: UserProfile = {
-        id: user?.id || '1',
-        name: user?.name || 'Unknown User',
-        email: user?.email || '',
-        memberSince,
-        horsesOwned: 12,
-      };
+      try {
+        const [supabaseProfile, profileStats] = await Promise.all([
+          fetchUserProfileByEmail(user.email),
+          fetchProfileStats(),
+        ]);
 
-      const mockStats: ProfileStats = {
-        totalObservations: 1547,
-        activeHorses: 11,
-        averageTemperature: 37.8,
-        lastObservation: new Date('2025-12-12T13:45:00'),
-      };
-
-      setProfile(appProfile);
-      setStats(mockStats);
-      setIsLoading(false);
+        setProfile({
+          id: supabaseProfile?.id || user.id,
+          name: supabaseProfile?.name || user.name,
+          email: supabaseProfile?.email || user.email,
+          memberSince: new Date(supabaseProfile?.created_at || Date.now()),
+          horsesOwned: profileStats.activeHorses,
+        });
+        setStats({
+          totalObservations: profileStats.totalObservations,
+          activeHorses: profileStats.activeHorses,
+          averageTemperature: profileStats.averageTemperature,
+          lastObservation: profileStats.lastObservation ? new Date(profileStats.lastObservation) : null,
+        });
+      } catch (error) {
+        console.error('Error loading profile data:', error);
+        setProfileError(error instanceof Error ? error.message : 'Unable to load profile data.');
+        setProfile({
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          memberSince: new Date(),
+          horsesOwned: 0,
+        });
+        setStats(null);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     loadProfileData();

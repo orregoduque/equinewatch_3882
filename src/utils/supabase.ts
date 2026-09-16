@@ -66,6 +66,13 @@ export interface TemperatureRecord {
   created_at: string;
 }
 
+export interface ProfileStatsRecord {
+  totalObservations: number;
+  activeHorses: number;
+  averageTemperature: number | null;
+  lastObservation: string | null;
+}
+
 export const getImageUrl = (storagePath: string): string => {
   return `${supabaseUrl}/storage/v1/object/public/images/${storagePath}`;
 };
@@ -167,6 +174,68 @@ export const fetchUserProfiles = async (): Promise<UserProfile[]> => {
   } catch {
     return [];
   }
+};
+
+export const fetchUserProfileByEmail = async (email: string): Promise<UserProfile | null> => {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, email, name, role, stable_name, created_at')
+    .eq('email', email)
+    .limit(1);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data?.[0] || null;
+};
+
+export const fetchProfileStats = async (): Promise<ProfileStatsRecord> => {
+  const [
+    observationsResult,
+    horsesResult,
+    temperaturesResult,
+    latestObservationResult,
+  ] = await Promise.all([
+    supabase
+      .from('images')
+      .select('id', { count: 'exact', head: true }),
+    supabase
+      .from('horses')
+      .select('id, is_active'),
+    supabase
+      .from('temperatura')
+      .select('box_temperature'),
+    supabase
+      .from('images')
+      .select('created_at')
+      .order('created_at', { ascending: false })
+      .limit(1),
+  ]);
+
+  const firstError = [
+    observationsResult.error,
+    horsesResult.error,
+    temperaturesResult.error,
+    latestObservationResult.error,
+  ].find(Boolean);
+
+  if (firstError) {
+    throw new Error(firstError.message);
+  }
+
+  const temperatures = (temperaturesResult.data || [])
+    .map((record) => Number(record.box_temperature))
+    .filter((temperature) => Number.isFinite(temperature));
+
+  return {
+    totalObservations: observationsResult.count || 0,
+    activeHorses: (horsesResult.data || []).filter((horse) => horse.is_active).length,
+    averageTemperature: temperatures.length
+      ? temperatures.reduce((sum, temperature) => sum + temperature, 0) / temperatures.length
+      : null,
+    lastObservation: latestObservationResult.data?.[0]?.created_at || null,
+  };
 };
 
 export const insertUserProfile = async (profile: Omit<UserProfile, 'id' | 'created_at'>): Promise<boolean> => {

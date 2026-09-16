@@ -10,6 +10,6 @@ export interface UserProfile {
 export interface ProfileStats {
   totalObservations: number;
   activeHorses: number;
-  averageTemperature: number;
-  lastObservation: Date;
+  averageTemperature: number | null;
+  lastObservation: Date | null;
 }
