@@ -35,6 +35,7 @@ export interface UserProfile {
   name: string;
   role: 'horse_owner' | 'stable_owner' | 'admin';
   stable_name: string | null;
+  avatar_url: string | null;
   created_at: string;
 }
 
@@ -68,6 +69,7 @@ export interface TemperatureRecord {
 
 export interface ProfileStatsRecord {
   totalObservations: number;
+  totalHorses: number;
   activeHorses: number;
   averageTemperature: number | null;
   lastObservation: string | null;
@@ -166,11 +168,19 @@ export const fetchTemperaturesForDay = async (
 export const fetchUserProfiles = async (): Promise<UserProfile[]> => {
   try {
     const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
+      .from('user_profiles')
+      .select('id, email, full_name, role, avatar_url, created_at')
       .order('created_at', { ascending: false });
     if (error) return [];
-    return data || [];
+    return (data || []).map((profile) => ({
+      id: profile.id,
+      email: profile.email,
+      name: profile.full_name,
+      role: profile.role,
+      stable_name: null,
+      avatar_url: profile.avatar_url,
+      created_at: profile.created_at,
+    }));
   } catch {
     return [];
   }
@@ -178,8 +188,8 @@ export const fetchUserProfiles = async (): Promise<UserProfile[]> => {
 
 export const fetchUserProfileByEmail = async (email: string): Promise<UserProfile | null> => {
   const { data, error } = await supabase
-    .from('profiles')
-    .select('id, email, name, role, stable_name, created_at')
+    .from('user_profiles')
+    .select('id, email, full_name, role, avatar_url, created_at')
     .eq('email', email)
     .limit(1);
 
@@ -187,7 +197,18 @@ export const fetchUserProfileByEmail = async (email: string): Promise<UserProfil
     throw new Error(error.message);
   }
 
-  return data?.[0] || null;
+  const profile = data?.[0];
+  if (!profile) return null;
+
+  return {
+    id: profile.id,
+    email: profile.email,
+    name: profile.full_name,
+    role: profile.role,
+    stable_name: null,
+    avatar_url: profile.avatar_url,
+    created_at: profile.created_at,
+  };
 };
 
 export const fetchProfileStats = async (): Promise<ProfileStatsRecord> => {
@@ -230,6 +251,7 @@ export const fetchProfileStats = async (): Promise<ProfileStatsRecord> => {
 
   return {
     totalObservations: observationsResult.count || 0,
+    totalHorses: (horsesResult.data || []).length,
     activeHorses: (horsesResult.data || []).filter((horse) => horse.is_active).length,
     averageTemperature: temperatures.length
       ? temperatures.reduce((sum, temperature) => sum + temperature, 0) / temperatures.length
@@ -241,8 +263,13 @@ export const fetchProfileStats = async (): Promise<ProfileStatsRecord> => {
 export const insertUserProfile = async (profile: Omit<UserProfile, 'id' | 'created_at'>): Promise<boolean> => {
   try {
     const { error } = await supabase
-      .from('profiles')
-      .insert([profile]);
+      .from('user_profiles')
+      .insert([{
+        email: profile.email,
+        full_name: profile.name,
+        role: profile.role,
+        avatar_url: profile.avatar_url,
+      }]);
     return !error;
   } catch {
     return false;

@@ -195,6 +195,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       name: data.name.trim(),
       role: data.role,
       stable_name: data.stableName?.trim() || null,
+      avatar_url: null,
     });
 
     // 3. If Supabase signInWithPassword won't work immediately due to email confirmation,

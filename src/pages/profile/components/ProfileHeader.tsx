@@ -62,13 +62,17 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile }) => {
               <Icon name="Mail" size={16} style={{ color: 'rgba(64,53,44,0.5)' }} />
               <span className="text-sm" style={{ color: 'rgba(64,53,44,0.6)', fontFamily: 'Montserrat, sans-serif' }}>{profile.email}</span>
             </div>
-            <div className="hidden md:block w-1 h-1 rounded-full" style={{ backgroundColor: 'rgba(64,53,44,0.2)' }} />
-            <div className="flex items-center gap-2">
-              <Icon name="Calendar" size={16} style={{ color: 'rgba(64,53,44,0.5)' }} />
-              <span className="text-sm" style={{ color: 'rgba(64,53,44,0.6)', fontFamily: 'Montserrat, sans-serif' }}>
-                Member since {formatMemberSince(profile.memberSince)}
-              </span>
-            </div>
+            {profile.memberSince && (
+              <>
+                <div className="hidden md:block w-1 h-1 rounded-full" style={{ backgroundColor: 'rgba(64,53,44,0.2)' }} />
+                <div className="flex items-center gap-2">
+                  <Icon name="Calendar" size={16} style={{ color: 'rgba(64,53,44,0.5)' }} />
+                  <span className="text-sm" style={{ color: 'rgba(64,53,44,0.6)', fontFamily: 'Montserrat, sans-serif' }}>
+                    Member since {formatMemberSince(profile.memberSince)}
+                  </span>
+                </div>
+              </>
+            )}
           </div>
         </div>
 

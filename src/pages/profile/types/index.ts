@@ -2,7 +2,7 @@ export interface UserProfile {
   id: string;
   name: string;
   email: string;
-  memberSince: Date;
+  memberSince: Date | null;
   horsesOwned: number;
   avatar?: string;
 }
