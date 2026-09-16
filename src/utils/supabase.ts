@@ -52,6 +52,13 @@ export interface SupabaseHorse {
   updated_at: string | null;
 }
 
+export interface DetectionRecord {
+  id: string | number;
+  horse_id: string;
+  analysis: unknown;
+  created_at: string;
+}
+
 export const getImageUrl = (storagePath: string): string => {
   return `${supabaseUrl}/storage/v1/object/public/images/${storagePath}`;
 };
@@ -86,6 +93,26 @@ export const fetchHorses = async (): Promise<SupabaseHorse[]> => {
   const { data, error } = await supabase
     .from('horses')
     .select('id, name, breed, profile_photo_url, owner_id, age, gender, color, is_active, created_at, updated_at')
+    .order('created_at', { ascending: true });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data || [];
+};
+
+export const fetchDetectionsForDay = async (
+  horseId: string,
+  dayStart: Date,
+  dayEnd: Date,
+): Promise<DetectionRecord[]> => {
+  const { data, error } = await supabase
+    .from('detection')
+    .select('id, horse_id, analysis, created_at')
+    .eq('horse_id', horseId)
+    .gte('created_at', dayStart.toISOString())
+    .lt('created_at', dayEnd.toISOString())
     .order('created_at', { ascending: true });
 
   if (error) {

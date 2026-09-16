@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
 import { jsPDF } from 'jspdf';
+import { useSearchParams } from 'react-router-dom';
 import Header from '../../components/ui/Header';
 import MobileNavigation from '../../components/ui/MobileNavigation';
 import MetricCard from './components/MetricCard';
@@ -10,12 +11,49 @@ import TemperatureTrendChart from './components/TemperatureTrendChart';
 import BehaviorPatternsCard from './components/BehaviorPatternsCard';
 import LoadingSkeleton from './components/LoadingSkeleton';
 import Icon from '../../components/AppIcon';
-import { DailySummaryData, VitalSign, GutHealthData, ColicRiskIndicator, PainAssessment } from './types';
+import { DailySummaryData, VitalSign, GutHealthData, ColicRiskIndicator, PainAssessment, BehaviorPattern } from './types';
+import { fetchDetectionsForDay, fetchHorses, SupabaseHorse } from '../../utils/supabase';
 
 const DailySummary: React.FC = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [summaryData, setSummaryData] = useState<DailySummaryData | null>(null);
+  const [horses, setHorses] = useState<SupabaseHorse[]>([]);
+  const [selectedHorseId, setSelectedHorseId] = useState(searchParams.get('horseId') || '');
+  const [behaviorError, setBehaviorError] = useState('');
+  const selectedHorse = horses.find((horse) => horse.id === selectedHorseId);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadHorses = async () => {
+      try {
+        const records = await fetchHorses();
+        if (!isMounted) return;
+        setHorses(records);
+
+        const requestedHorseId = searchParams.get('horseId') || '';
+        const requestedExists = records.some((horse) => horse.id === requestedHorseId);
+        const initialHorseId = requestedExists ? requestedHorseId : records[0]?.id || '';
+        setSelectedHorseId(initialHorseId);
+        if (!initialHorseId) {
+          setIsLoading(false);
+        }
+        if (initialHorseId && initialHorseId !== requestedHorseId) {
+          setSearchParams({ horseId: initialHorseId }, { replace: true });
+        }
+      } catch (error) {
+        console.error('Error loading horses for daily summary:', error);
+        setIsLoading(false);
+      }
+    };
+
+    loadHorses();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const vitalSigns: VitalSign[] = [
     { id: '1', name: 'Heart Rate', value: 48, unit: 'bpm', normalMin: 28, normalMax: 44, status: 'elevated', icon: 'Heart', trend: [36, 38, 42, 44, 46, 48, 47, 48] },
@@ -48,8 +86,58 @@ const DailySummary: React.FC = () => {
   ];
 
   useEffect(() => {
-    const loadSummaryData = () => {
+    if (!selectedHorseId) return;
+
+    let isMounted = true;
+
+    const loadSummaryData = async () => {
       setIsLoading(true);
+
+      const dayStart = new Date(selectedDate);
+      dayStart.setHours(0, 0, 0, 0);
+      const dayEnd = new Date(dayStart);
+      dayEnd.setDate(dayEnd.getDate() + 1);
+
+      const behaviorDefinitions = [
+        { type: 'standing', color: '#4a9d6b' },
+        { type: 'eating', color: '#d4a84b' },
+        { type: 'outside', color: '#6b8e9f' },
+        { type: 'drinking', color: '#4b8fb8' },
+      ];
+
+      let behaviorPatterns: BehaviorPattern[] = behaviorDefinitions.map((behavior) => ({
+        ...behavior,
+        count: 0,
+        percentage: 0,
+      }));
+
+      try {
+        setBehaviorError('');
+        const detections = await fetchDetectionsForDay(selectedHorseId, dayStart, dayEnd);
+        const counts = Object.fromEntries(behaviorDefinitions.map(({ type }) => [type, 0]));
+
+        detections.forEach((detection) => {
+          const analysisText = typeof detection.analysis === 'string'
+            ? detection.analysis.toLowerCase()
+            : JSON.stringify(detection.analysis ?? '').toLowerCase();
+
+          behaviorDefinitions.forEach(({ type }) => {
+            if (analysisText.includes(type)) {
+              counts[type] += 1;
+            }
+          });
+        });
+
+        const total = Object.values(counts).reduce((sum, count) => sum + count, 0);
+        behaviorPatterns = behaviorDefinitions.map((behavior) => ({
+          ...behavior,
+          count: counts[behavior.type],
+          percentage: total > 0 ? Math.round((counts[behavior.type] / total) * 100) : 0,
+        }));
+      } catch (error) {
+        console.error('Error loading behavior detections:', error);
+        setBehaviorError(error instanceof Error ? error.message : 'Unknown Supabase error');
+      }
 
       const mockData: DailySummaryData = {
         date: selectedDate,
@@ -76,12 +164,7 @@ const DailySummary: React.FC = () => {
           { time: '3 PM', avgTemp: 38.5, minTemp: 38.2, maxTemp: 38.8 },
           { time: '6 PM', avgTemp: 38.6, minTemp: 38.3, maxTemp: 38.9 },
         ],
-        behaviorPatterns: [
-          { type: 'Normal', count: 28, percentage: 67, color: '#4a9d6b' },
-          { type: 'Pawing', count: 8, percentage: 19, color: '#d4a84b' },
-          { type: 'Restless', count: 4, percentage: 9, color: '#d4a84b' },
-          { type: 'Rolling', count: 2, percentage: 5, color: '#c75050' },
-        ],
+        behaviorPatterns,
         totalHorses: 6,
         monitoredHorses: 6,
         vitalSigns,
@@ -90,12 +173,17 @@ const DailySummary: React.FC = () => {
         painHistory,
       };
 
-      setSummaryData(mockData);
-      setIsLoading(false);
+      if (isMounted) {
+        setSummaryData(mockData);
+        setIsLoading(false);
+      }
     };
 
     loadSummaryData();
-  }, [selectedDate]);
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedDate, selectedHorseId]);
 
   const handleDateChange = (newDate: Date) => {
     setSelectedDate(newDate);
@@ -138,10 +226,10 @@ const DailySummary: React.FC = () => {
     doc.setTextColor(60, 60, 60);
     doc.setFontSize(11);
     const horseInfo = [
-      ['Horse Name:', 'Thunder'],
+      ['Horse Name:', selectedHorse?.name || 'Horse'],
       ['Breed:', 'Thoroughbred'],
       ['Age:', '8 years'],
-      ['Location:', 'Barn A - Stall 12'],
+      ['Breed:', selectedHorse?.breed || 'Not specified'],
       ['Monitoring Since:', 'March 15, 2023'],
       ['Total Monitoring Days:', '639 days'],
     ];
@@ -249,7 +337,8 @@ const DailySummary: React.FC = () => {
     doc.text('For verification, visit stable-eye.co/verify', pageWidth / 2, 286, { align: 'center' });
     
     // Save the PDF
-    doc.save(`StableEye_Horse_Report_Thunder_${new Date().toISOString().split('T')[0]}.pdf`);
+    const reportHorseName = (selectedHorse?.name || 'Horse').replace(/[^a-z0-9_-]+/gi, '_');
+    doc.save(`StableEye_Horse_Report_${reportHorseName}_${new Date().toISOString().split('T')[0]}.pdf`);
   };
 
   return (
@@ -282,9 +371,23 @@ const DailySummary: React.FC = () => {
                   <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
                   <span className="text-sm font-medium" style={{ color: '#d4a84b' }}>Colic Watch Active</span>
                 </div>
-                <div className="flex items-center gap-2 px-4 py-2 rounded-xl" style={{ backgroundColor: 'rgba(64,53,44,0.05)', border: '1px solid rgba(64,53,44,0.1)' }}>
-                  <span className="text-sm font-medium" style={{ color: 'rgba(64,53,44,0.6)' }}>Thunder - Barn A</span>
-                </div>
+                <select
+                  value={selectedHorseId}
+                  onChange={(event) => {
+                    const horseId = event.target.value;
+                    setSelectedHorseId(horseId);
+                    setSearchParams({ horseId });
+                  }}
+                  className="px-4 py-2 rounded-xl text-sm font-medium outline-none"
+                  style={{ color: 'rgba(64,53,44,0.75)', backgroundColor: 'rgba(64,53,44,0.05)', border: '1px solid rgba(64,53,44,0.1)' }}
+                  aria-label="Select horse"
+                >
+                  {horses.map((horse) => (
+                    <option key={horse.id} value={horse.id}>
+                      {horse.name}
+                    </option>
+                  ))}
+                </select>
                 <button
                   onClick={generatePDFReport}
                   className="flex items-center gap-2 px-4 py-2 rounded-xl text-white font-semibold text-sm transition-all duration-300 hover:opacity-80"
@@ -308,7 +411,7 @@ const DailySummary: React.FC = () => {
                   ))}
                 </div>
 
-                <BehaviorPatternsCard patterns={summaryData.behaviorPatterns} />
+                <BehaviorPatternsCard patterns={summaryData.behaviorPatterns} error={behaviorError} />
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <TimeDistributionChart data={summaryData.timeDistribution} />

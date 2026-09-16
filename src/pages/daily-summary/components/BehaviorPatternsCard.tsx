@@ -4,9 +4,10 @@ import { BehaviorPattern } from '../types';
 
 interface BehaviorPatternsCardProps {
   patterns: BehaviorPattern[];
+  error?: string;
 }
 
-const BehaviorPatternsCard: React.FC<BehaviorPatternsCardProps> = ({ patterns }) => {
+const BehaviorPatternsCard: React.FC<BehaviorPatternsCardProps> = ({ patterns, error }) => {
   if (!patterns?.length) return null;
 
   const totalCount = patterns.reduce((sum, p) => sum + p.count, 0);
@@ -29,6 +30,12 @@ const BehaviorPatternsCard: React.FC<BehaviorPatternsCardProps> = ({ patterns })
           {totalCount} observations
         </span>
       </div>
+
+      {error && (
+        <div className="mb-4 rounded-lg px-4 py-3 text-sm" style={{ color: '#9f3f3f', backgroundColor: 'rgba(199,80,80,0.08)', border: '1px solid rgba(199,80,80,0.2)' }}>
+          Unable to load detections: {error}
+        </div>
+      )}
 
       <div className="space-y-4">
         {patterns.map((pattern) => (
