@@ -110,10 +110,12 @@ const DailySummary: React.FC = () => {
         count: 0,
         percentage: 0,
       }));
+      let detectionCount = 0;
 
       try {
         setBehaviorError('');
         const detections = await fetchDetectionsForDay(selectedHorseId, dayStart, dayEnd);
+        detectionCount = detections.length;
         const counts = Object.fromEntries(behaviorDefinitions.map(({ type }) => [type, 0]));
 
         detections.forEach((detection) => {
@@ -142,7 +144,7 @@ const DailySummary: React.FC = () => {
       const mockData: DailySummaryData = {
         date: selectedDate,
         metrics: [
-          { id: '1', title: 'Observations Today', value: 42, unit: 'checks', trend: 15, trendLabel: 'vs. yesterday', icon: 'Eye', description: 'Health checks performed', status: 'normal' },
+          { id: '1', title: 'Observations Today', value: detectionCount, unit: 'detections', trend: 0, trendLabel: 'for selected day', icon: 'Eye', description: 'Supabase detections recorded', status: 'normal' },
         ],
         timeDistribution: [
           { hour: 0, count: 2, label: '12 AM' }, { hour: 1, count: 2, label: '1 AM' }, { hour: 2, count: 1, label: '2 AM' },
