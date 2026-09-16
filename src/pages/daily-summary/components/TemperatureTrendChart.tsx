@@ -13,7 +13,7 @@ const TemperatureTrendChart: React.FC<TemperatureTrendChartProps> = ({ data, err
   const allTemps = hasData ? data.flatMap(d => [d.avgTemp, d.minTemp, d.maxTemp]) : [];
   const minTemp = Math.min(...allTemps);
   const maxTemp = Math.max(...allTemps);
-  const chartWidth = 720;
+  const chartWidth = 560;
   const chartHeight = 240;
   const margin = { top: 16, right: 18, bottom: 38, left: 46 };
   const plotWidth = chartWidth - margin.left - margin.right;
@@ -37,7 +37,7 @@ const TemperatureTrendChart: React.FC<TemperatureTrendChartProps> = ({ data, err
             <h3 className="text-xl font-bold" style={{ color: '#40352C', fontFamily: 'Syne, sans-serif' }}>
               Temperature Trends
             </h3>
-            <p className="text-sm" style={{ color: 'rgba(64,53,44,0.5)' }}>Body temperature monitoring</p>
+            <p className="text-sm" style={{ color: 'rgba(64,53,44,0.5)' }}>Box temperature</p>
           </div>
         </div>
       </div>
@@ -53,7 +53,7 @@ const TemperatureTrendChart: React.FC<TemperatureTrendChartProps> = ({ data, err
       ) : (
         <>
       <div className="relative mb-4 overflow-x-auto">
-        <svg className="h-60 min-w-[720px] w-full" viewBox={`0 0 ${chartWidth} ${chartHeight}`} role="img" aria-label="Temperature readings across the 24 hours of the selected day">
+        <svg className="h-60 min-w-[560px] w-full" viewBox={`0 0 ${chartWidth} ${chartHeight}`} role="img" aria-label="Temperature readings across the 24 hours of the selected day">
           <defs>
             <linearGradient id="tempGradient" x1="0%" y1="0%" x2="0%" y2="100%">
               <stop offset="0%" stopColor="#40352C" stopOpacity="0.12" />
