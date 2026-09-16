@@ -8,11 +8,6 @@ import DateSelector from './components/DateSelector';
 import TimeDistributionChart from './components/TimeDistributionChart';
 import TemperatureTrendChart from './components/TemperatureTrendChart';
 import BehaviorPatternsCard from './components/BehaviorPatternsCard';
-import CoverageIndicator from './components/CoverageIndicator';
-import VitalSignsPanel from './components/VitalSignsPanel';
-import GutHealthMonitor from './components/GutHealthMonitor';
-import ColicRiskAssessment from './components/ColicRiskAssessment';
-import PainScoreTimeline from './components/PainScoreTimeline';
 import LoadingSkeleton from './components/LoadingSkeleton';
 import Icon from '../../components/AppIcon';
 import { DailySummaryData, VitalSign, GutHealthData, ColicRiskIndicator, PainAssessment } from './types';
@@ -105,8 +100,6 @@ const DailySummary: React.FC = () => {
   const handleDateChange = (newDate: Date) => {
     setSelectedDate(newDate);
   };
-
-  const overallColicScore = colicRisk.reduce((sum, r) => sum + (r.score / r.maxScore) * 20, 0);
 
   const generatePDFReport = () => {
     const doc = new jsPDF();
@@ -315,20 +308,7 @@ const DailySummary: React.FC = () => {
                   ))}
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <VitalSignsPanel vitals={vitalSigns} />
-                  <ColicRiskAssessment indicators={colicRisk} overallScore={Math.round(overallColicScore)} />
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <GutHealthMonitor data={gutHealth} />
-                  <PainScoreTimeline data={painHistory} />
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <BehaviorPatternsCard patterns={summaryData.behaviorPatterns} />
-                  <CoverageIndicator totalHorses={summaryData.totalHorses} monitoredHorses={summaryData.monitoredHorses} />
-                </div>
+                <BehaviorPatternsCard patterns={summaryData.behaviorPatterns} />
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <TimeDistributionChart data={summaryData.timeDistribution} />
