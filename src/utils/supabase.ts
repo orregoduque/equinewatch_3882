@@ -59,6 +59,13 @@ export interface DetectionRecord {
   created_at: string;
 }
 
+export interface TemperatureRecord {
+  id: string | number;
+  horse_id: string;
+  temperature: number;
+  created_at: string;
+}
+
 export const getImageUrl = (storagePath: string): string => {
   return `${supabaseUrl}/storage/v1/object/public/images/${storagePath}`;
 };
@@ -120,6 +127,41 @@ export const fetchDetectionsForDay = async (
   }
 
   return data || [];
+};
+
+export const fetchTemperaturesForDay = async (
+  horseId: string,
+  dayStart: Date,
+  dayEnd: Date,
+): Promise<TemperatureRecord[]> => {
+  const { data, error } = await supabase
+    .from('temperatura')
+    .select('*')
+    .eq('horse_id', horseId)
+    .gte('created_at', dayStart.toISOString())
+    .lt('created_at', dayEnd.toISOString())
+    .order('created_at', { ascending: true });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return (data || []).flatMap((record) => {
+    const temperatureEntry = Object.entries(record).find(([key, rawValue]) => {
+      if (['id', 'horse_id', 'created_at', 'updated_at'].includes(key)) return false;
+      const value = typeof rawValue === 'number' ? rawValue : Number(rawValue);
+      return Number.isFinite(value) && value >= 30 && value <= 45;
+    });
+
+    if (!temperatureEntry) return [];
+
+    return [{
+      id: record.id,
+      horse_id: record.horse_id,
+      temperature: Number(temperatureEntry[1]),
+      created_at: record.created_at,
+    }];
+  });
 };
 
 export const fetchUserProfiles = async (): Promise<UserProfile[]> => {

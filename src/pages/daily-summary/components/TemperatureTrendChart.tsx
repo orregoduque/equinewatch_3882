@@ -4,15 +4,17 @@ import { TemperatureTrend } from '../types';
 
 interface TemperatureTrendChartProps {
   data: TemperatureTrend[];
+  error?: string;
 }
 
-const TemperatureTrendChart: React.FC<TemperatureTrendChartProps> = ({ data }) => {
-  if (!data?.length) return null;
+const TemperatureTrendChart: React.FC<TemperatureTrendChartProps> = ({ data, error }) => {
+  const hasData = Boolean(data?.length);
 
-  const allTemps = data.flatMap(d => [d.avgTemp, d.minTemp, d.maxTemp]);
+  const allTemps = hasData ? data.flatMap(d => [d.avgTemp, d.minTemp, d.maxTemp]) : [];
   const minTemp = Math.min(...allTemps);
   const maxTemp = Math.max(...allTemps);
   const tempRange = maxTemp - minTemp || 1;
+  const getXPosition = (index: number) => data.length === 1 ? 200 : (index / (data.length - 1)) * 400;
 
   const getYPosition = (temp: number) => {
     return ((maxTemp - temp) / tempRange) * 100;
@@ -37,6 +39,16 @@ const TemperatureTrendChart: React.FC<TemperatureTrendChartProps> = ({ data }) =
         </div>
       </div>
 
+      {error ? (
+        <div className="rounded-lg px-4 py-3 text-sm" style={{ color: '#9f3f3f', backgroundColor: 'rgba(199,80,80,0.08)', border: '1px solid rgba(199,80,80,0.2)' }}>
+          Unable to load temperatures: {error}
+        </div>
+      ) : !hasData ? (
+        <div className="flex h-48 items-center justify-center text-sm" style={{ color: 'rgba(64,53,44,0.5)' }}>
+          No temperature readings for the selected day
+        </div>
+      ) : (
+        <>
       <div className="relative h-48 mb-4">
         <svg className="w-full h-full" viewBox="0 0 400 192" preserveAspectRatio="none">
           <defs>
@@ -50,7 +62,7 @@ const TemperatureTrendChart: React.FC<TemperatureTrendChartProps> = ({ data }) =
             <>
               <path
                 d={`M ${data.map((d, i) =>
-                  `${(i / (data.length - 1)) * 400},${getYPosition(d.avgTemp) * 1.92}`
+                  `${getXPosition(i)},${getYPosition(d.avgTemp) * 1.92}`
                 ).join(' L ')}`}
                 fill="none"
                 stroke="#40352C"
@@ -60,7 +72,7 @@ const TemperatureTrendChart: React.FC<TemperatureTrendChartProps> = ({ data }) =
               />
               <path
                 d={`M ${data.map((d, i) =>
-                  `${(i / (data.length - 1)) * 400},${getYPosition(d.avgTemp) * 1.92}`
+                  `${getXPosition(i)},${getYPosition(d.avgTemp) * 1.92}`
                 ).join(' L ')} L 400,192 L 0,192 Z`}
                 fill="url(#tempGradient)"
               />
@@ -70,7 +82,7 @@ const TemperatureTrendChart: React.FC<TemperatureTrendChartProps> = ({ data }) =
           {data.map((d, i) => (
             <circle
               key={i}
-              cx={(i / (data.length - 1)) * 400}
+              cx={getXPosition(i)}
               cy={getYPosition(d.avgTemp) * 1.92}
               r="5"
               fill="#40352C"
@@ -112,6 +124,8 @@ const TemperatureTrendChart: React.FC<TemperatureTrendChartProps> = ({ data }) =
           </p>
         </div>
       </div>
+        </>
+      )}
     </div>
   );
 };

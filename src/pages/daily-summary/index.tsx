@@ -11,8 +11,8 @@ import TemperatureTrendChart from './components/TemperatureTrendChart';
 import BehaviorPatternsCard from './components/BehaviorPatternsCard';
 import LoadingSkeleton from './components/LoadingSkeleton';
 import Icon from '../../components/AppIcon';
-import { DailySummaryData, VitalSign, GutHealthData, ColicRiskIndicator, PainAssessment, BehaviorPattern } from './types';
-import { fetchDetectionsForDay, fetchHorses, SupabaseHorse } from '../../utils/supabase';
+import { DailySummaryData, VitalSign, GutHealthData, ColicRiskIndicator, PainAssessment, BehaviorPattern, TemperatureTrend } from './types';
+import { fetchDetectionsForDay, fetchHorses, fetchTemperaturesForDay, SupabaseHorse } from '../../utils/supabase';
 
 const DailySummary: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -22,6 +22,7 @@ const DailySummary: React.FC = () => {
   const [horses, setHorses] = useState<SupabaseHorse[]>([]);
   const [selectedHorseId, setSelectedHorseId] = useState(searchParams.get('horseId') || '');
   const [behaviorError, setBehaviorError] = useState('');
+  const [temperatureError, setTemperatureError] = useState('');
   const selectedHorse = horses.find((horse) => horse.id === selectedHorseId);
 
   useEffect(() => {
@@ -111,6 +112,7 @@ const DailySummary: React.FC = () => {
         percentage: 0,
       }));
       let detectionCount = 0;
+      let temperatureTrends: TemperatureTrend[] = [];
 
       try {
         setBehaviorError('');
@@ -141,6 +143,34 @@ const DailySummary: React.FC = () => {
         setBehaviorError(error instanceof Error ? error.message : 'Unknown Supabase error');
       }
 
+      try {
+        setTemperatureError('');
+        const temperatureRecords = await fetchTemperaturesForDay(selectedHorseId, dayStart, dayEnd);
+        const recordsByHour = new Map<number, number[]>();
+
+        temperatureRecords.forEach((record) => {
+          const hour = new Date(record.created_at).getHours();
+          const readings = recordsByHour.get(hour) || [];
+          readings.push(record.temperature);
+          recordsByHour.set(hour, readings);
+        });
+
+        temperatureTrends = Array.from(recordsByHour.entries())
+          .sort(([hourA], [hourB]) => hourA - hourB)
+          .map(([hour, readings]) => ({
+            time: new Date(2000, 0, 1, hour).toLocaleTimeString([], {
+              hour: 'numeric',
+              hour12: true,
+            }),
+            avgTemp: readings.reduce((sum, reading) => sum + reading, 0) / readings.length,
+            minTemp: Math.min(...readings),
+            maxTemp: Math.max(...readings),
+          }));
+      } catch (error) {
+        console.error('Error loading temperature records:', error);
+        setTemperatureError(error instanceof Error ? error.message : 'Unknown Supabase error');
+      }
+
       const mockData: DailySummaryData = {
         date: selectedDate,
         metrics: [
@@ -156,13 +186,7 @@ const DailySummary: React.FC = () => {
           { hour: 18, count: 1, label: '6 PM' }, { hour: 19, count: 1, label: '7 PM' }, { hour: 20, count: 1, label: '8 PM' },
           { hour: 21, count: 1, label: '9 PM' }, { hour: 22, count: 1, label: '10 PM' }, { hour: 23, count: 1, label: '11 PM' },
         ],
-        temperatureTrends: [
-          { time: '6 AM', avgTemp: 37.5, minTemp: 37.2, maxTemp: 37.8 },
-          { time: '9 AM', avgTemp: 37.8, minTemp: 37.5, maxTemp: 38.1 },
-          { time: '12 PM', avgTemp: 38.2, minTemp: 37.9, maxTemp: 38.5 },
-          { time: '3 PM', avgTemp: 38.5, minTemp: 38.2, maxTemp: 38.8 },
-          { time: '6 PM', avgTemp: 38.6, minTemp: 38.3, maxTemp: 38.9 },
-        ],
+        temperatureTrends,
         behaviorPatterns,
         totalHorses: 6,
         monitoredHorses: 6,
@@ -414,7 +438,7 @@ const DailySummary: React.FC = () => {
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <TimeDistributionChart data={summaryData.timeDistribution} />
-                  <TemperatureTrendChart data={summaryData.temperatureTrends} />
+                  <TemperatureTrendChart data={summaryData.temperatureTrends} error={temperatureError} />
                 </div>
               </div>
             ) : (
