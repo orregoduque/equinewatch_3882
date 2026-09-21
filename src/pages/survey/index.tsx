@@ -1,4 +1,4 @@
-import React, { FormEvent, useEffect, useMemo, useState } from 'react';
+import React, { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { Link } from 'react-router-dom';
@@ -58,6 +58,7 @@ const Survey: React.FC = () => {
   const [contact, setContact] = useState({ name: '', phone: '', email: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
+  const submissionId = useRef(crypto.randomUUID());
 
   const questions = useMemo(() => profile ? profileQuestions[profile] : [], [profile]);
   const totalSteps = 5;
@@ -120,7 +121,7 @@ const Survey: React.FC = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           answers: { profile, ...answers, contact },
-          submissionId: crypto.randomUUID(),
+          submissionId: submissionId.current,
           website: '',
         }),
       });
