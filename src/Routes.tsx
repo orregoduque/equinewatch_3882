@@ -16,6 +16,7 @@ const Devices = lazy(() => import('./pages/devices'));
 const Bills = lazy(() => import('./pages/bills'));
 const AdminDashboard = lazy(() => import('./pages/admin'));
 const AdminStables = lazy(() => import('./pages/admin/stables'));
+const Survey = lazy(() => import('./pages/survey'));
 
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#FFFFFF' }}>
@@ -42,6 +43,7 @@ const Routes: React.FC = () => {
             <Route path="/bills" element={<Bills />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin/stables" element={<AdminStables />} />
+            <Route path="/encuesta" element={<Survey />} />
             <Route path="*" element={<NotFound />} />
           </RouterRoutes>
         </Suspense>
