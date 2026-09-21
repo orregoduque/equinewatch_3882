@@ -52,7 +52,7 @@ const Header = ({ className = '' }: HeaderProps) => {
       <div
         className="relative"
         style={{
-          backgroundColor: 'rgba(248,246,242,0.97)',
+          backgroundColor: 'rgba(255,255,255,0.97)',
           backdropFilter: 'blur(20px)',
           borderBottom: '1px solid rgba(64,53,44,0.1)',
         }}

@@ -56,7 +56,7 @@ const Login: React.FC = () => {
         />
       </Helmet>
 
-      <div className="min-h-screen flex items-center justify-center px-4 py-12 relative overflow-hidden" style={{ backgroundColor: '#F8F6F2' }}>
+      <div className="min-h-screen flex items-center justify-center px-4 py-12 relative overflow-hidden" style={{ backgroundColor: '#FFFFFF' }}>
         <Link
           to="/#team"
           className="absolute top-6 left-6 flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-300 z-20"

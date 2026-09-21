@@ -45,15 +45,15 @@ const MobileNavigation: React.FC = () => {
       <div className="relative">
         <div
           style={{
-            backgroundColor: 'rgba(248,246,242,0.97)',
+            backgroundColor: 'rgba(255,255,255,0.97)',
             backdropFilter: 'blur(20px)',
             borderTop: '1px solid rgba(64,53,44,0.1)',
           }}
         >
           {hasScrollableContent && (
             <>
-              <div className="absolute left-0 top-0 bottom-0 w-8 z-10 pointer-events-none" style={{ background: 'linear-gradient(to right, rgba(248,246,242,1), transparent)' }} />
-              <div className="absolute right-0 top-0 bottom-0 w-8 z-10 pointer-events-none" style={{ background: 'linear-gradient(to left, rgba(248,246,242,1), transparent)' }} />
+              <div className="absolute left-0 top-0 bottom-0 w-8 z-10 pointer-events-none" style={{ background: 'linear-gradient(to right, rgba(255,255,255,1), transparent)' }} />
+              <div className="absolute right-0 top-0 bottom-0 w-8 z-10 pointer-events-none" style={{ background: 'linear-gradient(to left, rgba(255,255,255,1), transparent)' }} />
             </>
           )}
           <div

@@ -18,7 +18,7 @@ const AdminDashboard = lazy(() => import('./pages/admin'));
 const AdminStables = lazy(() => import('./pages/admin/stables'));
 
 const PageLoader = () => (
-  <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#F8F6F2' }}>
+  <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#FFFFFF' }}>
     <div className="w-7 h-7 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: '#40352C', borderTopColor: 'transparent' }} />
   </div>
 );

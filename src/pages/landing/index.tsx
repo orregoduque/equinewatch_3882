@@ -64,13 +64,13 @@ const Landing: React.FC = () => {
         <meta name="description" content="AI-powered preventive infrastructure for the global equine industry. Detect colic, stress, and behavioral changes before they become emergencies." />
       </Helmet>
 
-      <div style={{ backgroundColor: '#F8F6F2', color: '#40352C', fontFamily: 'Montserrat, sans-serif' }}>
+      <div style={{ backgroundColor: '#FFFFFF', color: '#40352C', fontFamily: 'Montserrat, sans-serif' }}>
 
         {/* NAV */}
         <header
           className="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
           style={{
-            backgroundColor: scrolled ? 'rgba(248,246,242,0.96)' : 'transparent',
+            backgroundColor: scrolled ? 'rgba(255,255,255,0.96)' : 'transparent',
             backdropFilter: scrolled ? 'blur(12px)' : 'none',
             borderBottom: scrolled ? '1px solid rgba(64,53,44,0.1)' : 'none',
           }}
@@ -93,7 +93,7 @@ const Landing: React.FC = () => {
                 className="px-4 py-2 text-xs font-semibold tracking-wide transition-all duration-200"
                 style={{
                   backgroundColor: '#40352C',
-                  color: '#F8F6F2',
+                  color: '#FFFFFF',
                   borderRadius: '4px',
                   fontFamily: 'Montserrat, sans-serif',
                 }}
@@ -105,7 +105,7 @@ const Landing: React.FC = () => {
         </header>
 
         {/* HERO */}
-        <section className="relative pt-24 pb-16 px-6" style={{ backgroundColor: '#F8F6F2' }}>
+        <section className="relative pt-24 pb-16 px-6" style={{ backgroundColor: '#FFFFFF' }}>
           <div className="max-w-5xl mx-auto">
             <div className="grid lg:grid-cols-2 gap-12 items-center">
               <div>
@@ -130,7 +130,7 @@ const Landing: React.FC = () => {
                     className="px-6 py-2.5 text-xs font-semibold tracking-wide transition-all duration-200 hover:-translate-y-0.5"
                     style={{
                       backgroundColor: '#40352C',
-                      color: '#F8F6F2',
+                      color: '#FFFFFF',
                       borderRadius: '4px',
                       fontFamily: 'Montserrat, sans-serif',
                     }}
@@ -175,7 +175,7 @@ const Landing: React.FC = () => {
                 <div
                   className="absolute -bottom-4 -left-4 p-3.5 shadow-md"
                   style={{
-                    backgroundColor: '#F8F6F2',
+                    backgroundColor: '#FFFFFF',
                     border: '1px solid rgba(64,53,44,0.12)',
                     borderRadius: '4px',
                   }}
@@ -269,7 +269,7 @@ const Landing: React.FC = () => {
         </section>
 
         {/* HOW IT WORKS */}
-        <section id="how-it-works" style={{ backgroundColor: '#F8F6F2' }} className="py-16 px-6">
+        <section id="how-it-works" style={{ backgroundColor: '#FFFFFF' }} className="py-16 px-6">
           <div className="max-w-5xl mx-auto">
             <div className="mb-10">
               <p style={{ fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(64,53,44,0.4)', fontFamily: 'Montserrat, sans-serif', marginBottom: '6px' }}>Process</p>
@@ -293,7 +293,7 @@ const Landing: React.FC = () => {
                   }}
                   onMouseEnter={e => {
                     (e.currentTarget as HTMLElement).style.backgroundColor = '#40352C';
-                    (e.currentTarget as HTMLElement).style.color = '#F8F6F2';
+                    (e.currentTarget as HTMLElement).style.color = '#FFFFFF';
                   }}
                   onMouseLeave={e => {
                     (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent';
@@ -351,7 +351,7 @@ const Landing: React.FC = () => {
         </section>
 
         {/* USE CASES */}
-        <section style={{ backgroundColor: '#F8F6F2' }} className="py-16 px-6">
+        <section style={{ backgroundColor: '#FFFFFF' }} className="py-16 px-6">
           <div className="max-w-5xl mx-auto">
             <div className="mb-10">
               <p style={{ fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(64,53,44,0.4)', fontFamily: 'Montserrat, sans-serif', marginBottom: '6px' }}>Use Cases</p>
@@ -433,7 +433,7 @@ const Landing: React.FC = () => {
         </section>
 
         {/* COMPARISON */}
-        <section style={{ backgroundColor: '#F8F6F2' }} className="py-16 px-6">
+        <section style={{ backgroundColor: '#FFFFFF' }} className="py-16 px-6">
           <div className="max-w-4xl mx-auto">
             <div className="mb-10">
               <p style={{ fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(64,53,44,0.4)', fontFamily: 'Montserrat, sans-serif', marginBottom: '6px' }}>Comparison</p>
@@ -457,7 +457,7 @@ const Landing: React.FC = () => {
                 </thead>
                 <tbody>
                   {comparison.map((row, index) => (
-                    <tr key={index} style={{ borderBottom: index < comparison.length - 1 ? '1px solid rgba(64,53,44,0.07)' : 'none', backgroundColor: '#F8F6F2' }}>
+                    <tr key={index} style={{ borderBottom: index < comparison.length - 1 ? '1px solid rgba(64,53,44,0.07)' : 'none', backgroundColor: '#FFFFFF' }}>
                       <td className="py-3 px-5" style={{ fontSize: '12px', fontWeight: 500, color: '#40352C', fontFamily: 'Montserrat, sans-serif' }}>{row.feature}</td>
                       <td className="py-3 px-5 text-center">
                         {row.manual ? <Icon name="Check" size={15} className="text-green-600 mx-auto" /> : <Icon name="X" size={15} className="mx-auto" style={{ color: 'rgba(64,53,44,0.2)' }} />}
@@ -540,7 +540,7 @@ const Landing: React.FC = () => {
                 to="/login"
                 className="px-7 py-2.5 text-xs font-semibold tracking-wide transition-all duration-200 hover:-translate-y-0.5"
                 style={{
-                  backgroundColor: '#F8F6F2',
+                  backgroundColor: '#FFFFFF',
                   color: '#40352C',
                   borderRadius: '4px',
                   fontFamily: 'Montserrat, sans-serif',

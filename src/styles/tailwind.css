@@ -5,31 +5,31 @@
 @layer base {
   :root {
     --brand-dark: #40352C;
-    --brand-light: #F8F6F2;
+    --brand-light: #FFFFFF;
     --brand-dark-80: rgba(64, 53, 44, 0.8);
     --brand-dark-20: rgba(64, 53, 44, 0.2);
     --brand-dark-10: rgba(64, 53, 44, 0.1);
     --brand-dark-05: rgba(64, 53, 44, 0.05);
 
-    --color-background: #F8F6F2;
+    --color-background: #FFFFFF;
     --color-surface: rgba(64, 53, 44, 0.03);
     --color-muted: rgba(64, 53, 44, 0.05);
 
     --color-primary: #40352C;
     --color-primary-light: #5a4a3e;
     --color-primary-dark: #2a2219;
-    --color-primary-foreground: #F8F6F2;
+    --color-primary-foreground: #FFFFFF;
 
     --color-accent: #40352C;
     --color-accent-light: #5a4a3e;
     --color-accent-dark: #2a2219;
     --color-accent-glow: rgba(64, 53, 44, 0.2);
-    --color-accent-foreground: #F8F6F2;
+    --color-accent-foreground: #FFFFFF;
 
     --color-secondary: #8b8b8b;
     --color-secondary-light: #a8a8a8;
     --color-secondary-dark: #6b6b6b;
-    --color-secondary-foreground: #F8F6F2;
+    --color-secondary-foreground: #FFFFFF;
 
     --color-text-primary: #40352C;
     --color-text-secondary: rgba(64, 53, 44, 0.55);
@@ -40,7 +40,7 @@
     --color-success-light: #5cb87d;
     --color-success-dark: #3a7d55;
     --color-success-glow: rgba(74, 157, 107, 0.25);
-    --color-success-foreground: #F8F6F2;
+    --color-success-foreground: #FFFFFF;
 
     --color-warning: #d4a84b;
     --color-warning-light: #e0bc6a;
@@ -52,7 +52,7 @@
     --color-error-light: #d66b6b;
     --color-error-dark: #a83c3c;
     --color-error-glow: rgba(199, 80, 80, 0.25);
-    --color-error-foreground: #F8F6F2;
+    --color-error-foreground: #FFFFFF;
 
     --color-info: #5a8dc7;
     --color-info-light: #7aa5d6;
@@ -83,7 +83,7 @@
     --color-ring: #40352C;
     --color-foreground: #40352C;
     --color-destructive: #c75050;
-    --color-destructive-foreground: #F8F6F2;
+    --color-destructive-foreground: #FFFFFF;
     --color-muted-foreground: rgba(64, 53, 44, 0.5);
 
     --radius: 0.75rem;
@@ -98,7 +98,7 @@
   }
 
   body {
-    background: #F8F6F2;
+    background: #FFFFFF;
     font-family: 'Montserrat', system-ui, -apple-system, sans-serif;
     color: #40352C;
     min-height: 100vh;
@@ -324,7 +324,7 @@
   .luxury-button {
     @apply relative overflow-hidden transition-all duration-300;
     background: #40352C;
-    color: #F8F6F2;
+    color: #FFFFFF;
     font-weight: 600;
     letter-spacing: 0.025em;
   }
