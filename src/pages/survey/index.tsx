@@ -247,7 +247,7 @@ const Survey: React.FC<{ mode?: SurveyMode }> = ({ mode = 'full' }) => {
                     {profileOptions.map((option, index) => (
                       <button key={option.value} type="button" onClick={() => chooseProfile(option.value)} className="flex min-h-12 items-center gap-3 rounded-lg border px-3 py-2.5 text-left text-lg transition-colors hover:bg-[#40352C]/10" style={{ borderColor: profile === option.value ? '#40352C' : 'rgba(64,53,44,0.14)', backgroundColor: profile === option.value ? 'rgba(64,53,44,0.1)' : 'rgba(64,53,44,0.045)' }}>
                         <span className="grid h-6 w-6 place-items-center rounded border bg-white text-xs" style={{ borderColor: 'rgba(64,53,44,0.25)' }}>{optionLetters[index]}</span>
-                        {option.label}
+                        {mode === 'short' && option.value === 'groom' ? 'Palafrenero' : option.label}
                       </button>
                     ))}
                   </div>
