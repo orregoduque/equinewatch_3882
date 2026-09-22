@@ -44,6 +44,7 @@ const Routes: React.FC = () => {
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin/stables" element={<AdminStables />} />
             <Route path="/encuesta" element={<Survey />} />
+            <Route path="/survey" element={<Survey />} />
             <Route path="*" element={<NotFound />} />
           </RouterRoutes>
         </Suspense>
