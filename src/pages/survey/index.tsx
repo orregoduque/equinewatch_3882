@@ -217,8 +217,8 @@ const Survey: React.FC<{ mode?: SurveyMode }> = ({ mode = 'full' }) => {
           <AnimatePresence mode="wait" initial={false}>
             {!started ? (
               <motion.section key="welcome" className="mx-auto w-full max-w-2xl text-center" {...screenAnimation}>
-                <img src="/logo-icon-dark.png" alt="Stable Eye" className="mx-auto mb-8 h-24 w-auto md:h-32" />
-                <h1 className="mb-4 text-3xl font-semibold leading-tight md:text-4xl" style={{ fontFamily: 'Syne, sans-serif' }}>Bienvenido a Stable Eye</h1>
+                <img src="/logo-icon-dark.png" alt="Stable Eye" className={`mx-auto mb-8 w-auto ${mode === 'short' ? 'h-32 md:h-40' : 'h-24 md:h-32'}`} />
+                <h1 className={`mb-4 font-semibold leading-tight ${mode === 'short' ? 'text-[28px] md:text-[34px]' : 'text-3xl md:text-4xl'}`} style={{ fontFamily: 'Syne, sans-serif' }}>Bienvenido a Stable Eye</h1>
                 <p className="mx-auto mb-8 max-w-xl whitespace-pre-line text-base leading-relaxed md:text-lg" style={{ color: 'rgba(64,53,44,0.68)' }}>
                   El guardián invisible para caballos: una nueva forma de monitorear su bienestar, detectar señales tempranas y mantenerte informado, incluso cuando no estás en el establo.{'\n\n'}{mode === 'short' ? "Al hacer click en 'Comenzar', autorizo el tratamiento de mis datos personales" : 'Tu experiencia nos ayudará a construir una solución útil para la realidad del cuidado equino.'}
                 </p>
