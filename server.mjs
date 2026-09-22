@@ -76,11 +76,14 @@ export function validateSubmission(body) {
   const name = String(contact.name || '').trim();
   const phone = String(contact.phone || '').trim();
   const email = String(contact.email || '').trim().toLowerCase();
+  const city = String(contact.city || '').trim();
   if (!name || name.length > 120) throw new Error('Escribe un nombre válido.');
   if (!/^\+?[0-9\s().-]{7,25}$/.test(phone)) throw new Error('Escribe un teléfono válido.');
   if (!/^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(email) || email.length > 254) throw new Error('Escribe un correo electrónico válido.');
+  if (body.surveyVersion === 'short' && (!city || city.length > 120)) throw new Error('Escribe una ciudad válida.');
 
-  const permitted = allowedQuestionKeys[answers.profile];
+  const shortSurvey = body.surveyVersion === 'short';
+  const permitted = shortSurvey ? new Set(['horse-count']) : allowedQuestionKeys[answers.profile];
   const cleaned = {};
   for (const [key, rawValue] of Object.entries(answers)) {
     if (key === 'profile' || key === 'contact') continue;
@@ -94,8 +97,8 @@ export function validateSubmission(body) {
       throw new Error('Una respuesta no es válida.');
     }
   }
-  if (Object.keys(cleaned).length !== 3) throw new Error('Completa todas las preguntas antes de enviar.');
-  return { profile: answers.profile, answers: cleaned, contact: { name, phone, email } };
+  if (Object.keys(cleaned).length !== (shortSurvey ? 1 : 3)) throw new Error('Completa todas las preguntas antes de enviar.');
+  return { profile: answers.profile, answers: cleaned, contact: { name, phone, email, city }, surveyVersion: shortSurvey ? 'short' : 'full' };
 }
 
 function formatLabel(key) {
@@ -116,8 +119,8 @@ export function buildEmail(submission, submissionId) {
     to: [recipient],
     reply_to: submission.contact.email,
     subject: `Nueva respuesta de encuesta — ${submission.contact.name}`,
-    text: `Nueva respuesta de la encuesta Stable Eye\n\nPerfil: ${submission.profile}\nNombre: ${submission.contact.name}\nTeléfono: ${submission.contact.phone}\nCorreo: ${submission.contact.email}\n\n${textAnswers}\n\nID: ${submissionId}`,
-    html: `<div style="font-family:Arial,sans-serif;color:#40352C;max-width:680px;margin:auto"><h1>Nueva respuesta de la encuesta</h1><p><strong>Perfil:</strong> ${escapeHtml(submission.profile)}</p><p><strong>Nombre:</strong> ${escapeHtml(submission.contact.name)}<br><strong>Teléfono:</strong> ${escapeHtml(submission.contact.phone)}<br><strong>Correo:</strong> ${escapeHtml(submission.contact.email)}</p><table style="width:100%;border-collapse:collapse">${answerRows}</table><p style="color:#777;font-size:12px">ID: ${escapeHtml(submissionId)}</p></div>`,
+    text: `Nueva respuesta de la encuesta Stable Eye\n\nPerfil: ${submission.profile}\nNombre: ${submission.contact.name}\nTeléfono: ${submission.contact.phone}\nCorreo: ${submission.contact.email}${submission.contact.city ? `\nCiudad: ${submission.contact.city}` : ''}\n\n${textAnswers}\n\nID: ${submissionId}`,
+    html: `<div style="font-family:Arial,sans-serif;color:#40352C;max-width:680px;margin:auto"><h1>Nueva respuesta de la encuesta</h1><p><strong>Perfil:</strong> ${escapeHtml(submission.profile)}</p><p><strong>Nombre:</strong> ${escapeHtml(submission.contact.name)}<br><strong>Teléfono:</strong> ${escapeHtml(submission.contact.phone)}<br><strong>Correo:</strong> ${escapeHtml(submission.contact.email)}${submission.contact.city ? `<br><strong>Ciudad:</strong> ${escapeHtml(submission.contact.city)}` : ''}</p><table style="width:100%;border-collapse:collapse">${answerRows}</table><p style="color:#777;font-size:12px">ID: ${escapeHtml(submissionId)}</p></div>`,
   };
 }
 

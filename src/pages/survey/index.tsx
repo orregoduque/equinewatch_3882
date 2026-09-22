@@ -6,6 +6,7 @@ import Icon from '../../components/AppIcon';
 
 type Profile = 'owner' | 'manager' | 'groom' | 'vet';
 type Answer = string | string[];
+type SurveyMode = 'full' | 'short';
 
 interface Question {
   id: string;
@@ -46,8 +47,11 @@ const profileQuestions: Record<Profile, Question[]> = {
 };
 
 const optionLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+const shortQuestions: Question[] = [
+  { id: 'horse-count', title: '¿Cuántos caballos tienes actualmente?', type: 'text', hint: 'Escribe tu respuesta' },
+];
 
-const Survey: React.FC = () => {
+const Survey: React.FC<{ mode?: SurveyMode }> = ({ mode = 'full' }) => {
   const reduceMotion = useReducedMotion();
   const [started, setStarted] = useState(false);
   const [step, setStep] = useState(0);
@@ -55,13 +59,17 @@ const Survey: React.FC = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [answers, setAnswers] = useState<Record<string, Answer>>({});
   const [submitted, setSubmitted] = useState(false);
-  const [contact, setContact] = useState({ name: '', phone: '', email: '' });
+  const [contact, setContact] = useState({ name: '', phone: '', email: '', city: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const submissionId = useRef(crypto.randomUUID());
 
-  const questions = useMemo(() => profile ? profileQuestions[profile] : [], [profile]);
-  const totalSteps = 5;
+  const questions = useMemo(
+    () => mode === 'short' ? shortQuestions : profile ? profileQuestions[profile] : [],
+    [mode, profile],
+  );
+  const totalSteps = mode === 'short' ? 3 : 5;
+  const contactStep = totalSteps - 1;
 
   const goTo = (nextStep: number) => {
     setDirection(nextStep > step ? 1 : -1);
@@ -83,11 +91,11 @@ const Survey: React.FC = () => {
     window.setTimeout(() => goTo(step + 1), 180);
   };
 
-  const currentQuestion = step > 0 && step < 4 ? questions[step - 1] : null;
+  const currentQuestion = step > 0 && step < contactStep ? questions[step - 1] : null;
   const canContinue = step === 0
     ? Boolean(profile)
-    : step === 4
-      ? Boolean(contact.name.trim() && contact.phone.trim() && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact.email))
+    : step === contactStep
+      ? Boolean(contact.name.trim() && contact.phone.trim() && (mode === 'full' || contact.city.trim()) && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact.email))
       : currentQuestion?.type === 'text'
         ? Boolean((answers[currentQuestion.id] as string)?.trim())
         : Boolean(currentQuestion && (Array.isArray(answers[currentQuestion.id]) ? answers[currentQuestion.id].length : answers[currentQuestion.id]));
@@ -97,7 +105,7 @@ const Survey: React.FC = () => {
     const handleKeyDown = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement;
       const typing = ['INPUT', 'TEXTAREA'].includes(target.tagName);
-      if (event.key === 'Enter' && !typing && canContinue && step < 4) {
+      if (event.key === 'Enter' && !typing && canContinue && step < contactStep) {
         event.preventDefault();
         goTo(step + 1);
       }
@@ -108,7 +116,7 @@ const Survey: React.FC = () => {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [started, submitted, step, currentQuestion, canContinue, answers]);
+  }, [started, submitted, step, contactStep, currentQuestion, canContinue, answers]);
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -121,6 +129,7 @@ const Survey: React.FC = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           answers: { profile, ...answers, contact },
+          surveyVersion: mode,
           submissionId: submissionId.current,
           website: '',
         }),
@@ -228,7 +237,7 @@ const Survey: React.FC = () => {
                 <div className="relative mb-8">
                   <span className="absolute -left-7 top-1 hidden rounded bg-[#40352C] px-1.5 py-0.5 text-[11px] text-white sm:block">{step + 1}</span>
                   <h1 tabIndex={-1} className="text-2xl font-normal leading-snug outline-none md:text-[28px]" style={{ fontFamily: 'Montserrat, sans-serif' }}>
-                    {step === 0 ? '¿Cuál es tu perfil?' : step === 4 ? 'Por favor, deja tus datos para que podamos contactarte' : currentQuestion?.title}
+                     {step === 0 ? '¿Cuál es tu perfil?' : step === contactStep ? 'Por favor, deja tus datos para que podamos contactarte' : currentQuestion?.title}
                   </h1>
                   {currentQuestion?.type === 'multiple' && <p className="mt-3 text-sm" style={{ color: 'rgba(64,53,44,0.55)' }}>Selecciona todas las opciones que correspondan</p>}
                 </div>
@@ -249,11 +258,14 @@ const Survey: React.FC = () => {
                 )}
                 {currentQuestion && currentQuestion.type !== 'text' && renderOptions(currentQuestion)}
 
-                {step === 4 && (
+                {step === contactStep && (
                   <form onSubmit={handleSubmit} className="space-y-4">
                     <input autoFocus required value={contact.name} onChange={(event) => setContact({ ...contact, name: event.target.value })} placeholder="Nombre y apellido *" className="w-full rounded-lg border bg-white px-4 py-3.5 outline-none focus:ring-2 focus:ring-[#40352C]/30" style={{ borderColor: 'rgba(64,53,44,0.2)' }} />
                     <input required type="tel" value={contact.phone} onChange={(event) => setContact({ ...contact, phone: event.target.value })} placeholder="Teléfono con prefijo internacional *" className="w-full rounded-lg border bg-white px-4 py-3.5 outline-none focus:ring-2 focus:ring-[#40352C]/30" style={{ borderColor: 'rgba(64,53,44,0.2)' }} />
                     <input required type="email" value={contact.email} onChange={(event) => setContact({ ...contact, email: event.target.value })} placeholder="Correo electrónico *" className="w-full rounded-lg border bg-white px-4 py-3.5 outline-none focus:ring-2 focus:ring-[#40352C]/30" style={{ borderColor: 'rgba(64,53,44,0.2)' }} />
+                    {mode === 'short' && (
+                      <input required value={contact.city} onChange={(event) => setContact({ ...contact, city: event.target.value })} placeholder="Ciudad *" className="w-full rounded-lg border bg-white px-4 py-3.5 outline-none focus:ring-2 focus:ring-[#40352C]/30" style={{ borderColor: 'rgba(64,53,44,0.2)' }} />
+                    )}
                     {submitError && <p role="alert" className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{submitError}</p>}
                     <button type="submit" disabled={!canContinue || isSubmitting} className="rounded-lg bg-[#40352C] px-5 py-3 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40">
                       {isSubmitting ? 'Enviando…' : 'Enviar respuestas'}
@@ -261,7 +273,7 @@ const Survey: React.FC = () => {
                   </form>
                 )}
 
-                {step > 0 && step < 4 && currentQuestion?.type !== 'single' && currentQuestion?.type !== 'scale' && (
+                {step > 0 && step < contactStep && currentQuestion?.type !== 'single' && currentQuestion?.type !== 'scale' && (
                   <button type="button" disabled={!canContinue} onClick={() => goTo(step + 1)} className="mt-6 rounded-lg bg-[#40352C] px-5 py-2.5 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-35">
                     Aceptar <span className="ml-2 text-xs font-normal opacity-70">Enter ↵</span>
                   </button>
@@ -274,7 +286,7 @@ const Survey: React.FC = () => {
         {started && !submitted && (
           <div className="fixed bottom-5 right-5 z-30 flex overflow-hidden rounded-lg border bg-white shadow-sm" style={{ borderColor: 'rgba(64,53,44,0.16)' }}>
             <button type="button" onClick={() => goTo(step - 1)} disabled={step === 0} className="grid h-10 w-11 place-items-center border-r disabled:opacity-25" style={{ borderColor: 'rgba(64,53,44,0.12)' }} aria-label="Pregunta anterior"><Icon name="ChevronUp" size={18} /></button>
-            <button type="button" onClick={() => goTo(step + 1)} disabled={!canContinue || step === 4} className="grid h-10 w-11 place-items-center disabled:opacity-25" aria-label="Pregunta siguiente"><Icon name="ChevronDown" size={18} /></button>
+            <button type="button" onClick={() => goTo(step + 1)} disabled={!canContinue || step === contactStep} className="grid h-10 w-11 place-items-center disabled:opacity-25" aria-label="Pregunta siguiente"><Icon name="ChevronDown" size={18} /></button>
           </div>
         )}
       </main>
