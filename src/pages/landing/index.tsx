@@ -77,9 +77,8 @@ const Landing: React.FC = () => {
         >
           <div className="max-w-5xl mx-auto px-6">
             <div className="flex items-center justify-between h-14">
-              <div className="flex items-center gap-2.5">
-                <img src="/logo-icon-dark.png" alt="Stable Eye" className="h-9 w-auto" />
-                <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '1.15rem', color: '#40352C', letterSpacing: '-0.01em' }}>Stable Eye</span>
+              <div className="flex items-center">
+                <img src="/stable-eye-header-logo.png" alt="Stable Eye" className="h-6 w-auto md:h-7" />
               </div>
 
               <nav className="hidden md:flex items-center gap-8">
