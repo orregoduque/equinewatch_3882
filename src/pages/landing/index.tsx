@@ -135,7 +135,7 @@ const Landing: React.FC = () => {
                       fontFamily: 'Montserrat, sans-serif',
                     }}
                   >
-                    Get Early Access
+                    Request a Demo
                   </Link>
                   <a
                     href="#how-it-works"
@@ -546,7 +546,7 @@ const Landing: React.FC = () => {
                   fontFamily: 'Montserrat, sans-serif',
                 }}
               >
-                Get Early Access
+                Request a Demo
               </Link>
               <a
                 href="https://wa.me/14422077905"
