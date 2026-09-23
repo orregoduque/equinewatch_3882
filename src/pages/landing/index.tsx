@@ -421,8 +421,8 @@ const Landing: React.FC = () => {
               <div>
                 <div className="aspect-[4/3] overflow-hidden shadow-xl" style={{ borderRadius: '6px' }}>
                   <img
-                    src="https://www.stable-eye.co/_next/image?url=%2Fproducts%2Fhorse_outside.png&w=1200&q=75"
-                    alt="Horse being analyzed by AI"
+                    src="/ai-technology-horse.webp"
+                    alt="Caballo asomado a la puerta de su establo"
                     className="w-full h-full object-cover"
                     loading="lazy"
                   />
