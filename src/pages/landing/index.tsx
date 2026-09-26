@@ -124,8 +124,10 @@ const Landing: React.FC = () => {
                 </p>
 
                 <div className="flex flex-wrap gap-3 mb-8">
-                  <Link
-                    to="/login"
+                  <a
+                    href="https://wa.me/14422077905"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="px-6 py-2.5 text-xs font-semibold tracking-wide transition-all duration-200 hover:-translate-y-0.5"
                     style={{
                       backgroundColor: '#40352C',
@@ -135,7 +137,7 @@ const Landing: React.FC = () => {
                     }}
                   >
                     Request a Demo
-                  </Link>
+                  </a>
                   <a
                     href="#how-it-works"
                     className="px-6 py-2.5 text-xs font-semibold tracking-wide transition-all duration-200"
