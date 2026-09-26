@@ -58,11 +58,13 @@ const Header = ({ className = '' }: HeaderProps) => {
         }}
       >
         <div className="flex items-center h-20 px-6 md:px-10">
-          <Link to="/horse-list" className="flex items-center mr-8 group">
+          <Link to="/horse-list" className="flex shrink-0 items-center mr-8 group">
             <img
-              src="/stable-eye-header-logo.png"
+              src="/stable-eye-header-wordmark.png"
               alt="Stable Eye"
-              className="h-7 w-auto transition-all duration-300 group-hover:opacity-70 md:h-8"
+              width={2545}
+              height={383}
+              className="block h-auto w-[178px] max-w-none object-contain transition-opacity duration-300 group-hover:opacity-70 md:w-[226px]"
             />
           </Link>
 

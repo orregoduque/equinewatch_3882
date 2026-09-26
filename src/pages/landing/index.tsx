@@ -77,8 +77,14 @@ const Landing: React.FC = () => {
         >
           <div className="max-w-5xl mx-auto px-6">
             <div className="flex items-center justify-between h-14">
-              <div className="flex items-center">
-                <img src="/stable-eye-header-logo.png" alt="Stable Eye" className="h-6 w-auto md:h-7" />
+              <div className="flex shrink-0 items-center">
+                <img
+                  src="/stable-eye-header-wordmark.png"
+                  alt="Stable Eye"
+                  width={2545}
+                  height={383}
+                  className="block h-auto w-[178px] max-w-none object-contain md:w-[226px]"
+                />
               </div>
 
               <nav className="hidden md:flex items-center gap-8">
