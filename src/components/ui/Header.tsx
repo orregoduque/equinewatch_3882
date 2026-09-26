@@ -65,6 +65,7 @@ const Header = ({ className = '' }: HeaderProps) => {
               width={2545}
               height={383}
               className="block h-auto w-[178px] max-w-none object-contain transition-opacity duration-300 group-hover:opacity-70 md:w-[226px]"
+              style={{ borderRadius: 0 }}
             />
           </Link>
 
