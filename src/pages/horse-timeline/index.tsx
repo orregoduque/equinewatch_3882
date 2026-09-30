@@ -13,7 +13,6 @@ const VIDEO_DURATION_SECONDS = 120;
 const VIDEO_DURATION_MS = VIDEO_DURATION_SECONDS * 1000;
 const PHOTO_LIMIT = 240;
 const VIDEO_PRELOAD_FRAMES = 6;
-const PHOTO_DISPLAY_FILTER = 'brightness(1.12) contrast(1.04) saturate(1.04)';
 const formatVideoTime = (seconds: number) => {
   const minutes = Math.floor(seconds / 60);
   const remainingSeconds = String(seconds % 60).padStart(2, '0');
@@ -28,7 +27,7 @@ const mapHorseImagesToObservations = (
     id: `obs-${img.id}`,
     horseId,
     horseName,
-    imageUrl: getImageUrl(img.storage_path_enhanced),
+    imageUrl: getImageUrl(img.storage_path_raw),
     imageAlt: `${horseName} observation ${img.image_number}`,
     timestamp: new Date(img.created_at),
     temperature: 37.5 + (Math.random() * 1.5 - 0.5),
@@ -298,8 +297,7 @@ const HorseTimeline: React.FC = () => {
                         <Image
                           src={selectedObservation?.imageUrl || latestObservation.imageUrl}
                           alt={selectedObservation?.imageAlt || latestObservation.imageAlt}
-                          className="w-full h-full object-cover"
-                          style={{ filter: PHOTO_DISPLAY_FILTER }}
+                          className="w-full h-full object-contain"
                         />
                       </div>
 
@@ -350,11 +348,10 @@ const HorseTimeline: React.FC = () => {
                           style={isSelected ? { borderColor: '#40352C' } : { borderColor: 'transparent' }}
                         >
                           <div className="aspect-[4/3] bg-black/20">
-                            <Image src={obs.imageUrl} alt={obs.imageAlt} loading="lazy" decoding="async" className="w-full h-full object-cover" style={{ filter: PHOTO_DISPLAY_FILTER }} />
+                            <Image src={obs.imageUrl} alt={obs.imageAlt} loading="lazy" decoding="async" className="w-full h-full object-contain" />
                           </div>
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
                           <div className="absolute bottom-0 left-0 right-0 p-2">
-                            <span className="text-xs font-semibold text-white">
+                            <span className="rounded bg-black/50 px-1.5 py-0.5 text-xs font-semibold text-white">
                               {format(obs.timestamp, 'HH:mm')}
                             </span>
                           </div>
@@ -464,13 +461,11 @@ const HorseTimeline: React.FC = () => {
                           <Image
                             src={obs.imageUrl}
                             alt={obs.imageAlt}
-                            className="w-full h-full object-cover"
-                            style={{ filter: PHOTO_DISPLAY_FILTER }}
+                            className="w-full h-full object-contain"
                           />
                           {/* Photo Info Overlay */}
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
                           <div className="absolute bottom-4 left-4 right-4">
-                             <div>
+                             <div className="inline-block rounded-lg bg-black/50 px-3 py-2">
                                <p className="text-white font-medium">{format(obs.timestamp, 'HH:mm')}</p>
                                <p className="text-white/70 text-sm">{obs.notes.substring(0, 50)}...</p>
                             </div>
@@ -488,7 +483,7 @@ const HorseTimeline: React.FC = () => {
 
                   {/* Play Button Overlay */}
                   {!isVideoPlaying && !isLoadingVideo && videoObservations.length > 0 && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                    <div className="absolute inset-0 flex items-center justify-center">
                       <button
                         onClick={handlePlayVideo}
                         className="w-20 h-20 rounded-full bg-[#c9a962] flex items-center justify-center hover:scale-110 hover:shadow-[0_0_40px_rgba(201,169,98,0.5)] transition-all duration-300"
