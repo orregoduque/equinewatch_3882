@@ -9,6 +9,14 @@ import Icon from '../../components/AppIcon';
 import { Observation, Horse } from './types';
 import { fetchHorseImages, fetchHorses, getImageUrl, HorseImage } from '../../utils/supabase';
 
+const VIDEO_DURATION_SECONDS = 120;
+const VIDEO_DURATION_MS = VIDEO_DURATION_SECONDS * 1000;
+const formatVideoTime = (seconds: number) => {
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = String(seconds % 60).padStart(2, '0');
+  return `${minutes}:${remainingSeconds}`;
+};
+
 const HorseTimeline: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const requestedHorseId = searchParams.get('horseId') || '';
@@ -101,12 +109,11 @@ const HorseTimeline: React.FC = () => {
     loadImages();
   }, [selectedHorseId, horses]);
 
-  // Video playback effect - 15 seconds total, divided by number of photos
+  // Video playback effect - 2 minutes total, divided by number of photos
   useEffect(() => {
     if (!isVideoPlaying || observations.length === 0) return;
     
-    const totalDuration = 15000; // 15 seconds
-    const frameInterval = totalDuration / observations.length;
+    const frameInterval = VIDEO_DURATION_MS / observations.length;
     const progressInterval = 50; // Update progress every 50ms
     
     const frameTimer = setInterval(() => {
@@ -123,7 +130,7 @@ const HorseTimeline: React.FC = () => {
     
     const progressTimer = setInterval(() => {
       setVideoProgress((prev) => {
-        const increment = (progressInterval / totalDuration) * 100;
+        const increment = (progressInterval / VIDEO_DURATION_MS) * 100;
         const next = prev + increment;
         return next >= 100 ? 100 : next;
       });
@@ -432,7 +439,7 @@ const HorseTimeline: React.FC = () => {
                       <h3 className="text-lg font-bold" style={{ color: '#40352C', fontFamily: 'Syne, sans-serif' }}>
                         {selectedHorse?.name}'s Daily Recap
                       </h3>
-                      <p className="text-sm" style={{ color: 'rgba(64,53,44,0.55)' }}>{observations.length} photos • 15 seconds</p>
+                      <p className="text-sm" style={{ color: 'rgba(64,53,44,0.55)' }}>{observations.length} photos • 2 minutes</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2 px-3 py-1 rounded-full" style={{ backgroundColor: 'rgba(64,53,44,0.08)', border: '1px solid rgba(64,53,44,0.15)' }}>
@@ -519,7 +526,7 @@ const HorseTimeline: React.FC = () => {
                         />
                       </button>
                       <span className="text-sm" style={{ color: 'rgba(64,53,44,0.55)' }}>
-                        {Math.round((videoProgress / 100) * 15)}s / 15s
+                        {formatVideoTime(Math.floor((videoProgress / 100) * VIDEO_DURATION_SECONDS))} / {formatVideoTime(VIDEO_DURATION_SECONDS)}
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
