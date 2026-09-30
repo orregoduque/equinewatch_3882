@@ -27,7 +27,7 @@ const mapHorseImagesToObservations = (
     id: `obs-${img.id}`,
     horseId,
     horseName,
-    imageUrl: getImageUrl(img.storage_path_raw),
+    imageUrl: getImageUrl(img.storage_path_enhanced),
     imageAlt: `${horseName} observation ${img.image_number}`,
     timestamp: new Date(img.created_at),
     temperature: 37.5 + (Math.random() * 1.5 - 0.5),
