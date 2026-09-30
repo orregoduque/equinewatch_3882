@@ -11,11 +11,29 @@ import { fetchHorseImages, fetchHorses, getImageUrl, HorseImage } from '../../ut
 
 const VIDEO_DURATION_SECONDS = 120;
 const VIDEO_DURATION_MS = VIDEO_DURATION_SECONDS * 1000;
+const VIDEO_PHOTO_LIMIT = 120;
 const formatVideoTime = (seconds: number) => {
   const minutes = Math.floor(seconds / 60);
   const remainingSeconds = String(seconds % 60).padStart(2, '0');
   return `${minutes}:${remainingSeconds}`;
 };
+const mapHorseImagesToObservations = (
+  images: HorseImage[],
+  horseId: string,
+  horseName: string,
+): Observation[] =>
+  images.map((img, index) => ({
+    id: `obs-${img.id}`,
+    horseId,
+    horseName,
+    imageUrl: getImageUrl(img.storage_path_enhanced),
+    imageAlt: `${horseName} observation ${img.image_number}`,
+    timestamp: new Date(img.created_at),
+    temperature: 37.5 + (Math.random() * 1.5 - 0.5),
+    behaviorStatus: index === 0 ? 'normal' : (Math.random() > 0.8 ? 'suspicious' : 'normal') as 'normal' | 'suspicious',
+    notes: img.notes || `Observation #${img.image_number} - Captured at ${format(new Date(img.created_at), 'HH:mm')}`,
+    uploadedBy: 'Stable Eye Camera',
+  }));
 
 const HorseTimeline: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -23,7 +41,9 @@ const HorseTimeline: React.FC = () => {
   const [selectedHorseId, setSelectedHorseId] = useState<string>(requestedHorseId);
   const [horses, setHorses] = useState<Horse[]>([]);
   const [observations, setObservations] = useState<Observation[]>([]);
+  const [videoObservations, setVideoObservations] = useState<Observation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingVideo, setIsLoadingVideo] = useState(false);
   const [selectedObservation, setSelectedObservation] = useState<Observation | null>(null);
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
@@ -83,18 +103,11 @@ const HorseTimeline: React.FC = () => {
         const selectedHorse = horses.find((horse) => horse.id === selectedHorseId);
         const images = await fetchHorseImages(30, selectedHorseId);
         
-        const realObservations: Observation[] = images.map((img: HorseImage, index: number) => ({
-          id: `obs-${img.id}`,
-          horseId: selectedHorseId,
-          horseName: selectedHorse?.name || 'Horse',
-          imageUrl: getImageUrl(img.storage_path_enhanced),
-          imageAlt: `${selectedHorse?.name || 'Horse'} observation ${img.image_number}`,
-          timestamp: new Date(img.created_at),
-          temperature: 37.5 + (Math.random() * 1.5 - 0.5),
-          behaviorStatus: index === 0 ? 'normal' : (Math.random() > 0.8 ? 'suspicious' : 'normal') as 'normal' | 'suspicious',
-          notes: img.notes || `Observation #${img.image_number} - Captured at ${format(new Date(img.created_at), 'HH:mm')}`,
-          uploadedBy: 'Stable Eye Camera'
-        }));
+        const realObservations = mapHorseImagesToObservations(
+          images,
+          selectedHorseId,
+          selectedHorse?.name || 'Horse',
+        );
 
         setObservations(realObservations);
         setSelectedObservation(realObservations[0] || null);
@@ -111,15 +124,15 @@ const HorseTimeline: React.FC = () => {
 
   // Video playback effect - 2 minutes total, divided by number of photos
   useEffect(() => {
-    if (!isVideoPlaying || observations.length === 0) return;
+    if (!isVideoPlaying || videoObservations.length === 0) return;
     
-    const frameInterval = VIDEO_DURATION_MS / observations.length;
+    const frameInterval = VIDEO_DURATION_MS / videoObservations.length;
     const progressInterval = 50; // Update progress every 50ms
     
     const frameTimer = setInterval(() => {
       setCurrentVideoFrame((prev) => {
         const next = prev + 1;
-        if (next >= observations.length) {
+        if (next >= videoObservations.length) {
           setIsVideoPlaying(false);
           setVideoProgress(100);
           return 0;
@@ -140,7 +153,7 @@ const HorseTimeline: React.FC = () => {
       clearInterval(frameTimer);
       clearInterval(progressTimer);
     };
-  }, [isVideoPlaying, observations.length]);
+  }, [isVideoPlaying, videoObservations.length]);
 
   // Handle body scroll lock when video modal is open
   useEffect(() => {
@@ -154,14 +167,34 @@ const HorseTimeline: React.FC = () => {
     };
   }, [isVideoModalOpen]);
 
-  const handleGenerateVideo = () => {
+  const handleGenerateVideo = async () => {
     setIsVideoModalOpen(true);
     setCurrentVideoFrame(0);
     setVideoProgress(0);
     setIsVideoPlaying(false);
+    setVideoObservations([]);
+    setIsLoadingVideo(true);
+
+    try {
+      const selectedHorse = horses.find((horse) => horse.id === selectedHorseId);
+      const images = await fetchHorseImages(VIDEO_PHOTO_LIMIT, selectedHorseId);
+      setVideoObservations(
+        mapHorseImagesToObservations(
+          [...images].reverse(),
+          selectedHorseId,
+          selectedHorse?.name || 'Horse',
+        ),
+      );
+    } catch (error) {
+      console.error('Error loading video photos:', error);
+      setVideoObservations([]);
+    } finally {
+      setIsLoadingVideo(false);
+    }
   };
 
   const handlePlayVideo = () => {
+    if (videoObservations.length === 0) return;
     setCurrentVideoFrame(0);
     setVideoProgress(0);
     setIsVideoPlaying(true);
@@ -439,7 +472,9 @@ const HorseTimeline: React.FC = () => {
                       <h3 className="text-lg font-bold" style={{ color: '#40352C', fontFamily: 'Syne, sans-serif' }}>
                         {selectedHorse?.name}'s Daily Recap
                       </h3>
-                      <p className="text-sm" style={{ color: 'rgba(64,53,44,0.55)' }}>{observations.length} photos • 2 minutes</p>
+                      <p className="text-sm" style={{ color: 'rgba(64,53,44,0.55)' }}>
+                        {isLoadingVideo ? 'Loading photos…' : `${videoObservations.length} photos • 2 minutes`}
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2 px-3 py-1 rounded-full" style={{ backgroundColor: 'rgba(64,53,44,0.08)', border: '1px solid rgba(64,53,44,0.15)' }}>
@@ -450,46 +485,56 @@ const HorseTimeline: React.FC = () => {
 
                 {/* Video Display */}
                 <div className="relative aspect-video bg-black">
-                  {observations.map((obs, index) => (
-                    <div
-                      key={obs.id}
-                      className={`absolute inset-0 transition-opacity duration-500 ${
-                        currentVideoFrame === index ? 'opacity-100' : 'opacity-0'
-                      }`}
-                    >
-                      <Image 
-                        src={obs.imageUrl} 
-                        alt={obs.imageAlt} 
-                        className="w-full h-full object-cover" 
-                      />
-                      {/* Photo Info Overlay */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
-                      <div className="absolute bottom-4 left-4 right-4">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-white font-medium">{format(obs.timestamp, 'HH:mm')}</p>
-                            <p className="text-white/70 text-sm">{obs.notes.substring(0, 50)}...</p>
-                          </div>
-                          <div className={`px-3 py-1 rounded-full text-xs font-semibold uppercase ${
-                            obs.behaviorStatus === 'normal' 
-                              ? 'bg-[#4a9d6b]/80 text-white' 
-                              : 'bg-[#d4a84b]/80 text-white'
-                          }`}>
-                            {obs.behaviorStatus}
+                  {isLoadingVideo ? (
+                    <div className="absolute inset-0 flex items-center justify-center text-white">
+                      Loading photos for your 2-minute video…
+                    </div>
+                  ) : videoObservations.length === 0 ? (
+                    <div className="absolute inset-0 flex items-center justify-center px-6 text-center text-white">
+                      No photos are available to create this video.
+                    </div>
+                  ) : (
+                    videoObservations.map((obs, index) => (
+                      <div
+                        key={obs.id}
+                        className={`absolute inset-0 transition-opacity duration-500 ${
+                          currentVideoFrame === index ? 'opacity-100' : 'opacity-0'
+                        }`}
+                      >
+                        <Image
+                          src={obs.imageUrl}
+                          alt={obs.imageAlt}
+                          className="w-full h-full object-cover"
+                        />
+                        {/* Photo Info Overlay */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+                        <div className="absolute bottom-4 left-4 right-4">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-white font-medium">{format(obs.timestamp, 'HH:mm')}</p>
+                              <p className="text-white/70 text-sm">{obs.notes.substring(0, 50)}...</p>
+                            </div>
+                            <div className={`px-3 py-1 rounded-full text-xs font-semibold uppercase ${
+                              obs.behaviorStatus === 'normal'
+                                ? 'bg-[#4a9d6b]/80 text-white'
+                                : 'bg-[#d4a84b]/80 text-white'
+                            }`}>
+                              {obs.behaviorStatus}
+                            </div>
                           </div>
                         </div>
+                        {/* Frame Counter */}
+                        <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-black/50 backdrop-blur-sm">
+                          <span className="text-white text-sm font-medium">
+                            {index + 1} / {videoObservations.length}
+                          </span>
+                        </div>
                       </div>
-                      {/* Frame Counter */}
-                      <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-black/50 backdrop-blur-sm">
-                        <span className="text-white text-sm font-medium">
-                          {index + 1} / {observations.length}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
+                    ))
+                  )}
 
                   {/* Play Button Overlay */}
-                  {!isVideoPlaying && (
+                  {!isVideoPlaying && !isLoadingVideo && videoObservations.length > 0 && (
                     <div className="absolute inset-0 flex items-center justify-center bg-black/30">
                       <button
                         onClick={handlePlayVideo}
