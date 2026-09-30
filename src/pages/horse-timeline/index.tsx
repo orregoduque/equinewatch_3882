@@ -13,6 +13,7 @@ const VIDEO_DURATION_SECONDS = 120;
 const VIDEO_DURATION_MS = VIDEO_DURATION_SECONDS * 1000;
 const PHOTO_LIMIT = 240;
 const VIDEO_PRELOAD_FRAMES = 6;
+const PHOTO_DISPLAY_FILTER = 'brightness(1.12) contrast(1.04) saturate(1.04)';
 const formatVideoTime = (seconds: number) => {
   const minutes = Math.floor(seconds / 60);
   const remainingSeconds = String(seconds % 60).padStart(2, '0');
@@ -298,6 +299,7 @@ const HorseTimeline: React.FC = () => {
                           src={selectedObservation?.imageUrl || latestObservation.imageUrl}
                           alt={selectedObservation?.imageAlt || latestObservation.imageAlt}
                           className="w-full h-full object-cover"
+                          style={{ filter: PHOTO_DISPLAY_FILTER }}
                         />
                       </div>
 
@@ -348,7 +350,7 @@ const HorseTimeline: React.FC = () => {
                           style={isSelected ? { borderColor: '#40352C' } : { borderColor: 'transparent' }}
                         >
                           <div className="aspect-[4/3] bg-black/20">
-                            <Image src={obs.imageUrl} alt={obs.imageAlt} loading="lazy" decoding="async" className="w-full h-full object-cover" />
+                            <Image src={obs.imageUrl} alt={obs.imageAlt} loading="lazy" decoding="async" className="w-full h-full object-cover" style={{ filter: PHOTO_DISPLAY_FILTER }} />
                           </div>
                           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
                           <div className="absolute bottom-0 left-0 right-0 p-2">
@@ -463,6 +465,7 @@ const HorseTimeline: React.FC = () => {
                             src={obs.imageUrl}
                             alt={obs.imageAlt}
                             className="w-full h-full object-cover"
+                            style={{ filter: PHOTO_DISPLAY_FILTER }}
                           />
                           {/* Photo Info Overlay */}
                           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
