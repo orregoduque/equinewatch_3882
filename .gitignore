@@ -6,3 +6,7 @@ package-lock.json
 .vscode/
 .idea/
 vite.config.*s.*
+__pycache__/
+*.py[cod]
+.pythonlibs/
+.venv/

@@ -1,0 +1,1 @@
+"""Deterministic image processing utilities; no generative models."""
