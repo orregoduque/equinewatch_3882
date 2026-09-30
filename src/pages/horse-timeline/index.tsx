@@ -211,17 +211,6 @@ const HorseTimeline: React.FC = () => {
   const selectedHorse = horses.find(h => h.id === selectedHorseId);
   const latestObservation = observations[0];
 
-  const getStatusConfig = (status: string) => {
-    switch (status) {
-      case 'normal':
-        return { bg: 'bg-[#4a9d6b]/20', border: 'border-[#4a9d6b]/50', text: 'text-[#4a9d6b]', dot: 'bg-[#4a9d6b]' };
-      case 'suspicious':
-        return { bg: 'bg-[#d4a84b]/20', border: 'border-[#d4a84b]/50', text: 'text-[#d4a84b]', dot: 'bg-[#d4a84b]' };
-      default:
-        return { bg: 'bg-[#6b6b6b]/20', border: 'border-[#6b6b6b]/50', text: 'text-[#6b6b6b]', dot: 'bg-[#6b6b6b]' };
-    }
-  };
-
   return (
     <>
       <Helmet>
@@ -312,21 +301,6 @@ const HorseTimeline: React.FC = () => {
                         />
                       </div>
 
-                      {/* Status Badge */}
-                      <div className="absolute top-4 left-4">
-                        {(() => {
-                          const status = getStatusConfig(selectedObservation?.behaviorStatus || latestObservation.behaviorStatus);
-                          return (
-                            <div className={`flex items-center gap-2 px-3 py-1.5 rounded-xl ${status.bg} ${status.border} border backdrop-blur-xl`}>
-                              <div className={`w-2 h-2 rounded-full ${status.dot} animate-pulse`} />
-                              <span className={`text-xs font-semibold uppercase tracking-wide ${status.text}`}>
-                                {selectedObservation?.behaviorStatus || latestObservation.behaviorStatus}
-                              </span>
-                            </div>
-                          );
-                        })()}
-                      </div>
-
                       {/* Temperature Badge */}
                       <div className="absolute top-4 right-4">
                         <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-black/40 border border-white/20 backdrop-blur-xl">
@@ -372,7 +346,6 @@ const HorseTimeline: React.FC = () => {
                   <div className="flex gap-3 overflow-x-auto pb-2">
                     {observations.map((obs, index) => {
                       const isSelected = selectedObservation?.id === obs.id;
-                      const status = getStatusConfig(obs.behaviorStatus);
                       return (
                         <button
                           key={obs.id}
@@ -389,12 +362,9 @@ const HorseTimeline: React.FC = () => {
                           </div>
                           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
                           <div className="absolute bottom-0 left-0 right-0 p-2">
-                            <div className="flex items-center justify-between">
-                              <span className="text-xs font-semibold text-white">
-                                {format(obs.timestamp, 'HH:mm')}
-                              </span>
-                              <div className={`w-2 h-2 rounded-full ${status.dot}`} />
-                            </div>
+                            <span className="text-xs font-semibold text-white">
+                              {format(obs.timestamp, 'HH:mm')}
+                            </span>
                           </div>
                           {index === 0 && (
                             <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-[#c9a962] text-[10px] font-bold text-black uppercase">
@@ -512,18 +482,9 @@ const HorseTimeline: React.FC = () => {
                           {/* Photo Info Overlay */}
                           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
                           <div className="absolute bottom-4 left-4 right-4">
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <p className="text-white font-medium">{format(obs.timestamp, 'HH:mm')}</p>
-                                <p className="text-white/70 text-sm">{obs.notes.substring(0, 50)}...</p>
-                              </div>
-                              <div className={`px-3 py-1 rounded-full text-xs font-semibold uppercase ${
-                                obs.behaviorStatus === 'normal'
-                                  ? 'bg-[#4a9d6b]/80 text-white'
-                                  : 'bg-[#d4a84b]/80 text-white'
-                              }`}>
-                                {obs.behaviorStatus}
-                              </div>
+                             <div>
+                               <p className="text-white font-medium">{format(obs.timestamp, 'HH:mm')}</p>
+                               <p className="text-white/70 text-sm">{obs.notes.substring(0, 50)}...</p>
                             </div>
                           </div>
                           {/* Frame Counter */}

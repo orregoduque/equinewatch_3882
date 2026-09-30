@@ -5,37 +5,6 @@ import Icon from '../../../components/AppIcon';
 import { ObservationCardProps } from '../types';
 
 const ObservationCard: React.FC<ObservationCardProps> = ({ observation }) => {
-  const getStatusConfig = () => {
-    switch (observation.behaviorStatus) {
-      case 'normal':
-        return {
-          bgClass: 'from-emerald-500/20 to-green-500/20',
-          borderClass: 'border-emerald-400/30',
-          textClass: 'text-emerald-300',
-          glowClass: 'shadow-[0_0_15px_rgba(16,185,129,0.3)]',
-          icon: 'CheckCircle'
-        };
-      case 'suspicious':
-        return {
-          bgClass: 'from-amber-500/20 to-orange-500/20',
-          borderClass: 'border-amber-400/30',
-          textClass: 'text-amber-300',
-          glowClass: 'shadow-[0_0_15px_rgba(245,158,11,0.3)]',
-          icon: 'AlertTriangle'
-        };
-      default:
-        return {
-          bgClass: 'from-slate-500/20 to-gray-500/20',
-          borderClass: 'border-slate-400/30',
-          textClass: 'text-slate-300',
-          glowClass: '',
-          icon: 'Info'
-        };
-    }
-  };
-
-  const config = getStatusConfig();
-
   return (
     <article className="group animate-slide-up">
       {/* Premium Glassmorphism Card */}
@@ -55,19 +24,6 @@ const ObservationCard: React.FC<ObservationCardProps> = ({ observation }) => {
           {/* Image Gradient Overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
           
-          {/* Status Badge Overlay */}
-          <div className="absolute top-4 left-4">
-            <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full backdrop-blur-xl bg-gradient-to-r ${config.bgClass} border ${config.borderClass} ${config.glowClass}`}>
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-current opacity-40" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-current" />
-              </span>
-              <span className={`text-xs font-bold ${config.textClass} uppercase tracking-wide`}>
-                {observation.behaviorStatus}
-              </span>
-            </div>
-          </div>
-
           {/* Temperature Badge */}
           <div className="absolute top-4 right-4">
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full backdrop-blur-xl bg-white/[0.08] border border-white/[0.12]">
