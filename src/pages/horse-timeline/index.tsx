@@ -11,7 +11,8 @@ import { fetchHorseImages, fetchHorses, getImageUrl, HorseImage } from '../../ut
 
 const VIDEO_DURATION_SECONDS = 120;
 const VIDEO_DURATION_MS = VIDEO_DURATION_SECONDS * 1000;
-const VIDEO_PHOTO_LIMIT = 120;
+const VIDEO_PHOTO_LIMIT = 240;
+const VIDEO_PRELOAD_FRAMES = 6;
 const formatVideoTime = (seconds: number) => {
   const minutes = Math.floor(seconds / 60);
   const remainingSeconds = String(seconds % 60).padStart(2, '0');
@@ -135,7 +136,7 @@ const HorseTimeline: React.FC = () => {
         if (next >= videoObservations.length) {
           setIsVideoPlaying(false);
           setVideoProgress(100);
-          return 0;
+          return prev;
         }
         return next;
       });
@@ -356,7 +357,7 @@ const HorseTimeline: React.FC = () => {
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-xl font-bold" style={{ color: '#40352C', fontFamily: 'Syne, sans-serif' }}>Recent Photos</h3>
                     <div className="flex items-center gap-3">
-                      <span className="text-sm" style={{ color: 'rgba(64,53,44,0.5)' }}>{observations.length} photos today</span>
+                      <span className="text-sm" style={{ color: 'rgba(64,53,44,0.5)' }}>{observations.length} recent photos</span>
                       <button
                         onClick={handleGenerateVideo}
                         className="flex items-center gap-2 px-4 py-2 rounded-xl text-white font-semibold text-sm transition-all duration-300 hover:opacity-80"
@@ -411,7 +412,7 @@ const HorseTimeline: React.FC = () => {
                   <div className="rounded-xl p-4 text-center" style={{ backgroundColor: '#ffffff', border: '1px solid rgba(64,53,44,0.1)' }}>
                     <Icon name="Camera" size={24} style={{ color: '#40352C' }} className="mx-auto mb-2" />
                     <p className="text-2xl font-bold" style={{ color: '#40352C', fontFamily: 'Syne, sans-serif' }}>{observations.length}</p>
-                    <p className="text-xs" style={{ color: 'rgba(64,53,44,0.5)' }}>Photos Today</p>
+                    <p className="text-xs" style={{ color: 'rgba(64,53,44,0.5)' }}>Recent Photos</p>
                   </div>
                   <div className="rounded-xl p-4 text-center" style={{ backgroundColor: '#ffffff', border: '1px solid rgba(64,53,44,0.1)' }}>
                     <Icon name="Clock" size={24} style={{ color: '#40352C' }} className="mx-auto mb-2" />
@@ -495,41 +496,44 @@ const HorseTimeline: React.FC = () => {
                     </div>
                   ) : (
                     videoObservations.map((obs, index) => (
-                      <div
-                        key={obs.id}
-                        className={`absolute inset-0 transition-opacity duration-500 ${
-                          currentVideoFrame === index ? 'opacity-100' : 'opacity-0'
-                        }`}
-                      >
-                        <Image
-                          src={obs.imageUrl}
-                          alt={obs.imageAlt}
-                          className="w-full h-full object-cover"
-                        />
-                        {/* Photo Info Overlay */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
-                        <div className="absolute bottom-4 left-4 right-4">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <p className="text-white font-medium">{format(obs.timestamp, 'HH:mm')}</p>
-                              <p className="text-white/70 text-sm">{obs.notes.substring(0, 50)}...</p>
-                            </div>
-                            <div className={`px-3 py-1 rounded-full text-xs font-semibold uppercase ${
-                              obs.behaviorStatus === 'normal'
-                                ? 'bg-[#4a9d6b]/80 text-white'
-                                : 'bg-[#d4a84b]/80 text-white'
-                            }`}>
-                              {obs.behaviorStatus}
+                      index >= currentVideoFrame - 1 &&
+                      index <= currentVideoFrame + VIDEO_PRELOAD_FRAMES ? (
+                        <div
+                          key={obs.id}
+                          className={`absolute inset-0 transition-opacity duration-200 ${
+                            currentVideoFrame === index ? 'opacity-100' : 'opacity-0'
+                          }`}
+                        >
+                          <Image
+                            src={obs.imageUrl}
+                            alt={obs.imageAlt}
+                            className="w-full h-full object-cover"
+                          />
+                          {/* Photo Info Overlay */}
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+                          <div className="absolute bottom-4 left-4 right-4">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="text-white font-medium">{format(obs.timestamp, 'HH:mm')}</p>
+                                <p className="text-white/70 text-sm">{obs.notes.substring(0, 50)}...</p>
+                              </div>
+                              <div className={`px-3 py-1 rounded-full text-xs font-semibold uppercase ${
+                                obs.behaviorStatus === 'normal'
+                                  ? 'bg-[#4a9d6b]/80 text-white'
+                                  : 'bg-[#d4a84b]/80 text-white'
+                              }`}>
+                                {obs.behaviorStatus}
+                              </div>
                             </div>
                           </div>
+                          {/* Frame Counter */}
+                          <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-black/50 backdrop-blur-sm">
+                            <span className="text-white text-sm font-medium">
+                              {index + 1} / {videoObservations.length}
+                            </span>
+                          </div>
                         </div>
-                        {/* Frame Counter */}
-                        <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-black/50 backdrop-blur-sm">
-                          <span className="text-white text-sm font-medium">
-                            {index + 1} / {videoObservations.length}
-                          </span>
-                        </div>
-                      </div>
+                      ) : null
                     ))
                   )}
 
