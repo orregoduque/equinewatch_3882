@@ -11,7 +11,7 @@ import { fetchHorseImages, fetchHorses, getImageUrl, HorseImage } from '../../ut
 
 const VIDEO_DURATION_SECONDS = 120;
 const VIDEO_DURATION_MS = VIDEO_DURATION_SECONDS * 1000;
-const VIDEO_PHOTO_LIMIT = 240;
+const PHOTO_LIMIT = 240;
 const VIDEO_PRELOAD_FRAMES = 6;
 const formatVideoTime = (seconds: number) => {
   const minutes = Math.floor(seconds / 60);
@@ -102,7 +102,7 @@ const HorseTimeline: React.FC = () => {
       setIsLoading(true);
       try {
         const selectedHorse = horses.find((horse) => horse.id === selectedHorseId);
-        const images = await fetchHorseImages(30, selectedHorseId);
+        const images = await fetchHorseImages(PHOTO_LIMIT, selectedHorseId);
         
         const realObservations = mapHorseImagesToObservations(
           images,
@@ -178,7 +178,7 @@ const HorseTimeline: React.FC = () => {
 
     try {
       const selectedHorse = horses.find((horse) => horse.id === selectedHorseId);
-      const images = await fetchHorseImages(VIDEO_PHOTO_LIMIT, selectedHorseId);
+      const images = await fetchHorseImages(PHOTO_LIMIT, selectedHorseId);
       setVideoObservations(
         mapHorseImagesToObservations(
           [...images].reverse(),
@@ -301,16 +301,6 @@ const HorseTimeline: React.FC = () => {
                         />
                       </div>
 
-                      {/* Temperature Badge */}
-                      <div className="absolute top-4 right-4">
-                        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-black/40 border border-white/20 backdrop-blur-xl">
-                          <Icon name="Thermometer" size={14} className="text-[#c9a962]" />
-                          <span className="text-sm font-semibold text-[#faf9f6]">
-                            {(selectedObservation?.temperature || latestObservation.temperature).toFixed(1)}°C
-                          </span>
-                        </div>
-                      </div>
-
                       {/* Timestamp */}
                       <div className="absolute bottom-4 left-4">
                         <div className="px-3 py-1.5 rounded-xl bg-black/50 border border-white/10 backdrop-blur-xl">
@@ -358,7 +348,7 @@ const HorseTimeline: React.FC = () => {
                           style={isSelected ? { borderColor: '#40352C' } : { borderColor: 'transparent' }}
                         >
                           <div className="aspect-[4/3] bg-black/20">
-                            <Image src={obs.imageUrl} alt={obs.imageAlt} className="w-full h-full object-cover" />
+                            <Image src={obs.imageUrl} alt={obs.imageAlt} loading="lazy" decoding="async" className="w-full h-full object-cover" />
                           </div>
                           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
                           <div className="absolute bottom-0 left-0 right-0 p-2">
@@ -378,7 +368,7 @@ const HorseTimeline: React.FC = () => {
                 </div>
 
                 {/* Quick Stats */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   <div className="rounded-xl p-4 text-center" style={{ backgroundColor: '#ffffff', border: '1px solid rgba(64,53,44,0.1)' }}>
                     <Icon name="Camera" size={24} style={{ color: '#40352C' }} className="mx-auto mb-2" />
                     <p className="text-2xl font-bold" style={{ color: '#40352C', fontFamily: 'Syne, sans-serif' }}>{observations.length}</p>
@@ -388,11 +378,6 @@ const HorseTimeline: React.FC = () => {
                     <Icon name="Clock" size={24} style={{ color: '#40352C' }} className="mx-auto mb-2" />
                     <p className="text-2xl font-bold" style={{ color: '#40352C', fontFamily: 'Syne, sans-serif' }}>10</p>
                     <p className="text-xs" style={{ color: 'rgba(64,53,44,0.5)' }}>Sec Interval</p>
-                  </div>
-                  <div className="rounded-xl p-4 text-center" style={{ backgroundColor: '#ffffff', border: '1px solid rgba(64,53,44,0.1)' }}>
-                    <Icon name="Thermometer" size={24} style={{ color: '#40352C' }} className="mx-auto mb-2" />
-                    <p className="text-2xl font-bold" style={{ color: '#40352C', fontFamily: 'Syne, sans-serif' }}>{latestObservation.temperature.toFixed(1)}°C</p>
-                    <p className="text-xs" style={{ color: 'rgba(64,53,44,0.5)' }}>Last Temp</p>
                   </div>
                   <div className="rounded-xl p-4 text-center" style={{ backgroundColor: '#ffffff', border: '1px solid rgba(64,53,44,0.1)' }}>
                     <Icon name="CheckCircle" size={24} className="text-green-500 mx-auto mb-2" />
