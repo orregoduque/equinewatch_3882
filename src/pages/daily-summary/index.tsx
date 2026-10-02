@@ -12,49 +12,33 @@ import BehaviorPatternsCard from './components/BehaviorPatternsCard';
 import LoadingSkeleton from './components/LoadingSkeleton';
 import Icon from '../../components/AppIcon';
 import { DailySummaryData, VitalSign, GutHealthData, ColicRiskIndicator, PainAssessment, BehaviorPattern, TemperatureTrend } from './types';
-import { fetchDetectionsForDay, fetchHorses, fetchTemperaturesForDay, SupabaseHorse } from '../../utils/supabase';
+import { fetchDetectionsForDay, fetchTemperaturesForDay } from '../../utils/supabase';
+import { useAccessibleHorses } from '../../hooks/useAccessibleHorses';
 
 const DailySummary: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [summaryData, setSummaryData] = useState<DailySummaryData | null>(null);
-  const [horses, setHorses] = useState<SupabaseHorse[]>([]);
-  const [selectedHorseId, setSelectedHorseId] = useState(searchParams.get('horseId') || '');
+  const { horses, viewer, viewerKey, isLoading: isLoadingHorses } = useAccessibleHorses();
+  const requestedHorseId = searchParams.get('horseId') || '';
+  const [selectedHorseId, setSelectedHorseId] = useState('');
   const [behaviorError, setBehaviorError] = useState('');
   const [temperatureError, setTemperatureError] = useState('');
   const selectedHorse = horses.find((horse) => horse.id === selectedHorseId);
 
   useEffect(() => {
-    let isMounted = true;
-
-    const loadHorses = async () => {
-      try {
-        const records = await fetchHorses();
-        if (!isMounted) return;
-        setHorses(records);
-
-        const requestedHorseId = searchParams.get('horseId') || '';
-        const requestedExists = records.some((horse) => horse.id === requestedHorseId);
-        const initialHorseId = requestedExists ? requestedHorseId : records[0]?.id || '';
-        setSelectedHorseId(initialHorseId);
-        if (!initialHorseId) {
-          setIsLoading(false);
-        }
-        if (initialHorseId && initialHorseId !== requestedHorseId) {
-          setSearchParams({ horseId: initialHorseId }, { replace: true });
-        }
-      } catch (error) {
-        console.error('Error loading horses for daily summary:', error);
-        setIsLoading(false);
-      }
-    };
-
-    loadHorses();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+    if (isLoadingHorses) {
+      setSelectedHorseId('');
+      return;
+    }
+    const requestedExists = horses.some((horse) => horse.id === requestedHorseId);
+    const initialHorseId = requestedExists ? requestedHorseId : horses[0]?.id || '';
+    setSelectedHorseId(initialHorseId);
+    if (initialHorseId !== requestedHorseId) {
+      setSearchParams(initialHorseId ? { horseId: initialHorseId } : {}, { replace: true });
+    }
+  }, [horses, isLoadingHorses, requestedHorseId, setSearchParams]);
 
   const vitalSigns: VitalSign[] = [
     { id: '1', name: 'Heart Rate', value: 48, unit: 'bpm', normalMin: 28, normalMax: 44, status: 'elevated', icon: 'Heart', trend: [36, 38, 42, 44, 46, 48, 47, 48] },
@@ -87,7 +71,11 @@ const DailySummary: React.FC = () => {
   ];
 
   useEffect(() => {
-    if (!selectedHorseId) return;
+    setSummaryData(null);
+    if (!viewer || !selectedHorse) {
+      setIsLoading(false);
+      return;
+    }
 
     let isMounted = true;
 
@@ -116,7 +104,8 @@ const DailySummary: React.FC = () => {
 
       try {
         setBehaviorError('');
-        const detections = await fetchDetectionsForDay(selectedHorseId, dayStart, dayEnd);
+        const detections = await fetchDetectionsForDay(selectedHorseId, dayStart, dayEnd, viewer);
+        if (!isMounted) return;
         detectionCount = detections.length;
         const counts = Object.fromEntries(behaviorDefinitions.map(({ type }) => [type, 0]));
 
@@ -139,13 +128,15 @@ const DailySummary: React.FC = () => {
           percentage: total > 0 ? Math.round((counts[behavior.type] / total) * 100) : 0,
         }));
       } catch (error) {
+        if (!isMounted) return;
         console.error('Error loading behavior detections:', error);
         setBehaviorError(error instanceof Error ? error.message : 'Unknown Supabase error');
       }
 
       try {
         setTemperatureError('');
-        const temperatureRecords = await fetchTemperaturesForDay(selectedHorseId, dayStart, dayEnd);
+        const temperatureRecords = await fetchTemperaturesForDay(selectedHorseId, dayStart, dayEnd, viewer);
+        if (!isMounted) return;
         temperatureTrends = temperatureRecords.map((record) => {
           const recordedAt = new Date(record.created_at);
           const temperature = record.temperature;
@@ -164,6 +155,7 @@ const DailySummary: React.FC = () => {
           };
         });
       } catch (error) {
+        if (!isMounted) return;
         console.error('Error loading temperature records:', error);
         setTemperatureError(error instanceof Error ? error.message : 'Unknown Supabase error');
       }
@@ -185,8 +177,8 @@ const DailySummary: React.FC = () => {
         ],
         temperatureTrends,
         behaviorPatterns,
-        totalHorses: 6,
-        monitoredHorses: 6,
+        totalHorses: horses.length,
+        monitoredHorses: horses.filter((horse) => horse.is_active).length,
         vitalSigns,
         gutHealth,
         colicRisk,
@@ -203,7 +195,7 @@ const DailySummary: React.FC = () => {
     return () => {
       isMounted = false;
     };
-  }, [selectedDate, selectedHorseId]);
+  }, [selectedDate, selectedHorseId, selectedHorse, viewerKey]);
 
   const handleDateChange = (newDate: Date) => {
     setSelectedDate(newDate);
@@ -419,9 +411,9 @@ const DailySummary: React.FC = () => {
               </div>
             </div>
 
-            {isLoading ? (
+            {isLoadingHorses || isLoading ? (
               <LoadingSkeleton />
-            ) : summaryData ? (
+            ) : selectedHorse && summaryData ? (
               <div className="space-y-6 animate-slide-up">
                 <DateSelector selectedDate={selectedDate} onDateChange={handleDateChange} />
 

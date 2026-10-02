@@ -32,7 +32,7 @@ const Profile: React.FC = () => {
       try {
         const [supabaseProfile, profileStats] = await Promise.all([
           fetchUserProfileByEmail(user.email),
-          fetchProfileStats(),
+          fetchProfileStats(user),
         ]);
 
         setProfile({

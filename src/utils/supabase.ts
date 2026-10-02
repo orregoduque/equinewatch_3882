@@ -79,7 +79,21 @@ export const getImageUrl = (storagePath: string): string => {
   return `${supabaseUrl}/storage/v1/object/public/images/${storagePath}`;
 };
 
-export const fetchHorseImages = async (limit: number = 20, horseId?: string): Promise<HorseImage[]> => {
+export interface HorseViewer {
+  id: string;
+  email: string;
+  role: string;
+}
+
+const isHorseOwner = (viewer: HorseViewer) =>
+  viewer.role === 'horse_owner' || viewer.role === 'owner';
+
+export const fetchHorseImages = async (
+  limit: number = 20,
+  horseId?: string,
+  viewer: HorseViewer | null = null,
+): Promise<HorseImage[]> => {
+  await requireHorseAccess(horseId, viewer);
   console.log('Fetching images from Supabase...', { supabaseUrl, limit, horseId });
   try {
     let query = supabase
@@ -105,12 +119,26 @@ export const fetchHorseImages = async (limit: number = 20, horseId?: string): Pr
   }
 };
 
-export const fetchHorses = async (): Promise<SupabaseHorse[]> => {
-  const { data, error } = await supabase
+export const fetchHorses = async (viewer: HorseViewer | null = null): Promise<SupabaseHorse[]> => {
+  if (!viewer) return [];
+  if (!isHorseOwner(viewer) && !['admin', 'stable_owner'].includes(viewer.role)) return [];
+
+  let query = supabase
     .from('horses')
     .select('id, name, breed, profile_photo_url, owner_id, age, gender, color, is_active, created_at, updated_at')
     .order('created_at', { ascending: true });
 
+  if (isHorseOwner(viewer)) {
+    // Demo IDs cannot represent a real Supabase owner assignment.
+    const isUuid = (id: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+    if (!isUuid(viewer.id)) return [];
+    const profile = await fetchUserProfileByEmail(viewer.email);
+    // Existing projects may associate horses to the auth ID or the profile ID.
+    const ownerIds = [...new Set([viewer.id, profile?.id].filter((id): id is string => !!id && isUuid(id)))];
+    query = query.in('owner_id', ownerIds);
+  }
+
+  const { data, error } = await query;
   if (error) {
     throw new Error(error.message);
   }
@@ -118,11 +146,21 @@ export const fetchHorses = async (): Promise<SupabaseHorse[]> => {
   return data || [];
 };
 
+const requireHorseAccess = async (horseId: string | undefined, viewer: HorseViewer | null) => {
+  if (!horseId || !viewer) throw new Error('Sign in to access this horse.');
+  const horses = await fetchHorses(viewer);
+  if (!horses.some((horse) => horse.id === horseId)) {
+    throw new Error('You do not have access to this horse.');
+  }
+};
+
 export const fetchDetectionsForDay = async (
   horseId: string,
   dayStart: Date,
   dayEnd: Date,
+  viewer: HorseViewer | null = null,
 ): Promise<DetectionRecord[]> => {
+  await requireHorseAccess(horseId, viewer);
   const { data, error } = await supabase
     .from('detection')
     .select('id, horse_id, analysis, created_at')
@@ -142,7 +180,9 @@ export const fetchTemperaturesForDay = async (
   horseId: string,
   dayStart: Date,
   dayEnd: Date,
+  viewer: HorseViewer | null = null,
 ): Promise<TemperatureRecord[]> => {
+  await requireHorseAccess(horseId, viewer);
   const { data, error } = await supabase
     .from('temperatura')
     .select('id, horse_id, box_temperature, created_at')
@@ -211,32 +251,35 @@ export const fetchUserProfileByEmail = async (email: string): Promise<UserProfil
   };
 };
 
-export const fetchProfileStats = async (): Promise<ProfileStatsRecord> => {
+export const fetchProfileStats = async (viewer: HorseViewer | null = null): Promise<ProfileStatsRecord> => {
+  const horses = await fetchHorses(viewer);
+  const horseIds = horses.map((horse) => horse.id);
+  if (!horseIds.length) {
+    return { totalObservations: 0, totalHorses: 0, activeHorses: 0, averageTemperature: null, lastObservation: null };
+  }
   const [
     observationsResult,
-    horsesResult,
     temperaturesResult,
     latestObservationResult,
   ] = await Promise.all([
     supabase
       .from('images')
-      .select('id', { count: 'exact', head: true }),
-    supabase
-      .from('horses')
-      .select('id, is_active'),
+       .select('id', { count: 'exact', head: true })
+       .in('horse_id', horseIds),
     supabase
       .from('temperatura')
-      .select('box_temperature'),
+       .select('box_temperature')
+       .in('horse_id', horseIds),
     supabase
       .from('images')
       .select('created_at')
+       .in('horse_id', horseIds)
       .order('created_at', { ascending: false })
       .limit(1),
   ]);
 
   const firstError = [
     observationsResult.error,
-    horsesResult.error,
     temperaturesResult.error,
     latestObservationResult.error,
   ].find(Boolean);
@@ -251,8 +294,8 @@ export const fetchProfileStats = async (): Promise<ProfileStatsRecord> => {
 
   return {
     totalObservations: observationsResult.count || 0,
-    totalHorses: (horsesResult.data || []).length,
-    activeHorses: (horsesResult.data || []).filter((horse) => horse.is_active).length,
+    totalHorses: horses.length,
+    activeHorses: horses.filter((horse) => horse.is_active).length,
     averageTemperature: temperatures.length
       ? temperatures.reduce((sum, temperature) => sum + temperature, 0) / temperatures.length
       : null,

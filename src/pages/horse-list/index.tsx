@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../../components/ui/Header';
 import MobileNavigation from '../../components/ui/MobileNavigation';
@@ -6,23 +6,13 @@ import HorseCard from './components/HorseCard';
 import HorseCardSkeleton from './components/HorseCardSkeleton';
 import EmptyState from './components/EmptyState';
 import { Horse } from './types';
-import { fetchHorses, getImageUrl } from '../../utils/supabase';
+import { getImageUrl } from '../../utils/supabase';
+import { useAccessibleHorses } from '../../hooks/useAccessibleHorses';
 
 const HorseList: React.FC = () => {
   const navigate = useNavigate();
-  const [horses, setHorses] = useState<Horse[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [loadError, setLoadError] = useState('');
-
-  useEffect(() => {
-    let isMounted = true;
-
-    const loadHorses = async () => {
-      try {
-        const records = await fetchHorses();
-        if (!isMounted) return;
-
-        setHorses(records.map((horse) => {
+  const { horses: records, isLoading, error: loadError } = useAccessibleHorses();
+  const horses: Horse[] = records.map((horse) => {
           const details = [
             horse.breed,
             horse.color,
@@ -45,20 +35,7 @@ const HorseList: React.FC = () => {
             ownerName: horse.breed || 'Stable Eye',
             notes: details,
           };
-        }));
-      } catch (error) {
-        if (!isMounted) return;
-        setLoadError(error instanceof Error ? error.message : 'Unable to load horses');
-      } finally {
-        if (isMounted) setIsLoading(false);
-      }
-    };
-
-    loadHorses();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+  });
 
 
   const handleHorseClick = (horseId: string) => {
@@ -120,7 +97,7 @@ const HorseList: React.FC = () => {
             ) : (
               <EmptyState
                 message="No horses found"
-                description="No horses are currently registered in the system"
+                description="No horses are available for your account"
               />
             )}
           </div>

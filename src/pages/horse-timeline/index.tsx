@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Helmet } from 'react-helmet';
 import { format, formatDistanceToNow } from 'date-fns';
 import { useSearchParams } from 'react-router-dom';
@@ -7,7 +7,8 @@ import MobileNavigation from '../../components/ui/MobileNavigation';
 import Image from '../../components/AppImage';
 import Icon from '../../components/AppIcon';
 import { Observation, Horse } from './types';
-import { fetchHorseImages, fetchHorses, getImageUrl, HorseImage } from '../../utils/supabase';
+import { fetchHorseImages, getImageUrl, HorseImage } from '../../utils/supabase';
+import { useAccessibleHorses } from '../../hooks/useAccessibleHorses';
 
 const VIDEO_DURATION_SECONDS = 120;
 const VIDEO_DURATION_MS = VIDEO_DURATION_SECONDS * 1000;
@@ -39,8 +40,24 @@ const mapHorseImagesToObservations = (
 const HorseTimeline: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const requestedHorseId = searchParams.get('horseId') || '';
-  const [selectedHorseId, setSelectedHorseId] = useState<string>(requestedHorseId);
-  const [horses, setHorses] = useState<Horse[]>([]);
+  const [selectedHorseId, setSelectedHorseId] = useState<string>('');
+  const { horses: records, viewer, viewerKey, isLoading: isLoadingHorses, error: horseError } = useAccessibleHorses();
+  const videoRequestId = useRef(0);
+  const horses = useMemo<Horse[]>(() => records.map((horse) => {
+    const profilePhoto = horse.profile_photo_url?.trim();
+    return {
+      id: horse.id,
+      name: horse.name,
+      breed: horse.breed || 'Horse',
+      age: horse.age || 0,
+      owner: horse.owner_id || '',
+      lastObservation: new Date(horse.updated_at || horse.created_at),
+      profileImage: profilePhoto
+        ? (/^https?:\/\//i.test(profilePhoto) ? profilePhoto : getImageUrl(profilePhoto))
+        : '',
+      profileImageAlt: horse.name,
+    };
+  }), [records]);
   const [observations, setObservations] = useState<Observation[]>([]);
   const [videoObservations, setVideoObservations] = useState<Observation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -52,57 +69,32 @@ const HorseTimeline: React.FC = () => {
   const [videoProgress, setVideoProgress] = useState(0);
 
   useEffect(() => {
-    let isMounted = true;
-
-    const loadHorses = async () => {
-      try {
-        const records = await fetchHorses();
-        if (!isMounted) return;
-
-        const loadedHorses: Horse[] = records.map((horse) => {
-          const profilePhoto = horse.profile_photo_url?.trim();
-          return {
-            id: horse.id,
-            name: horse.name,
-            breed: horse.breed || 'Horse',
-            age: horse.age || 0,
-            owner: horse.owner_id || '',
-            lastObservation: new Date(horse.updated_at || horse.created_at),
-            profileImage: profilePhoto
-              ? (/^https?:\/\//i.test(profilePhoto) ? profilePhoto : getImageUrl(profilePhoto))
-              : '',
-            profileImageAlt: horse.name,
-          };
-        });
-
-        setHorses(loadedHorses);
-
-        const requestedExists = loadedHorses.some((horse) => horse.id === requestedHorseId);
-        const initialHorseId = requestedExists ? requestedHorseId : loadedHorses[0]?.id || '';
-        setSelectedHorseId(initialHorseId);
-        if (initialHorseId && initialHorseId !== requestedHorseId) {
-          setSearchParams({ horseId: initialHorseId }, { replace: true });
-        }
-      } catch (error) {
-        console.error('Error loading horses:', error);
-        setHorses([]);
-        setIsLoading(false);
-      }
-    };
-
-    loadHorses();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+    if (isLoadingHorses) {
+      setSelectedHorseId('');
+      return;
+    }
+    const requestedExists = horses.some((horse) => horse.id === requestedHorseId);
+    const initialHorseId = requestedExists ? requestedHorseId : horses[0]?.id || '';
+    setSelectedHorseId(initialHorseId);
+    if (initialHorseId !== requestedHorseId) {
+      setSearchParams(initialHorseId ? { horseId: initialHorseId } : {}, { replace: true });
+    }
+  }, [horses, isLoadingHorses, requestedHorseId, setSearchParams]);
 
   useEffect(() => {
+    let active = true;
+    const selectedHorse = horses.find((horse) => horse.id === selectedHorseId);
+    setObservations([]);
+    setSelectedObservation(null);
     const loadImages = async () => {
-      if (!selectedHorseId) return;
+      if (!viewer || !selectedHorse) {
+        setIsLoading(false);
+        return;
+      }
       setIsLoading(true);
       try {
-        const selectedHorse = horses.find((horse) => horse.id === selectedHorseId);
-        const images = await fetchHorseImages(PHOTO_LIMIT, selectedHorseId);
+        const images = await fetchHorseImages(PHOTO_LIMIT, selectedHorseId, viewer);
+        if (!active) return;
         
         const realObservations = mapHorseImagesToObservations(
           images,
@@ -113,15 +105,27 @@ const HorseTimeline: React.FC = () => {
         setObservations(realObservations);
         setSelectedObservation(realObservations[0] || null);
       } catch (error) {
+        if (!active) return;
         console.error('Error loading images:', error);
         setObservations([]);
         setSelectedObservation(null);
       }
-      setIsLoading(false);
+      if (active) setIsLoading(false);
     };
 
     loadImages();
-  }, [selectedHorseId, horses]);
+    return () => { active = false; };
+  }, [selectedHorseId, horses, viewerKey]);
+
+  useEffect(() => {
+    videoRequestId.current += 1;
+    setIsVideoModalOpen(false);
+    setIsVideoPlaying(false);
+    setIsLoadingVideo(false);
+    setVideoObservations([]);
+    setCurrentVideoFrame(0);
+    setVideoProgress(0);
+  }, [selectedHorseId, viewerKey]);
 
   // Video playback effect - 2 minutes total, divided by number of photos
   useEffect(() => {
@@ -169,6 +173,9 @@ const HorseTimeline: React.FC = () => {
   }, [isVideoModalOpen]);
 
   const handleGenerateVideo = async () => {
+    const selectedHorse = horses.find((horse) => horse.id === selectedHorseId);
+    if (!viewer || !selectedHorse || isLoadingHorses) return;
+    const requestId = ++videoRequestId.current;
     setIsVideoModalOpen(true);
     setCurrentVideoFrame(0);
     setVideoProgress(0);
@@ -177,8 +184,8 @@ const HorseTimeline: React.FC = () => {
     setIsLoadingVideo(true);
 
     try {
-      const selectedHorse = horses.find((horse) => horse.id === selectedHorseId);
-      const images = await fetchHorseImages(PHOTO_LIMIT, selectedHorseId);
+      const images = await fetchHorseImages(PHOTO_LIMIT, selectedHorseId, viewer);
+      if (requestId !== videoRequestId.current) return;
       setVideoObservations(
         mapHorseImagesToObservations(
           [...images].reverse(),
@@ -187,10 +194,11 @@ const HorseTimeline: React.FC = () => {
         ),
       );
     } catch (error) {
+      if (requestId !== videoRequestId.current) return;
       console.error('Error loading video photos:', error);
       setVideoObservations([]);
     } finally {
-      setIsLoadingVideo(false);
+      if (requestId === videoRequestId.current) setIsLoadingVideo(false);
     }
   };
 
@@ -202,6 +210,7 @@ const HorseTimeline: React.FC = () => {
   };
 
   const handleCloseVideo = () => {
+    videoRequestId.current += 1;
     setIsVideoModalOpen(false);
     setIsVideoPlaying(false);
     setCurrentVideoFrame(0);
@@ -209,7 +218,7 @@ const HorseTimeline: React.FC = () => {
   };
 
   const selectedHorse = horses.find(h => h.id === selectedHorseId);
-  const latestObservation = observations[0];
+  const latestObservation = selectedHorse ? observations.find((observation) => observation.horseId === selectedHorse.id) : undefined;
 
   return (
     <>
@@ -266,7 +275,7 @@ const HorseTimeline: React.FC = () => {
               ))}
             </div>
 
-            {isLoading ? (
+            {isLoadingHorses || isLoading ? (
               <div className="rounded-xl p-8 animate-pulse" style={{ backgroundColor: '#ffffff', border: '1px solid rgba(64,53,44,0.1)' }}>
                 <div className="aspect-video rounded-xl mb-6" style={{ backgroundColor: 'rgba(64,53,44,0.05)' }} />
                 <div className="h-6 rounded w-1/3 mb-4" style={{ backgroundColor: 'rgba(64,53,44,0.05)' }} />
@@ -390,8 +399,8 @@ const HorseTimeline: React.FC = () => {
             ) : (
               <div className="rounded-xl p-12 text-center" style={{ backgroundColor: '#ffffff', border: '1px solid rgba(64,53,44,0.1)' }}>
                 <Icon name="Camera" size={48} style={{ color: 'rgba(64,53,44,0.3)' }} className="mx-auto mb-4" />
-                <h3 className="text-xl font-bold mb-2" style={{ color: '#40352C', fontFamily: 'Syne, sans-serif' }}>No Photos Yet</h3>
-                <p style={{ color: 'rgba(64,53,44,0.5)' }}>Photos will appear here once monitoring begins</p>
+                <h3 className="text-xl font-bold mb-2" style={{ color: '#40352C', fontFamily: 'Syne, sans-serif' }}>{horseError ? 'Unable to load horses' : horses.length ? 'No Photos Yet' : 'No Horses Available'}</h3>
+                <p style={{ color: 'rgba(64,53,44,0.5)' }}>{horseError || (horses.length ? 'Photos will appear here once monitoring begins' : 'No horses are assigned to your account')}</p>
               </div>
             )}
           </div>
@@ -400,7 +409,7 @@ const HorseTimeline: React.FC = () => {
         <MobileNavigation />
 
         {/* Video Modal */}
-        {isVideoModalOpen && (
+        {isVideoModalOpen && selectedHorse && !isLoadingHorses && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl">
             <div className="relative w-full max-w-4xl">
               {/* Close Button */}
