@@ -7,9 +7,14 @@ The user requires: “el rol owner debe solo poder ver a su caballo.”
 Horse owners must only see their assigned horses, including Horse List,
 Timeline selectors, photos, video, and direct links to horse data.
 
+The user also explicitly requires: “quiero que el rol admin pueda ver todos los caballos.”
+Admin visibility must remain unrestricted by horse ownership, including
+horses assigned to other owners and horses without an owner.
+
 **Why:** The user changed the former shared-list requirement after finding that
 an owner could see other users' horses. The previous all-authenticated-users
-visibility rule is superseded.
+visibility rule is superseded. The user explicitly confirmed that admins
+must still see all horses.
 
 **How to apply:** Honor the horse's stored owner association throughout the
 app, not merely by hiding cards. Preserve other roles' existing access unless
