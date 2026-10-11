@@ -1,9 +1,24 @@
 import React from 'react';
-import * as LucideIcons from 'lucide-react';
-import { HelpCircle, LucideProps } from 'lucide-react';
+import {
+    Activity, AlertCircle, AlertTriangle, ArrowLeft, ArrowRight, Award, Baby, BarChart3, Battery, Bell, Building,
+    Calendar, Camera, Check, CheckCircle, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Clock,
+    CreditCard, Crown, DollarSign, Download, Droplet, Edit, Eye, FileText, Globe, Headphones, Heart, HelpCircle,
+    Home, Info, Lightbulb, Lock, LogOut, Mail, Moon, MoreVertical, Package, Plane, Play, Plus, RotateCcw, Search,
+    Send, Share2, Shield, Smartphone, Stethoscope, Thermometer, Trash2, TrendingDown, TrendingUp, User, UserCheck,
+    UserPlus, Users, Video, Wind, Wrench, X, Zap, type LucideProps
+} from 'lucide-react';
+
+const iconMap: Record<string, React.ComponentType<LucideProps>> = {
+    Activity, AlertCircle, AlertTriangle, ArrowLeft, ArrowRight, Award, Baby, BarChart3, Battery, Bell, Building,
+    Calendar, Camera, Check, CheckCircle, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Clock,
+    CreditCard, Crown, DollarSign, Download, Droplet, Edit, Eye, FileText, Globe, Headphones, Heart, Home, Info,
+    Lightbulb, Lock, LogOut, Mail, Moon, MoreVertical, Package, Plane, Play, Plus, RotateCcw, Search, Send, Share2,
+    Shield, Smartphone, Stethoscope, Thermometer, Trash2, TrendingDown, TrendingUp, User, UserCheck, UserPlus, Users,
+    Video, Wind, Wrench, X, Zap,
+};
 
 interface IconProps extends Omit<LucideProps, 'size'> {
-    name: string | keyof typeof LucideIcons;
+    name: string;
     size?: number;
     color?: string;
     className?: string;
@@ -18,9 +33,8 @@ function Icon({
     strokeWidth = 2,
     ...props
 }: IconProps) {
-    const formattedName = typeof name === 'string' ? name.split('-').map(part => part.charAt(0).toUpperCase() + part.slice(1)).join('')
-        : name;
-    const IconComponent = LucideIcons[formattedName as keyof typeof LucideIcons] as React.ComponentType<LucideProps>;
+    const formattedName = name.split('-').map(part => part.charAt(0).toUpperCase() + part.slice(1)).join('');
+    const IconComponent = iconMap[formattedName];
 
     if (!IconComponent) {
         return (

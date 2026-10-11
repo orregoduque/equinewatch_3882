@@ -11,16 +11,6 @@ export default defineConfig({
     sourcemap: false,
     minify: 'esbuild',
     target: 'esnext',
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-          'vendor-ui': ['framer-motion', 'lucide-react'],
-          'vendor-charts': ['recharts', 'd3'],
-          'vendor-utils': ['date-fns', 'axios', 'jspdf'],
-        }
-      }
-    }
   },
   plugins: [tsconfigPaths(), react(), tagger()],
   server: {

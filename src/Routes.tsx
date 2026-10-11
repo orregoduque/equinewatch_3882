@@ -2,8 +2,8 @@ import React, { Suspense, lazy } from "react";
 import { BrowserRouter, Routes as RouterRoutes, Route } from "react-router-dom";
 import ScrollToTop from "components/ScrollToTop";
 import ErrorBoundary from "components/ErrorBoundary";
-import NotFound from "pages/NotFound";
 
+const NotFound = lazy(() => import('./pages/NotFound'));
 const Landing = lazy(() => import('./pages/landing'));
 const Login = lazy(() => import('./pages/login'));
 const Contact = lazy(() => import('./pages/contact'));
