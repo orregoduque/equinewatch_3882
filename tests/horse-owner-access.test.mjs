@@ -17,7 +17,7 @@ const compiled = ts.transpileModule(readFileSync('src/utils/supabase.ts', 'utf8'
   compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
 }).outputText;
 
-function fixture({ horseRows = horses, profileId = OWNER_ID } = {}) {
+function fixture({ horseRows = horses, profileId = OWNER_ID, horseFailures = 0 } = {}) {
   const executed = [];
   const rows = {
     horses: horseRows,
@@ -51,6 +51,10 @@ function fixture({ horseRows = horses, profileId = OWNER_ID } = {}) {
         lt() { return this; },
         then(resolve, reject) {
           executed.push({ table, filters });
+          if (table === 'horses' && horseFailures > 0) {
+            horseFailures -= 1;
+            return Promise.resolve({ data: null, error: { message: 'Temporary horse lookup failure' } }).then(resolve, reject);
+          }
           const data = (rows[table] || []).filter(row =>
             filters.every(([column, values]) => values.includes(row[column])));
           return Promise.resolve({
@@ -132,4 +136,52 @@ test('profile statistics count only the owner horses and their data', async () =
   assert.equal(stats.totalObservations, 2);
   assert.equal(stats.averageTemperature, 20);
   assert.equal(stats.lastObservation, '2026-10-02T12:00:00Z');
+});
+
+test('parallel Insights requests share a fresh authorization lookup', async () => {
+  const { api, executed } = fixture();
+  const start = new Date('2026-10-02'), end = new Date('2026-10-03');
+  const [detections, temperatures] = await Promise.all([
+    api.fetchDetectionsForDay('owned-horse', start, end, owner),
+    api.fetchTemperaturesForDay('owned-horse', start, end, owner),
+  ]);
+  assert.equal(detections.length, 1);
+  assert.equal(temperatures.length, 1);
+  assert.equal(executed.filter(query => query.table === 'horses').length, 1);
+  assert.equal(executed.filter(query => query.table === 'user_profiles').length, 1);
+});
+
+test('resolved horse assignments are not cached for subsequent requests', async () => {
+  const { api, executed } = fixture();
+  await api.fetchHorses(owner);
+  await api.fetchHorses(owner);
+  assert.equal(executed.filter(query => query.table === 'horses').length, 2);
+});
+
+test('simultaneous owner and admin requests never share their scope', async () => {
+  const { api, executed } = fixture();
+  const [ownerHorses, adminHorses] = await Promise.all([
+    api.fetchHorses(owner), api.fetchHorses({ ...owner, role: 'admin' }),
+  ]);
+  assert.equal(ownerHorses.length, 1);
+  assert.equal(adminHorses.length, 3);
+  assert.equal(executed.filter(query => query.table === 'horses').length, 2);
+});
+
+test('simultaneous different owners only receive their own horses', async () => {
+  const { api } = fixture();
+  const [first, second] = await Promise.all([
+    api.fetchHorses(owner),
+    api.fetchHorses({ ...owner, id: OTHER_OWNER_ID, email: 'other@example.test' }),
+  ]);
+  assert.deepEqual(first.map(horse => horse.id), ['owned-horse']);
+  assert.deepEqual(second.map(horse => horse.id), ['other-horse']);
+});
+
+test('a failed shared lookup is removed so the next attempt can recover', async () => {
+  const { api, executed } = fixture({ horseFailures: 1 });
+  const failures = await Promise.allSettled([api.fetchHorses(owner), api.fetchHorses(owner)]);
+  assert(failures.every(result => result.status === 'rejected'));
+  assert.equal((await api.fetchHorses(owner)).length, 1);
+  assert.equal(executed.filter(query => query.table === 'horses').length, 2);
 });

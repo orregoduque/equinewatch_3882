@@ -2,3 +2,4 @@
 - [Horse visibility](horse-visibility.md) — owners must only see their assigned horses; the earlier shared-list requirement was superseded.
 - [Stored photo display](original-photo-display.md) — use the existing Supabase enhanced variant; do not add new image-processing effects.
 - [GitHub authentication](github-authentication.md) — native Git and the GitHub App connection authenticate separately; check the working connection before requesting reauthorization.
+- [Startup performance](startup-performance.md) — lazy routes can still pull heavy dependencies into startup through global helpers or forced shared chunks.

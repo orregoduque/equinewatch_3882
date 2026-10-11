@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Helmet } from 'react-helmet';
-import { jsPDF } from 'jspdf';
 import { useSearchParams } from 'react-router-dom';
 import Header from '../../components/ui/Header';
 import MobileNavigation from '../../components/ui/MobileNavigation';
@@ -25,7 +24,11 @@ const DailySummary: React.FC = () => {
   const [selectedHorseId, setSelectedHorseId] = useState('');
   const [behaviorError, setBehaviorError] = useState('');
   const [temperatureError, setTemperatureError] = useState('');
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportError, setExportError] = useState('');
   const selectedHorse = horses.find((horse) => horse.id === selectedHorseId);
+  const exportScope = useRef('');
+  exportScope.current = JSON.stringify([viewerKey, selectedHorseId, selectedDate.toISOString()]);
 
   useEffect(() => {
     if (isLoadingHorses) {
@@ -102,10 +105,17 @@ const DailySummary: React.FC = () => {
       let detectionCount = 0;
       let temperatureTrends: TemperatureTrend[] = [];
 
+      setBehaviorError('');
+      setTemperatureError('');
+      const [detectionsResult, temperaturesResult] = await Promise.allSettled([
+        fetchDetectionsForDay(selectedHorseId, dayStart, dayEnd, viewer),
+        fetchTemperaturesForDay(selectedHorseId, dayStart, dayEnd, viewer),
+      ]);
+      if (!isMounted) return;
+
       try {
-        setBehaviorError('');
-        const detections = await fetchDetectionsForDay(selectedHorseId, dayStart, dayEnd, viewer);
-        if (!isMounted) return;
+        if (detectionsResult.status === 'rejected') throw detectionsResult.reason;
+        const detections = detectionsResult.value;
         detectionCount = detections.length;
         const counts = Object.fromEntries(behaviorDefinitions.map(({ type }) => [type, 0]));
 
@@ -134,9 +144,8 @@ const DailySummary: React.FC = () => {
       }
 
       try {
-        setTemperatureError('');
-        const temperatureRecords = await fetchTemperaturesForDay(selectedHorseId, dayStart, dayEnd, viewer);
-        if (!isMounted) return;
+        if (temperaturesResult.status === 'rejected') throw temperaturesResult.reason;
+        const temperatureRecords = temperaturesResult.value;
         temperatureTrends = temperatureRecords.map((record) => {
           const recordedAt = new Date(record.created_at);
           const temperature = record.temperature;
@@ -201,8 +210,7 @@ const DailySummary: React.FC = () => {
     setSelectedDate(newDate);
   };
 
-  const generatePDFReport = () => {
-    const doc = new jsPDF();
+  const writePDFReport = (doc: import('jspdf').jsPDF) => {
     const pageWidth = doc.internal.pageSize.getWidth();
     
     // Header
@@ -353,6 +361,25 @@ const DailySummary: React.FC = () => {
     doc.save(`StableEye_Horse_Report_${reportHorseName}_${new Date().toISOString().split('T')[0]}.pdf`);
   };
 
+  const generatePDFReport = async () => {
+    if (isExporting || isLoading || isLoadingHorses || !selectedHorse || !summaryData) return;
+    const scope = exportScope.current;
+    setIsExporting(true);
+    setExportError('');
+    try {
+      const { jsPDF } = await import('jspdf');
+      // Skip a stale report if the account, horse or date changes while loading.
+      if (scope !== exportScope.current) return;
+      writePDFReport(new jsPDF());
+    } catch (error) {
+      if (scope === exportScope.current) {
+        setExportError(error instanceof Error ? error.message : 'Unable to export the report. Please try again.');
+      }
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   return (
     <>
       <Helmet>
@@ -402,13 +429,16 @@ const DailySummary: React.FC = () => {
                 </select>
                 <button
                   onClick={generatePDFReport}
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl text-white font-semibold text-sm transition-all duration-300 hover:opacity-80"
+                  disabled={isExporting || isLoadingHorses || isLoading || !selectedHorse || !summaryData}
+                  aria-busy={isExporting}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl text-white font-semibold text-sm transition-all duration-300 hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed"
                   style={{ backgroundColor: '#40352C' }}
                 >
                   <Icon name="FileText" size={16} />
-                  Export Health Report
+                  {isExporting ? 'Preparing report…' : 'Export Health Report'}
                 </button>
               </div>
+              {exportError && <p role="alert" className="mt-3 text-sm text-red-600">{exportError}</p>}
             </div>
 
             {isLoadingHorses || isLoading ? (

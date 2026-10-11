@@ -25,7 +25,16 @@
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
 
   <!-- Preload hero image so it renders immediately -->
-  <link rel="preload" href="/hero-horse.webp" as="image" type="image/webp" />
+  <script>
+    if (window.location.pathname === '/') {
+      const heroPreload = document.createElement('link');
+      heroPreload.rel = 'preload';
+      heroPreload.href = '/hero-horse.webp';
+      heroPreload.as = 'image';
+      heroPreload.type = 'image/webp';
+      document.head.appendChild(heroPreload);
+    }
+  </script>
   
   <link rel="icon" href="/favicon.ico" />
   <link rel="apple-touch-icon" sizes="180x180" href="/icons/stable-eye-touch-2026.png" />

@@ -119,10 +119,23 @@ export const fetchHorseImages = async (
   }
 };
 
-export const fetchHorses = async (viewer: HorseViewer | null = null): Promise<SupabaseHorse[]> => {
-  if (!viewer) return [];
-  if (!isHorseOwner(viewer) && !['admin', 'stable_owner'].includes(viewer.role)) return [];
+const pendingHorseRequests = new Map<string, Promise<SupabaseHorse[]>>();
 
+export const fetchHorses = (viewer: HorseViewer | null = null): Promise<SupabaseHorse[]> => {
+  if (!viewer) return Promise.resolve([]);
+  if (!isHorseOwner(viewer) && !['admin', 'stable_owner'].includes(viewer.role)) return Promise.resolve([]);
+
+  // Share only simultaneous requests for this account and role. Never retain
+  // resolved authorization data: subsequent requests must see fresh assignments.
+  const key = JSON.stringify([viewer.id, viewer.email, viewer.role]);
+  const pending = pendingHorseRequests.get(key);
+  if (pending) return pending;
+  const request = loadHorses(viewer).finally(() => pendingHorseRequests.delete(key));
+  pendingHorseRequests.set(key, request);
+  return request;
+};
+
+const loadHorses = async (viewer: HorseViewer): Promise<SupabaseHorse[]> => {
   let query = supabase
     .from('horses')
     .select('id, name, breed, profile_photo_url, owner_id, age, gender, color, is_active, created_at, updated_at')

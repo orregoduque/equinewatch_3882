@@ -104,8 +104,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
-    await new Promise((resolve) => setTimeout(resolve, 800));
-
     const normalizedEmail = email.trim().toLowerCase();
 
     // 1. Check hardcoded demo users
