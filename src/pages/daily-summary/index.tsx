@@ -9,13 +9,13 @@ import TemperatureTrendChart from './components/TemperatureTrendChart';
 import DetectionSummaryCard from './components/DetectionSummaryCard';
 import LoadingSkeleton from './components/LoadingSkeleton';
 import Icon from '../../components/AppIcon';
-import { DailyPhotoDetection, DailySummaryData, TemperatureTrend, TimeDistribution } from './types';
+import { DailySummaryData, TemperatureTrend, TimeDistribution } from './types';
 import { fetchDetectionsForDay, fetchTemperaturesForDay } from '../../utils/supabase';
 import { useAccessibleHorses } from '../../hooks/useAccessibleHorses';
 import {
+  formatDetectionDuration,
   formatDetectionPercentage,
-  formatDetectionTime,
-  parseDetectionAnalysis,
+  summarizeDetectionAnalyses,
 } from './detectionAnalysis';
 
 const DailySummary: React.FC = () => {
@@ -64,7 +64,7 @@ const DailySummary: React.FC = () => {
       const dayEnd = new Date(dayStart);
       dayEnd.setDate(dayEnd.getDate() + 1);
 
-      let photoDetections: DailyPhotoDetection[] = [];
+      let detectionSummary = summarizeDetectionAnalyses([]);
       const hourlyCounts = new Array(24).fill(0);
       let temperatureTrends: TemperatureTrend[] = [];
 
@@ -78,17 +78,13 @@ const DailySummary: React.FC = () => {
 
       try {
         if (detectionsResult.status === 'rejected') throw detectionsResult.reason;
-        photoDetections = detectionsResult.value.map((record) => {
+        detectionsResult.value.forEach((record) => {
           const recordedAt = new Date(record.created_at);
           if (!Number.isNaN(recordedAt.getTime())) {
             hourlyCounts[recordedAt.getHours()] += 1;
           }
-          return {
-            id: String(record.id),
-            createdAt: record.created_at,
-            analysis: parseDetectionAnalysis(record.analysis),
-          };
-        }).sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
+        });
+        detectionSummary = summarizeDetectionAnalyses(detectionsResult.value.map(record => record.analysis));
       } catch (error) {
         if (!isMounted) return;
         console.error('Error loading photo detections:', error);
@@ -130,7 +126,7 @@ const DailySummary: React.FC = () => {
         date: selectedDate,
         timeDistribution,
         temperatureTrends,
-        photoDetections,
+        detectionSummary,
       };
 
       if (isMounted) {
@@ -150,6 +146,9 @@ const DailySummary: React.FC = () => {
   };
 
   const writePDFReport = (doc: import('jspdf').jsPDF) => {
+    if (!summaryData || !selectedHorse || detectionError) {
+      throw new Error('No hay datos disponibles para generar el informe.');
+    }
     const pageWidth = doc.internal.pageSize.getWidth();
     
     // Header
@@ -194,7 +193,7 @@ const DailySummary: React.FC = () => {
       doc.setTextColor(100, 100, 100);
       doc.text(label, 20, yPos);
       doc.setTextColor(40, 40, 40);
-      doc.text(value, 80, yPos);
+      doc.text(value, 100, yPos);
       yPos += 8;
     });
     
@@ -211,71 +210,37 @@ const DailySummary: React.FC = () => {
     yPos += 10;
     
     doc.setFontSize(11);
-    const detectionCount = summaryData.photoDetections.filter(({ analysis }) => analysis.outcome === 'detected').length;
-    const noDetectionCount = summaryData.photoDetections.filter(({ analysis }) => analysis.outcome === 'not_detected').length;
-    const unreadableCount = summaryData.photoDetections.filter(({ analysis }) => analysis.outcome === 'unknown').length;
-    const confidenceValues = summaryData.photoDetections
-      .filter(({ analysis }) => analysis.outcome === 'detected' && analysis.confidence !== null)
-      .map(({ analysis }) => analysis.confidence as number);
-    const averageConfidence = confidenceValues.length
-      ? confidenceValues.reduce((total, confidence) => total + confidence, 0) / confidenceValues.length
-      : null;
+    const analysisSummary = summaryData.detectionSummary;
     const detectionStats: [string, string][] = [
-      ['Fotos analizadas:', String(summaryData.photoDetections.length)],
-      ['El modelo detectó al caballo:', String(detectionCount)],
-      ['El modelo no informó detección:', String(noDetectionCount)],
-      ['Resultados no interpretados:', String(unreadableCount)],
-      ['Confianza media de las detecciones:', averageConfidence === null ? 'No disponible' : formatDetectionPercentage(averageConfidence)],
+      ['Tiempo estimado en la pesebrera:', analysisSummary.detectedPhotos + analysisSummary.notDetectedPhotos > 0
+        ? formatDetectionDuration(analysisSummary.estimatedPresenceSeconds)
+        : 'No disponible'],
+      ['Tiempo analizado:', formatDetectionDuration(analysisSummary.analyzedSeconds)],
+      ['Fotos analizadas:', String(analysisSummary.totalPhotos)],
+      ['Fotos con detección:', String(analysisSummary.detectedPhotos)],
+      ['Fotos sin detección:', String(analysisSummary.notDetectedPhotos)],
+      ['Resultados no interpretados:', String(analysisSummary.unknownPhotos)],
+      ['Confianza media:', analysisSummary.averageConfidence === null ? 'No disponible' : formatDetectionPercentage(analysisSummary.averageConfidence)],
+      ['Intervalo entre fotos:', '10 segundos'],
+      ['Modelos:', analysisSummary.models.join(', ') || 'No registrados'],
     ];
 
     detectionStats.forEach(([label, value]) => {
-      doc.setTextColor(100, 100, 100);
-      doc.text(label, 20, yPos);
-      doc.setTextColor(40, 40, 40);
-      doc.text(value, 80, yPos);
-      yPos += 8;
-    });
-    
-    yPos += 10;
-    
-    // Detailed results for each analyzed photo.
-    doc.setTextColor(201, 169, 98);
-    doc.setFontSize(16);
-    doc.text('Resultado de cada foto', 20, yPos);
-    yPos += 10;
-    
-    doc.setDrawColor(201, 169, 98);
-    doc.line(20, yPos, pageWidth - 20, yPos);
-    yPos += 10;
-    
-    doc.setFontSize(11);
-    summaryData.photoDetections.forEach(({ createdAt, analysis }) => {
-      const resultLabel = analysis.outcome === 'detected'
-        ? 'Caballo detectado'
-        : analysis.outcome === 'not_detected'
-          ? 'Sin detección del caballo'
-          : 'Resultado no interpretado';
-      const details = [
-        resultLabel,
-        formatDetectionTime(createdAt),
-        analysis.confidence !== null ? `Confianza: ${formatDetectionPercentage(analysis.confidence)}` : '',
-        analysis.threshold !== null ? `Umbral: ${formatDetectionPercentage(analysis.threshold)}` : '',
-        analysis.model ? `Modelo: ${analysis.model}` : '',
-        analysis.outcome === 'unknown' && analysis.rawText ? `Texto original: ${analysis.rawText.slice(0, 250)}` : '',
-      ].filter(Boolean).join(' | ');
-      const lines = doc.splitTextToSize(details, pageWidth - 40);
-      const lineHeight = 6;
-      if (yPos + lines.length * lineHeight > 270) {
+      const valueLines = doc.splitTextToSize(value, pageWidth - 120);
+      const height = Math.max(8, valueLines.length * 6);
+      if (yPos + height > 260) {
         doc.addPage();
         yPos = 20;
       }
+      doc.setTextColor(100, 100, 100);
+      doc.text(label, 20, yPos);
       doc.setTextColor(40, 40, 40);
-      doc.text(lines, 20, yPos);
-      yPos += lines.length * lineHeight + 2;
+      doc.text(valueLines, 100, yPos);
+      yPos += height;
     });
 
     yPos += 7;
-    const disclaimer = 'Este informe resume resultados automáticos de detección en fotos; no constituye un diagnóstico veterinario.';
+    const disclaimer = 'El tiempo estimado suma 10 segundos por cada foto con detección positiva. No se cuentan periodos sin fotos ni se confirma ausencia a partir de una no detección. Los resultados del modelo no son un diagnóstico veterinario.';
     const disclaimerLines = doc.splitTextToSize(disclaimer, pageWidth - 40);
     if (yPos + disclaimerLines.length * 6 > 270) {
       doc.addPage();
@@ -291,7 +256,7 @@ const DailySummary: React.FC = () => {
   };
 
   const generatePDFReport = async () => {
-    if (isExporting || isLoading || isLoadingHorses || !selectedHorse || !summaryData) return;
+    if (isExporting || isLoading || isLoadingHorses || !selectedHorse || !summaryData || detectionError) return;
     const scope = exportScope.current;
     setIsExporting(true);
     setExportError('');
@@ -354,7 +319,7 @@ const DailySummary: React.FC = () => {
                 </select>
                 <button
                   onClick={generatePDFReport}
-                  disabled={isExporting || isLoadingHorses || isLoading || !selectedHorse || !summaryData}
+                  disabled={isExporting || isLoadingHorses || isLoading || !selectedHorse || !summaryData || !!detectionError}
                   aria-busy={isExporting}
                   className="flex items-center gap-2 px-4 py-2 rounded-xl text-white font-semibold text-sm transition-all duration-300 hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed"
                   style={{ backgroundColor: '#40352C' }}
@@ -372,10 +337,10 @@ const DailySummary: React.FC = () => {
               <div className="space-y-6 animate-slide-up">
                 <DateSelector selectedDate={selectedDate} onDateChange={handleDateChange} />
 
-                <DetectionSummaryCard detections={summaryData.photoDetections} error={detectionError} />
+                <DetectionSummaryCard summary={summaryData.detectionSummary} error={detectionError} />
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <TimeDistributionChart data={summaryData.timeDistribution} />
+                  {!detectionError && <TimeDistributionChart data={summaryData.timeDistribution} />}
                   <TemperatureTrendChart data={summaryData.temperatureTrends} error={temperatureError} />
                 </div>
               </div>

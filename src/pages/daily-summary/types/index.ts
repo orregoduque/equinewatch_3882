@@ -67,11 +67,5 @@ export interface DailySummaryData {
   date: Date;
   timeDistribution: TimeDistribution[];
   temperatureTrends: TemperatureTrend[];
-  photoDetections: DailyPhotoDetection[];
-}
-
-export interface DailyPhotoDetection {
-  id: string;
-  createdAt: string;
-  analysis: import('../detectionAnalysis').ParsedDetectionAnalysis;
+  detectionSummary: import('../detectionAnalysis').DetectionSummary;
 }

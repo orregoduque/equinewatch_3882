@@ -10,9 +10,10 @@ const compiled = ts.transpileModule(
 ).outputText;
 const api = {};
 vm.runInNewContext(compiled, { exports: api, Intl, Date, Number });
+const parse = value => JSON.parse(JSON.stringify(api.parseDetectionAnalysis(value)));
 
 test('parses the recorded positive detection and decimal-comma confidence', () => {
-  assert.deepEqual(api.parseDetectionAnalysis(
+  assert.deepEqual(parse(
     'Caballo detectado. Confianza: 78,3 %. Modelo: Encantador YOLO26n.',
   ), {
     outcome: 'detected',
@@ -24,7 +25,7 @@ test('parses the recorded positive detection and decimal-comma confidence', () =
 });
 
 test('parses no-detection status, threshold and model without claiming certainty', () => {
-  assert.deepEqual(api.parseDetectionAnalysis(
+  assert.deepEqual(parse(
     'Caballo no detectado (umbral: 35 %). Modelo: Encantador YOLO26n.',
   ), {
     outcome: 'not_detected',
@@ -52,9 +53,43 @@ test('ignores malformed confidence and threshold percentages', () => {
   assert.equal(result.threshold, null);
 });
 
-test('formats localized confidence and photo timestamps', () => {
+test('formats localized confidence and readable hours, minutes and seconds', () => {
   assert.equal(api.formatDetectionPercentage(78.3), '78,3 %');
-  assert.equal(api.formatDetectionTime('2026-10-13T10:05:00Z'), new Date('2026-10-13T10:05:00Z')
-    .toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }));
-  assert.equal(api.formatDetectionTime('bad date'), 'Hora no disponible');
+  assert.equal(api.formatDetectionDuration(0), '0 s');
+  assert.equal(api.formatDetectionDuration(10), '10 s');
+  assert.equal(api.formatDetectionDuration(60), '1 min 0 s');
+  assert.equal(api.formatDetectionDuration(3660), '1 h 1 min 0 s');
+});
+
+test('each positive photo adds 10 seconds, without adding missing or unknown periods', () => {
+  const summary = api.summarizeDetectionAnalyses([
+    'Caballo detectado. Confianza: 78,3 %. Modelo: Encantador YOLO26n.',
+    'Caballo detectado. Confianza: 80,1 %. Modelo: Encantador YOLO26n.',
+    'Caballo no detectado (umbral: 35 %). Modelo: Encantador YOLO26n.',
+    null,
+  ]);
+  assert.equal(summary.totalPhotos, 4);
+  assert.equal(summary.detectedPhotos, 2);
+  assert.equal(summary.notDetectedPhotos, 1);
+  assert.equal(summary.unknownPhotos, 1);
+  assert.equal(summary.estimatedPresenceSeconds, 20);
+  assert.equal(summary.analyzedSeconds, 40);
+  assert(Math.abs(summary.averageConfidence - 79.2) < 0.00001);
+  assert.deepEqual(Array.from(summary.models), ['Encantador YOLO26n']);
+  assert.deepEqual(Array.from(summary.thresholds), [35]);
+});
+
+test('a full day with a photo every 10 seconds counts as 24 hours of analyzed time', () => {
+  const summary = api.summarizeDetectionAnalyses(new Array(8640).fill('Caballo detectado.'));
+  assert.equal(summary.estimatedPresenceSeconds, 86400);
+  assert.equal(api.formatDetectionDuration(summary.analyzedSeconds), '24 h 0 min 0 s');
+});
+
+test('no photos or only unknown analyses do not fabricate a confidence or a detection', () => {
+  for (const values of [[], [null, 'Otro formato']]) {
+    const summary = api.summarizeDetectionAnalyses(values);
+    assert.equal(summary.averageConfidence, null);
+    assert.equal(summary.detectedPhotos, 0);
+    assert.equal(summary.estimatedPresenceSeconds, 0);
+  }
 });

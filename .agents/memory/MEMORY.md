@@ -3,3 +3,4 @@
 - [Stored photo display](original-photo-display.md) — use the existing Supabase enhanced variant; do not add new image-processing effects.
 - [GitHub authentication](github-authentication.md) — native Git and the GitHub App connection authenticate separately; check the working connection before requesting reauthorization.
 - [Startup performance](startup-performance.md) — lazy routes can still pull heavy dependencies into startup through global helpers or forced shared chunks.
+- [Daily detection summary](daily-detection-summary.md) — summary-only view; the user's photo cadence is 10 seconds, and detector-based presence is an estimate.

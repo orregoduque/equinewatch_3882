@@ -1,26 +1,23 @@
 import React from 'react';
 import Icon from '../../../components/AppIcon';
 import {
+  DetectionSummary,
+  formatDetectionDuration,
   formatDetectionPercentage,
-  formatDetectionTime,
 } from '../detectionAnalysis';
-import { DailyPhotoDetection } from '../types';
 
 interface DetectionSummaryCardProps {
-  detections: DailyPhotoDetection[];
+  summary: DetectionSummary;
   error?: string;
 }
 
-const DetectionSummaryCard: React.FC<DetectionSummaryCardProps> = ({ detections, error }) => {
-  const detectedCount = detections.filter(({ analysis }) => analysis.outcome === 'detected').length;
-  const notDetectedCount = detections.filter(({ analysis }) => analysis.outcome === 'not_detected').length;
-  const unreadableCount = detections.filter(({ analysis }) => analysis.outcome === 'unknown').length;
-  const confidenceValues = detections
-    .filter(({ analysis }) => analysis.outcome === 'detected' && analysis.confidence !== null)
-    .map(({ analysis }) => analysis.confidence as number);
-  const averageConfidence = confidenceValues.length
-    ? confidenceValues.reduce((total, confidence) => total + confidence, 0) / confidenceValues.length
-    : null;
+const DetectionSummaryCard: React.FC<DetectionSummaryCardProps> = ({ summary, error }) => {
+  const {
+    detectedPhotos: detectedCount,
+    notDetectedPhotos: notDetectedCount,
+    unknownPhotos: unreadableCount,
+    averageConfidence,
+  } = summary;
 
   return (
     <section
@@ -43,7 +40,7 @@ const DetectionSummaryCard: React.FC<DetectionSummaryCardProps> = ({ detections,
           </div>
         </div>
         <span className="text-sm" style={{ color: 'rgba(64,53,44,0.55)' }}>
-          {detections.length} {detections.length === 1 ? 'foto analizada' : 'fotos analizadas'}
+          {error ? 'Análisis no disponibles' : <>{summary.totalPhotos} {summary.totalPhotos === 1 ? 'foto analizada' : 'fotos analizadas'}</>}
         </span>
       </div>
 
@@ -53,18 +50,32 @@ const DetectionSummaryCard: React.FC<DetectionSummaryCardProps> = ({ detections,
         </div>
       )}
 
-      {detections.length > 0 ? (
+      {summary.totalPhotos > 0 ? (
         <>
+          <div className="mb-5 rounded-xl p-4 sm:p-5" style={{ backgroundColor: 'rgba(74,157,107,0.08)', border: '1px solid rgba(74,157,107,0.2)' }}>
+            <p className="text-sm font-medium" style={{ color: '#32734a' }}>Tiempo estimado en la pesebrera</p>
+            <p className="mt-1 text-3xl font-bold" style={{ color: '#32734a', fontFamily: 'Syne, sans-serif' }}>
+              {detectedCount + notDetectedCount > 0
+                ? formatDetectionDuration(summary.estimatedPresenceSeconds)
+                : 'No disponible'}
+            </p>
+            <p className="mt-2 text-sm" style={{ color: 'rgba(64,53,44,0.7)' }}>
+              {detectedCount} fotos con detección × 10 segundos por foto.
+              {' '}Tiempo analizado: <strong>{formatDetectionDuration(summary.analyzedSeconds)}</strong>.
+            </p>
+          </div>
           <p className="mb-5 rounded-lg px-4 py-3 text-sm" style={{ color: '#40352C', backgroundColor: '#F8F6F2' }}>
-            El modelo señaló al caballo en <strong>{detectedCount}</strong> de{' '}
-            <strong>{detectedCount + notDetectedCount}</strong> análisis interpretables.
+            {detectedCount + notDetectedCount > 0
+              ? <>El modelo señaló al caballo en <strong>{detectedCount}</strong> de{' '}
+                <strong>{detectedCount + notDetectedCount}</strong> análisis interpretables.</>
+              : <>Los registros del día no contienen un resultado que se pueda interpretar.</>}
             {unreadableCount > 0 && <> Hay {unreadableCount} {unreadableCount === 1 ? 'resultado que no se pudo interpretar' : 'resultados que no se pudieron interpretar'}.</>}
             {' '}Un resultado sin detección no confirma que el caballo estuviera ausente.
           </p>
 
           <dl className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
             {[
-              { label: 'Fotos analizadas', value: detections.length, color: '#40352C' },
+              { label: 'Fotos analizadas', value: summary.totalPhotos, color: '#40352C' },
               { label: 'Detecciones', value: detectedCount, color: '#4a9d6b' },
               { label: 'Sin detección', value: notDetectedCount, color: '#6b8e9f' },
               {
@@ -79,50 +90,21 @@ const DetectionSummaryCard: React.FC<DetectionSummaryCardProps> = ({ detections,
               </div>
             ))}
           </dl>
+          {averageConfidence !== null && (
+            <p className="-mt-3 mb-5 text-xs" style={{ color: 'rgba(64,53,44,0.55)' }}>
+              La confianza media considera solo las detecciones que incluyen ese dato.
+            </p>
+          )}
 
-          <div>
-            <h3 className="text-sm font-semibold mb-3" style={{ color: '#40352C' }}>Detalle por foto</h3>
-            <ol className="divide-y max-h-96 overflow-y-auto rounded-lg" style={{ borderColor: 'rgba(64,53,44,0.1)' }}>
-              {detections.map((detection) => {
-                const { analysis } = detection;
-                const hasDetection = analysis.outcome === 'detected';
-                const isReadable = analysis.outcome !== 'unknown';
-
-                return (
-                  <li key={detection.id} className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 py-3 first:pt-0 last:pb-0">
-                    <div className="flex items-start gap-3 min-w-0">
-                      <span
-                        className="mt-0.5 shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold"
-                        style={isReadable
-                          ? hasDetection
-                            ? { color: '#32734a', backgroundColor: 'rgba(74,157,107,0.12)' }
-                            : { color: '#596e7a', backgroundColor: 'rgba(107,142,159,0.14)' }
-                          : { color: '#806522', backgroundColor: 'rgba(212,168,75,0.15)' }}
-                      >
-                        {!isReadable ? 'Resultado no interpretado' : hasDetection ? 'Caballo detectado' : 'Sin detección'}
-                      </span>
-                      <div className="min-w-0">
-                        {analysis.rawText && !isReadable ? (
-                          <p className="break-words whitespace-pre-wrap text-sm" style={{ color: 'rgba(64,53,44,0.7)' }}>
-                            {analysis.rawText}
-                          </p>
-                        ) : (
-                          <div className="flex flex-wrap gap-x-3 gap-y-1 text-sm" style={{ color: 'rgba(64,53,44,0.7)' }}>
-                            {analysis.confidence !== null && <span>Confianza: {formatDetectionPercentage(analysis.confidence)}</span>}
-                            {analysis.threshold !== null && <span>Umbral: {formatDetectionPercentage(analysis.threshold)}</span>}
-                            {analysis.model && <span>Modelo: {analysis.model}</span>}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    <time dateTime={detection.createdAt} className="shrink-0 pl-1 text-xs sm:pt-1" style={{ color: 'rgba(64,53,44,0.5)' }}>
-                      {formatDetectionTime(detection.createdAt)}
-                    </time>
-                  </li>
-                );
-              })}
-            </ol>
-          </div>
+          {summary.models.length > 0 && (
+            <p className="break-words text-xs" style={{ color: 'rgba(64,53,44,0.55)' }}>
+              {summary.models.length === 1 ? 'Modelo' : 'Modelos'}: {summary.models.join(', ')}.
+              {summary.thresholds.length > 0 && <> Umbrales registrados: {summary.thresholds.map(formatDetectionPercentage).join(', ')}.</>}
+            </p>
+          )}
+          <p className="mt-3 text-xs" style={{ color: 'rgba(64,53,44,0.55)' }}>
+            Es una estimación basada únicamente en las fotos recibidas. Los periodos sin fotos o sin detección no se suman al tiempo estimado.
+          </p>
         </>
       ) : (
         !error && (

@@ -17,7 +17,10 @@ const compiled = ts.transpileModule(readFileSync('src/utils/supabase.ts', 'utf8'
   compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
 }).outputText;
 
-function fixture({ horseRows = horses, profileId = OWNER_ID, horseFailures = 0 } = {}) {
+function fixture({
+  horseRows = horses, profileId = OWNER_ID, horseFailures = 0,
+  detectionRows, detectionPageCap = 1000, failedDetectionOffset = null,
+} = {}) {
   const executed = [];
   const rows = {
     horses: horseRows,
@@ -31,7 +34,7 @@ function fixture({ horseRows = horses, profileId = OWNER_ID, horseFailures = 0 }
       { id: 1, horse_id: 'owned-horse', box_temperature: 20, created_at: '2026-10-02T12:00:00Z' },
       { id: 2, horse_id: 'other-horse', box_temperature: 40, created_at: '2026-10-02T12:00:00Z' },
     ],
-    detection: [
+    detection: detectionRows || [
       { id: 1, horse_id: 'owned-horse', created_at: '2026-10-02T12:00:00Z' },
       { id: 2, horse_id: 'other-horse', created_at: '2026-10-02T12:00:00Z' },
     ],
@@ -40,6 +43,9 @@ function fixture({ horseRows = horses, profileId = OWNER_ID, horseFailures = 0 }
     from(table) {
       const filters = [];
       let limit = Infinity;
+      let offset = 0;
+      let range;
+      const dateFilters = [];
       let head = false;
       const query = {
         select(_columns, options) { head = options?.head ?? false; return this; },
@@ -47,18 +53,30 @@ function fixture({ horseRows = horses, profileId = OWNER_ID, horseFailures = 0 }
         limit(value) { limit = value; return this; },
         eq(column, value) { filters.push([column, [value]]); return this; },
         in(column, values) { filters.push([column, [...values]]); return this; },
-        gte() { return this; },
-        lt() { return this; },
+        range(start, end) {
+          offset = start;
+          limit = Math.min(end - start + 1, detectionPageCap);
+          range = [start, end];
+          return this;
+        },
+        gte(column, value) { dateFilters.push([column, value, 'gte']); return this; },
+        lt(column, value) { dateFilters.push([column, value, 'lt']); return this; },
         then(resolve, reject) {
-          executed.push({ table, filters });
+          executed.push({ table, filters, dateFilters, range });
           if (table === 'horses' && horseFailures > 0) {
             horseFailures -= 1;
             return Promise.resolve({ data: null, error: { message: 'Temporary horse lookup failure' } }).then(resolve, reject);
           }
+          if (table === 'detection' && offset === failedDetectionOffset) {
+            return Promise.resolve({ data: null, error: { message: 'Detection page failed' } }).then(resolve, reject);
+          }
           const data = (rows[table] || []).filter(row =>
-            filters.every(([column, values]) => values.includes(row[column])));
+            filters.every(([column, values]) => values.includes(row[column]))
+            && dateFilters.every(([column, value, op]) => op === 'gte'
+              ? Date.parse(row[column]) >= Date.parse(value)
+              : Date.parse(row[column]) < Date.parse(value)));
           return Promise.resolve({
-            data: head ? null : data.slice(0, limit), count: data.length, error: null,
+            data: head ? null : data.slice(offset, offset + limit), count: data.length, error: null,
           }).then(resolve, reject);
         },
       };
@@ -184,4 +202,48 @@ test('a failed shared lookup is removed so the next attempt can recover', async 
   assert(failures.every(result => result.status === 'rejected'));
   assert.equal((await api.fetchHorses(owner)).length, 1);
   assert.equal(executed.filter(query => query.table === 'horses').length, 2);
+});
+
+const dayRecords = count => Array.from({ length: count }, (_, id) => ({
+  id, horse_id: 'owned-horse', created_at: '2026-10-02T12:00:00Z',
+  analysis: 'Caballo detectado. Confianza: 78,3 %. Modelo: Encantador YOLO26n.',
+}));
+
+test('daily detection totals include all pages beyond the 1,000 row limit', async () => {
+  const { api, executed } = fixture({ detectionRows: dayRecords(2505) });
+  const records = await api.fetchDetectionsForDay('owned-horse', new Date('2026-10-02'), new Date('2026-10-03'), owner);
+  assert.equal(records.length, 2505);
+  assert.equal(records.at(-1).id, 2504);
+  assert.deepEqual(executed.filter(query => query.table === 'detection').map(query => query.range), [
+    [0, 999], [1000, 1999], [2000, 2504],
+  ]);
+  assert.equal(executed.filter(query => query.table === 'horses').length, 1);
+  assert(executed.filter(query => query.table === 'detection').every(query =>
+    query.filters.some(([column, values]) => column === 'horse_id' && values.includes('owned-horse'))));
+});
+
+test('paging also honors a Supabase cap lower than 1,000 rows', async () => {
+  const { api } = fixture({ detectionRows: dayRecords(1601), detectionPageCap: 500 });
+  const records = await api.fetchDetectionsForDay('owned-horse', new Date('2026-10-02'), new Date('2026-10-03'), owner);
+  assert.equal(records.length, 1601);
+  assert.equal(records.at(-1).id, 1600);
+});
+
+test('a failing later detection page rejects instead of returning an incomplete time estimate', async () => {
+  const { api } = fixture({ detectionRows: dayRecords(1800), failedDetectionOffset: 1000 });
+  await assert.rejects(
+    api.fetchDetectionsForDay('owned-horse', new Date('2026-10-02'), new Date('2026-10-03'), owner),
+    /Detection page failed/,
+  );
+});
+
+test('the daily summary includes the start boundary and excludes the next day', async () => {
+  const detectionRows = [
+    { ...dayRecords(1)[0], id: 1, created_at: '2026-10-02T00:00:00Z' },
+    { ...dayRecords(1)[0], id: 2, created_at: '2026-10-03T00:00:00Z' },
+    { ...dayRecords(1)[0], id: 3, created_at: '2026-10-01T23:59:59Z' },
+  ];
+  const { api } = fixture({ detectionRows });
+  const records = await api.fetchDetectionsForDay('owned-horse', new Date('2026-10-02'), new Date('2026-10-03'), owner);
+  assert.deepEqual(records.map(record => record.id), [1]);
 });

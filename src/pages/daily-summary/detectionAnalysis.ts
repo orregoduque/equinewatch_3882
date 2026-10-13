@@ -8,6 +8,20 @@ export interface ParsedDetectionAnalysis {
   rawText: string;
 }
 
+export const PHOTO_INTERVAL_SECONDS = 10;
+
+export interface DetectionSummary {
+  totalPhotos: number;
+  detectedPhotos: number;
+  notDetectedPhotos: number;
+  unknownPhotos: number;
+  averageConfidence: number | null;
+  estimatedPresenceSeconds: number;
+  analyzedSeconds: number;
+  models: string[];
+  thresholds: number[];
+}
+
 const readPercentage = (text: string, expression: RegExp): number | null => {
   const match = text.match(expression);
   if (!match) return null;
@@ -44,9 +58,35 @@ export const parseDetectionAnalysis = (value: unknown): ParsedDetectionAnalysis 
 export const formatDetectionPercentage = (value: number): string =>
   `${new Intl.NumberFormat('es-ES', { maximumFractionDigits: 1 }).format(value)} %`;
 
-export const formatDetectionTime = (createdAt: string): string => {
-  const date = new Date(createdAt);
-  return Number.isNaN(date.getTime())
-    ? 'Hora no disponible'
-    : date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+export const summarizeDetectionAnalyses = (values: unknown[]): DetectionSummary => {
+  const analyses = values.map(parseDetectionAnalysis);
+  const detected = analyses.filter(analysis => analysis.outcome === 'detected');
+  const confidences = detected
+    .filter(analysis => analysis.confidence !== null)
+    .map(analysis => analysis.confidence as number);
+
+  return {
+    totalPhotos: analyses.length,
+    detectedPhotos: detected.length,
+    notDetectedPhotos: analyses.filter(analysis => analysis.outcome === 'not_detected').length,
+    unknownPhotos: analyses.filter(analysis => analysis.outcome === 'unknown').length,
+    averageConfidence: confidences.length
+      ? confidences.reduce((total, confidence) => total + confidence, 0) / confidences.length
+      : null,
+    estimatedPresenceSeconds: detected.length * PHOTO_INTERVAL_SECONDS,
+    analyzedSeconds: analyses.length * PHOTO_INTERVAL_SECONDS,
+    models: [...new Set(analyses.map(analysis => analysis.model).filter((model): model is string => !!model))],
+    thresholds: [...new Set(analyses
+      .map(analysis => analysis.threshold)
+      .filter((threshold): threshold is number => threshold !== null))].sort((a, b) => a - b),
+  };
+};
+
+export const formatDetectionDuration = (seconds: number): string => {
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const remainingSeconds = seconds % 60;
+  if (hours > 0) return `${hours} h ${minutes} min ${remainingSeconds} s`;
+  if (minutes > 0) return `${minutes} min ${remainingSeconds} s`;
+  return `${remainingSeconds} s`;
 };

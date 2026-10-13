@@ -174,19 +174,45 @@ export const fetchDetectionsForDay = async (
   viewer: HorseViewer | null = null,
 ): Promise<DetectionRecord[]> => {
   await requireHorseAccess(horseId, viewer);
-  const { data, error } = await supabase
+  const readPage = (start: number, size: number, withCount = false) => supabase
     .from('detection')
-    .select('id, horse_id, analysis, created_at')
+    .select('id, horse_id, analysis, created_at', withCount ? { count: 'exact' } : {})
     .eq('horse_id', horseId)
     .gte('created_at', dayStart.toISOString())
     .lt('created_at', dayEnd.toISOString())
-    .order('created_at', { ascending: true });
+    .order('created_at', { ascending: true })
+    .order('id', { ascending: true })
+    .range(start, start + size - 1);
 
-  if (error) {
-    throw new Error(error.message);
+  const { data, error, count } = await readPage(0, 1000, true);
+  if (error) throw new Error(error.message);
+  if (count === null || count === undefined) {
+    throw new Error('No se pudo comprobar el número de análisis del día.');
+  }
+  if (count === 0) return [];
+  const firstPage = data || [];
+  if (!firstPage.length) {
+    throw new Error('No se pudieron cargar todos los análisis del día. Vuelve a intentarlo.');
   }
 
-  return data || [];
+  // One photo every 10 seconds can yield 8,640 analyses per day. Respect the
+  // actual server page cap, use stable ordering, and never report partial totals.
+  const pageSize = firstPage.length;
+  const records: DetectionRecord[] = firstPage.slice(0, count);
+  for (let start = pageSize; start < count; start += pageSize * 3) {
+    const starts = [start, start + pageSize, start + pageSize * 2].filter(offset => offset < count);
+    const pages = await Promise.all(starts.map(async (offset) => {
+      const expectedSize = Math.min(pageSize, count - offset);
+      const result = await readPage(offset, expectedSize);
+      if (result.error) throw new Error(result.error.message);
+      if (!result.data || result.data.length !== expectedSize) {
+        throw new Error('Los análisis cambiaron durante la carga. Vuelve a intentarlo para obtener el resumen completo.');
+      }
+      return result.data;
+    }));
+    records.push(...pages.flat());
+  }
+  return records;
 };
 
 export const fetchTemperaturesForDay = async (

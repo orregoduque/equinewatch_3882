@@ -7,6 +7,11 @@ import ts from 'typescript';
 
 const require = createRequire(import.meta.url);
 const { jsPDF: RealPDF } = require('jspdf');
+const analysisHelpers = {};
+vm.runInNewContext(ts.transpileModule(
+  readFileSync('src/pages/daily-summary/detectionAnalysis.ts', 'utf8'),
+  { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } },
+).outputText, { exports: analysisHelpers, Intl, Date, Number });
 const photoDetection = {
   id: 'photo-detection-one',
   createdAt: '2026-10-11T10:05:00Z',
@@ -30,7 +35,7 @@ function fixture({ noSummary = false, noHorse = false, failImport = false } = {}
       date: new Date('2026-10-11T12:00:00Z'),
       timeDistribution: [],
       temperatureTrends: [],
-      photoDetections: [photoDetection],
+      detectionSummary: analysisHelpers.summarizeDetectionAnalyses([photoDetection.analysis.rawText]),
     },
     noHorse ? '' : 'owned-horse', '', '', false, '',
   ];
@@ -42,6 +47,7 @@ function fixture({ noSummary = false, noHorse = false, failImport = false } = {}
     isLoading: false,
   };
   const refs = [];
+  const effects = [];
   let stateIndex = 0, refIndex = 0, imports = 0, onImport;
   const React = {
     Fragment: Symbol('Fragment'),
@@ -50,7 +56,7 @@ function fixture({ noSummary = false, noHorse = false, failImport = false } = {}
       const index = stateIndex++;
       return [state[index], value => { state[index] = value; }];
     },
-    useEffect() {},
+    useEffect(callback) { effects.push(callback); },
     useRef(initial) {
       const index = refIndex++;
       refs[index] ??= { current: initial };
@@ -71,6 +77,15 @@ function fixture({ noSummary = false, noHorse = false, failImport = false } = {}
       if (id === 'react') return { __esModule: true, default: React, ...React };
       if (id === 'react-router-dom') return { useSearchParams: () => [new URLSearchParams(), () => {}] };
       if (id.endsWith('/hooks/useAccessibleHorses')) return { useAccessibleHorses: () => scope };
+      if (id.endsWith('/utils/supabase')) return {
+        fetchDetectionsForDay: async () => [{
+          id: photoDetection.id,
+          created_at: photoDetection.createdAt,
+          analysis: photoDetection.analysis.rawText,
+        }],
+        fetchTemperaturesForDay: async () => [],
+      };
+      if (id === './detectionAnalysis') return analysisHelpers;
       if (id === 'jspdf') {
         imports++;
         onImport?.();
@@ -82,6 +97,7 @@ function fixture({ noSummary = false, noHorse = false, failImport = false } = {}
   });
   function render() {
     stateIndex = 0; refIndex = 0;
+    effects.length = 0;
     return exports.default();
   }
   function nodes(node) {
@@ -93,7 +109,7 @@ function fixture({ noSummary = false, noHorse = false, failImport = false } = {}
     return nodes(render()).find(node => node.type === 'button' && 'aria-busy' in node.props);
   }
   return {
-    state, saved, scope, button, render, nodes,
+    state, saved, scope, button, render, nodes, effects,
     imports: () => imports,
     setOnImport(fn) { onImport = fn; },
   };
@@ -108,12 +124,14 @@ test('Insights does not load PDF code until export is requested, then generates 
   assert.equal(f.state[6], true, 'Export must show its busy state');
   await exporting;
   assert.equal(f.imports(), 1);
-  assert.equal(f.saved.length, 1);
+  assert.equal(f.saved.length, 1, f.state[7]);
   assert(f.saved[0].name.includes('Owned_Horse'));
   assert(f.saved[0].data.startsWith('%PDF-'));
   assert(f.saved[0].data.includes('Owned Horse'));
-  assert(f.saved[0].data.includes('Caballo detectado'));
+  assert(f.saved[0].data.includes('Fotos con detecci'));
   assert(f.saved[0].data.includes('78,3'));
+  assert(f.saved[0].data.includes('10 s'));
+  assert(!f.saved[0].data.includes('Resultado de cada foto'));
   assert.equal(f.state[6], false);
 });
 
@@ -150,4 +168,15 @@ test('changing the account, horse or date while PDF loads never exports the stal
     assert.equal(f.saved.length, 0, `${change} transition must discard the old export`);
     assert.equal(f.state[6], false);
   }
+});
+
+test('loading the selected day builds an actual detection time summary and real hourly totals', async () => {
+  const f = fixture();
+  f.render();
+  f.effects[1]();
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(f.state[1], false);
+  assert.equal(f.state[2].detectionSummary.estimatedPresenceSeconds, 10);
+  assert.equal(f.state[2].detectionSummary.totalPhotos, 1);
+  assert.equal(f.state[2].timeDistribution.reduce((total, hour) => total + hour.count, 0), 1);
 });

@@ -24,9 +24,9 @@ const TimeDistributionChart: React.FC<TimeDistributionChartProps> = ({ data }) =
           </div>
           <div>
             <h3 className="text-xl font-bold" style={{ color: '#40352C', fontFamily: 'Syne, sans-serif' }}>
-              Observation Timeline
+              Fotos analizadas por hora
             </h3>
-            <p className="text-sm" style={{ color: 'rgba(64,53,44,0.5)' }}>24-hour activity view</p>
+            <p className="text-sm" style={{ color: 'rgba(64,53,44,0.5)' }}>Distribución de los análisis reales del día</p>
           </div>
         </div>
       </div>
@@ -40,7 +40,7 @@ const TimeDistributionChart: React.FC<TimeDistributionChartProps> = ({ data }) =
                 <div
                   className="w-full rounded-t transition-all duration-500"
                   style={{
-                    height: `${Math.max(percentage, 4)}%`,
+                    height: `${item.count > 0 ? Math.max(percentage, 4) : 0}%`,
                     background: 'linear-gradient(to top, rgba(64,53,44,0.25), rgba(64,53,44,0.1))',
                   }}
                 />
@@ -57,14 +57,14 @@ const TimeDistributionChart: React.FC<TimeDistributionChartProps> = ({ data }) =
       </div>
 
       <div className="pt-4" style={{ borderTop: '1px solid rgba(64,53,44,0.08)' }}>
-        <div className="flex items-center justify-between text-sm">
+        <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
           <div className="flex items-center gap-2">
             <Icon name="TrendingUp" size={14} style={{ color: '#40352C' }} />
             <span style={{ color: 'rgba(64,53,44,0.55)' }}>
-              Peak: <span style={{ color: '#40352C', fontWeight: 600 }}>{data.reduce((max, curr) => curr.count > max.count ? curr : max).label}</span>
+              Más fotos: <span style={{ color: '#40352C', fontWeight: 600 }}>{data.some(item => item.count > 0) ? data.reduce((max, curr) => curr.count > max.count ? curr : max).label : '—'}</span>
             </span>
           </div>
-          <span style={{ color: 'rgba(64,53,44,0.45)' }}>Total: {data.reduce((sum, curr) => sum + curr.count, 0)} observations</span>
+          <span style={{ color: 'rgba(64,53,44,0.45)' }}>Total: {data.reduce((sum, curr) => sum + curr.count, 0)} fotos</span>
         </div>
       </div>
     </div>
