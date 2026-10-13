@@ -7,6 +7,15 @@ import ts from 'typescript';
 
 const require = createRequire(import.meta.url);
 const { jsPDF: RealPDF } = require('jspdf');
+const photoDetection = {
+  id: 'photo-detection-one',
+  createdAt: '2026-10-11T10:05:00Z',
+  analysis: {
+    outcome: 'detected', confidence: 78.3, threshold: null,
+    model: 'Encantador YOLO26n',
+    rawText: 'Caballo detectado. Confianza: 78,3 %. Modelo: Encantador YOLO26n.',
+  },
+};
 const compiled = ts.transpileModule(readFileSync('src/pages/daily-summary/index.tsx', 'utf8'), {
   compilerOptions: {
     module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022,
@@ -17,7 +26,12 @@ const compiled = ts.transpileModule(readFileSync('src/pages/daily-summary/index.
 function fixture({ noSummary = false, noHorse = false, failImport = false } = {}) {
   const state = [
     new Date('2026-10-11T12:00:00Z'), false,
-    noSummary ? null : { metrics: [], behaviorPatterns: [], timeDistribution: [], temperatureTrends: [] },
+    noSummary ? null : {
+      date: new Date('2026-10-11T12:00:00Z'),
+      timeDistribution: [],
+      temperatureTrends: [],
+      photoDetections: [photoDetection],
+    },
     noHorse ? '' : 'owned-horse', '', '', false, '',
   ];
   const saved = [];
@@ -98,6 +112,8 @@ test('Insights does not load PDF code until export is requested, then generates 
   assert(f.saved[0].name.includes('Owned_Horse'));
   assert(f.saved[0].data.startsWith('%PDF-'));
   assert(f.saved[0].data.includes('Owned Horse'));
+  assert(f.saved[0].data.includes('Caballo detectado'));
+  assert(f.saved[0].data.includes('78,3'));
   assert.equal(f.state[6], false);
 });
 

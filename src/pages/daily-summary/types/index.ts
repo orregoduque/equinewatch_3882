@@ -65,14 +65,13 @@ export interface PainAssessment {
 
 export interface DailySummaryData {
   date: Date;
-  metrics: DailySummaryMetric[];
   timeDistribution: TimeDistribution[];
   temperatureTrends: TemperatureTrend[];
-  behaviorPatterns: BehaviorPattern[];
-  totalHorses: number;
-  monitoredHorses: number;
-  vitalSigns?: VitalSign[];
-  gutHealth?: GutHealthData[];
-  colicRisk?: ColicRiskIndicator[];
-  painHistory?: PainAssessment[];
+  photoDetections: DailyPhotoDetection[];
+}
+
+export interface DailyPhotoDetection {
+  id: string;
+  createdAt: string;
+  analysis: import('../detectionAnalysis').ParsedDetectionAnalysis;
 }
