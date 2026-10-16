@@ -33,10 +33,6 @@ export interface TimelineFilters {
   endDate: Date | null;
   behaviorFilter: 'all' | 'normal' | 'suspicious';
 }
-function ObservationCardProps(...args: any[]): any {
-  // eslint-disable-next-line no-console
-  console.warn('Placeholder: ObservationCardProps is not implemented yet.', args);
-  return null;
+export interface ObservationCardProps {
+  observation: Observation;
 }
-
-export { ObservationCardProps };

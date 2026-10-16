@@ -43,7 +43,7 @@ public/              # Static assets
 ## Routes
 - `/` - Public landing page (Hero, Problem, How It Works, Features, Use Cases, AI Technology, Testimonials, Comparison, FAQ, Team, CTA)
 - `/login` - Login page (entry to the app)
-- `/daily-summary` - Colic Monitoring dashboard
+- `/daily-summary` - Daily photo-detection and temperature summary
 - `/horse-timeline` - Live Monitoring with photos
 - `/horse-list` - Horse list/Horses page
 - `/world-map` - World Map view
@@ -86,5 +86,8 @@ The app supports 3 user types with different access levels:
 - **Build Command**: `npm run build`
 
 ## Deployment
-- Uses Vite preview server for production
+- Autoscale runs `npm run serve` (`NODE_ENV=production node server.mjs`)
+- Publishing builds with `npm run build:publish`: retain the public version's fingerprinted files, run the TypeScript check and Vite build, then restore the retained files for already-open clients
+- Regular development builds use `npm run build`; do not run a clean development build after preparing the publication artifact
 - Build outputs to `build/` directory
+- Release checks and limitations: `docs/release-checklist.md`

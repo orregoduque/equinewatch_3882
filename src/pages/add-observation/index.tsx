@@ -14,7 +14,7 @@ import { ObservationFormData, ValidationErrors, Horse } from './types';
 const AddObservation: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const preselectedHorseId = location.state?.horseId;
+  const preselectedHorseId = (location.state as { horseId?: string } | null)?.horseId;
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);

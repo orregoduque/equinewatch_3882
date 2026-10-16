@@ -1,6 +1,6 @@
 import { createServer } from 'node:http';
 import { createReadStream, existsSync, statSync } from 'node:fs';
-import { extname, join, resolve } from 'node:path';
+import { extname, join, resolve, sep } from 'node:path';
 import { ReplitConnectors } from '@replit/connectors-sdk';
 
 const PORT = Number(process.env.PORT || 5000);
@@ -168,14 +168,23 @@ async function handleSubmit(request, response) {
 }
 
 function serveStatic(request, response) {
-  const pathname = decodeURIComponent(new URL(request.url, 'http://localhost').pathname);
+  let pathname;
+  try {
+    pathname = decodeURIComponent(new URL(request.url, 'http://localhost').pathname);
+  } catch {
+    return json(response, 400, { error: 'Ruta inválida.' });
+  }
   const requested = resolve(join(buildDirectory, pathname === '/' ? 'index.html' : pathname.slice(1)));
-  const file = requested.startsWith(buildDirectory) && existsSync(requested) && statSync(requested).isFile()
-    ? requested
-    : join(buildDirectory, 'index.html');
+  if (!requested.startsWith(buildDirectory + sep)) return json(response, 404, { error: 'Archivo no encontrado.' });
+  const found = existsSync(requested) && statSync(requested).isFile();
+  if (!found && (pathname.startsWith('/assets/') || pathname.startsWith('/api/') || extname(pathname))) {
+    return json(response, 404, { error: 'Archivo no encontrado.' });
+  }
+  const file = found ? requested : join(buildDirectory, 'index.html');
+  const immutable = pathname.startsWith('/assets/') && /-[\w-]{8}\.\w+$/.test(pathname);
   response.writeHead(200, {
     'Content-Type': mimeTypes[extname(file)] || 'application/octet-stream',
-    'Cache-Control': file.endsWith('index.html') ? 'no-cache' : 'public, max-age=31536000, immutable',
+    'Cache-Control': immutable ? 'public, max-age=31536000, immutable' : 'no-cache',
     'X-Content-Type-Options': 'nosniff',
   });
   if (request.method === 'HEAD') return response.end();
@@ -198,5 +207,5 @@ const server = createServer(async (request, response) => {
 });
 
 server.listen(PORT, '0.0.0.0', () => {
-  console.log(`Stable Eye listening on port ${PORT} (${production ? 'production' : 'development'})`);
+  console.log(`Stable Eye listening on port ${server.address().port} (${production ? 'production' : 'development'})`);
 });

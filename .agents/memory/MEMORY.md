@@ -5,3 +5,4 @@
 - [Startup performance](startup-performance.md) — lazy routes can still pull heavy dependencies into startup through global helpers or forced shared chunks.
 - [Daily detection summary](daily-detection-summary.md) — summary-only view; the user's photo cadence is 10 seconds, and detector-based presence is an estimate.
 - [Live photo refresh](live-photo-refresh.md) — retain a reliable refresh baseline without unverified Realtime dependencies; keep deliberate historical selections stable.
+- [Release compatibility](release-compatibility.md) — real customers keep tabs open across publishes; retaining old lazy assets is required, not unused-file bloat.

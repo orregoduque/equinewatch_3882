@@ -69,7 +69,8 @@
   },
   "scripts": {
     "start": "node server.mjs",
-    "build": "tsc --noCheck && vite build",
+    "build": "tsc --noEmit && vite build",
+    "build:publish": "node scripts/build-for-publish.mjs",
     "serve": "NODE_ENV=production node server.mjs"
   },
   "eslintConfig": {
