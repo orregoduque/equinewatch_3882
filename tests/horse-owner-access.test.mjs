@@ -18,7 +18,7 @@ const compiled = ts.transpileModule(readFileSync('src/utils/supabase.ts', 'utf8'
 }).outputText;
 
 function fixture({
-  horseRows = horses, profileId = OWNER_ID, horseFailures = 0,
+  horseRows = horses, profileId = OWNER_ID, horseFailures = 0, imageFailures = 0,
   detectionRows, detectionPageCap = 1000, failedDetectionOffset = null,
 } = {}) {
   const executed = [];
@@ -63,6 +63,10 @@ function fixture({
         lt(column, value) { dateFilters.push([column, value, 'lt']); return this; },
         then(resolve, reject) {
           executed.push({ table, filters, dateFilters, range });
+          if (table === 'images' && imageFailures > 0) {
+            imageFailures -= 1;
+            return Promise.resolve({ data: null, error: { message: 'Temporary image failure' } }).then(resolve, reject);
+          }
           if (table === 'horses' && horseFailures > 0) {
             horseFailures -= 1;
             return Promise.resolve({ data: null, error: { message: 'Temporary horse lookup failure' } }).then(resolve, reject);
@@ -120,6 +124,25 @@ test('anonymous, unknown roles and owner demo IDs never receive the shared list'
 
 test('owner without assignments gets an empty list', async () => {
   assert.equal((await fixture({ horseRows: horses.slice(1) }).api.fetchHorses(owner)).length, 0);
+});
+
+test('incremental photo updates remain scoped and include only the requested recent records', async () => {
+  const { api, executed } = fixture();
+  const since = '2026-10-02T11:30:00Z';
+  const photos = await api.fetchHorseImages(240, 'owned-horse', owner, since);
+  assert.equal(photos.length, 1);
+  assert.equal(photos[0].id, 1);
+  const query = executed.find(entry => entry.table === 'images');
+  assert.deepEqual(query.filters, [['horse_id', ['owned-horse']]]);
+  assert.deepEqual(query.dateFilters, [['created_at', since, 'gte']]);
+  await assert.rejects(api.fetchHorseImages(240, 'other-horse', owner, since), /access/);
+});
+
+test('image query failures are errors, not a successful empty gallery, and the next request recovers', async () => {
+  const { api, executed } = fixture({ imageFailures: 1 });
+  await assert.rejects(api.fetchHorseImages(240, 'owned-horse', owner), /Temporary image failure/);
+  assert.equal((await api.fetchHorseImages(240, 'owned-horse', owner)).length, 2);
+  assert.equal(executed.filter(entry => entry.table === 'horses').length, 2);
 });
 
 test('gallery and video data use only the authorized horse', async () => {

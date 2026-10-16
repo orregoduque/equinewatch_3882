@@ -88,35 +88,27 @@ export interface HorseViewer {
 const isHorseOwner = (viewer: HorseViewer) =>
   viewer.role === 'horse_owner' || viewer.role === 'owner';
 
+export class HorseAccessError extends Error {}
+
 export const fetchHorseImages = async (
   limit: number = 20,
   horseId?: string,
   viewer: HorseViewer | null = null,
+  createdSince?: string,
 ): Promise<HorseImage[]> => {
   await requireHorseAccess(horseId, viewer);
-  console.log('Fetching images from Supabase...', { supabaseUrl, limit, horseId });
-  try {
-    let query = supabase
-      .from('images')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(limit);
+  let query = supabase
+    .from('images')
+    .select('*')
+    .eq('horse_id', horseId)
+    .order('created_at', { ascending: false })
+    .order('id', { ascending: false })
+    .limit(limit);
+  if (createdSince) query = query.gte('created_at', createdSince);
 
-    if (horseId) {
-      query = query.eq('horse_id', horseId);
-    }
-
-    const { data, error } = await query;
-    if (error) {
-      console.error('Supabase error fetching images:', error);
-      return [];
-    }
-    console.log('Fetched images count:', data?.length || 0);
-    return data || [];
-  } catch (err) {
-    console.error('Exception fetching images:', err);
-    return [];
-  }
+  const { data, error } = await query;
+  if (error) throw new Error(error.message);
+  return data || [];
 };
 
 const pendingHorseRequests = new Map<string, Promise<SupabaseHorse[]>>();
@@ -160,10 +152,10 @@ const loadHorses = async (viewer: HorseViewer): Promise<SupabaseHorse[]> => {
 };
 
 const requireHorseAccess = async (horseId: string | undefined, viewer: HorseViewer | null) => {
-  if (!horseId || !viewer) throw new Error('Sign in to access this horse.');
+  if (!horseId || !viewer) throw new HorseAccessError('Sign in to access this horse.');
   const horses = await fetchHorses(viewer);
   if (!horses.some((horse) => horse.id === horseId)) {
-    throw new Error('You do not have access to this horse.');
+    throw new HorseAccessError('You do not have access to this horse.');
   }
 };
 

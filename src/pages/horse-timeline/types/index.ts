@@ -3,6 +3,7 @@ export interface Observation {
   horseId: string;
   horseName: string;
   imageUrl: string;
+  imageVersion?: string;
   imageAlt: string;
   timestamp: Date;
   temperature: number;

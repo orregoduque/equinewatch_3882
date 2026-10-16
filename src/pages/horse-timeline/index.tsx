@@ -9,6 +9,7 @@ import Icon from '../../components/AppIcon';
 import { Observation, Horse } from './types';
 import { fetchHorseImages, getImageUrl, HorseImage } from '../../utils/supabase';
 import { useAccessibleHorses } from '../../hooks/useAccessibleHorses';
+import { watchHorseImages } from '../../utils/liveHorseImages';
 
 const VIDEO_DURATION_SECONDS = 120;
 const VIDEO_DURATION_MS = VIDEO_DURATION_SECONDS * 1000;
@@ -29,6 +30,7 @@ const mapHorseImagesToObservations = (
     horseId,
     horseName,
     imageUrl: getImageUrl(img.storage_path_enhanced),
+    imageVersion: `${img.uploaded_at}:${img.is_processed}`,
     imageAlt: `${horseName} observation ${img.image_number}`,
     timestamp: new Date(img.created_at),
     temperature: 37.5 + (Math.random() * 1.5 - 0.5),
@@ -67,6 +69,7 @@ const HorseTimeline: React.FC = () => {
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const [currentVideoFrame, setCurrentVideoFrame] = useState(0);
   const [videoProgress, setVideoProgress] = useState(0);
+  const [refreshError, setRefreshError] = useState('');
 
   useEffect(() => {
     if (isLoadingHorses) {
@@ -82,39 +85,32 @@ const HorseTimeline: React.FC = () => {
   }, [horses, isLoadingHorses, requestedHorseId, setSearchParams]);
 
   useEffect(() => {
-    let active = true;
     const selectedHorse = horses.find((horse) => horse.id === selectedHorseId);
     setObservations([]);
     setSelectedObservation(null);
-    const loadImages = async () => {
-      if (!viewer || !selectedHorse) {
-        setIsLoading(false);
-        return;
-      }
-      setIsLoading(true);
-      try {
-        const images = await fetchHorseImages(PHOTO_LIMIT, selectedHorseId, viewer);
-        if (!active) return;
-        
+    setRefreshError('');
+    if (!viewer || !selectedHorse) {
+      setIsLoading(false);
+      return;
+    }
+    setIsLoading(true);
+    return watchHorseImages({
+      horseId: selectedHorseId,
+      viewer,
+      limit: PHOTO_LIMIT,
+      onImages: (images) => {
         const realObservations = mapHorseImagesToObservations(
-          images,
-          selectedHorseId,
-          selectedHorse?.name || 'Horse',
+          images, selectedHorseId, selectedHorse.name,
         );
-
         setObservations(realObservations);
-        setSelectedObservation(realObservations[0] || null);
-      } catch (error) {
-        if (!active) return;
-        console.error('Error loading images:', error);
-        setObservations([]);
-        setSelectedObservation(null);
-      }
-      if (active) setIsLoading(false);
-    };
-
-    loadImages();
-    return () => { active = false; };
+        // null follows the newest photo; an explicit historical selection stays pinned.
+        setSelectedObservation(current => !realObservations.length ? null
+          : current ? realObservations.find(item => item.id === current.id) || current : null);
+      },
+      onError: error => setRefreshError(error
+        ? 'No se pudieron actualizar las fotos. Se reintentará automáticamente.' : ''),
+      onSettled: () => setIsLoading(false),
+    });
   }, [selectedHorseId, horses, viewerKey]);
 
   useEffect(() => {
@@ -275,6 +271,9 @@ const HorseTimeline: React.FC = () => {
               ))}
             </div>
 
+            {refreshError && (
+              <p role="status" className="mb-4 text-sm text-amber-800">{refreshError}</p>
+            )}
             {isLoadingHorses || isLoading ? (
               <div className="rounded-xl p-8 animate-pulse" style={{ backgroundColor: '#ffffff', border: '1px solid rgba(64,53,44,0.1)' }}>
                 <div className="aspect-video rounded-xl mb-6" style={{ backgroundColor: 'rgba(64,53,44,0.05)' }} />
@@ -288,8 +287,10 @@ const HorseTimeline: React.FC = () => {
                   {/* Last Updated Banner */}
                   <div className="flex items-center justify-between px-6 py-3" style={{ backgroundColor: 'rgba(64,53,44,0.04)', borderBottom: '1px solid rgba(64,53,44,0.08)' }}>
                     <div className="flex items-center gap-3">
-                      <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                      <span className="text-sm font-medium" style={{ color: '#40352C' }}>Latest Photo</span>
+                      <div className={`w-2 h-2 rounded-full ${refreshError ? 'bg-amber-500' : 'bg-green-500 animate-pulse'}`} />
+                      <span className="text-sm font-medium" style={{ color: '#40352C' }}>
+                        {selectedObservation ? 'Foto anterior' : 'Última foto · actualización cada 10 s'}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2" style={{ color: 'rgba(64,53,44,0.6)' }}>
                       <Icon name="Clock" size={14} />
@@ -299,11 +300,20 @@ const HorseTimeline: React.FC = () => {
                     </div>
                   </div>
 
+                  {selectedObservation && (
+                    <button type="button" onClick={() => setSelectedObservation(null)}
+                      className="m-3 px-4 py-2 rounded-lg text-sm font-medium border"
+                      style={{ color: '#40352C', borderColor: 'rgba(64,53,44,0.2)' }}>
+                      Volver a la última foto
+                    </button>
+                  )}
+
                   {/* Main Photo — centered, half width on desktop */}
                   <div className="flex justify-center">
                     <div className="relative w-full md:w-1/2">
                       <div className="aspect-video overflow-hidden bg-black/20">
                         <Image
+                          key={`${selectedObservation?.id || latestObservation.id}:${selectedObservation?.imageVersion || latestObservation.imageVersion}`}
                           src={selectedObservation?.imageUrl || latestObservation.imageUrl}
                           alt={selectedObservation?.imageAlt || latestObservation.imageAlt}
                           className="w-full h-full object-contain"
@@ -344,11 +354,11 @@ const HorseTimeline: React.FC = () => {
 
                   <div className="flex gap-3 overflow-x-auto pb-2">
                     {observations.map((obs, index) => {
-                      const isSelected = selectedObservation?.id === obs.id;
+                      const isSelected = (selectedObservation?.id || latestObservation.id) === obs.id;
                       return (
                         <button
                           key={obs.id}
-                          onClick={() => setSelectedObservation(obs)}
+                          onClick={() => setSelectedObservation(index === 0 ? null : obs)}
                           className={`relative flex-shrink-0 w-32 md:w-40 rounded-xl overflow-hidden border-2 transition-all duration-300 ${
                             isSelected
                               ? 'shadow-md'
@@ -357,7 +367,7 @@ const HorseTimeline: React.FC = () => {
                           style={isSelected ? { borderColor: '#40352C' } : { borderColor: 'transparent' }}
                         >
                           <div className="aspect-[4/3] bg-black/20">
-                            <Image src={obs.imageUrl} alt={obs.imageAlt} loading="lazy" decoding="async" className="w-full h-full object-contain" />
+                            <Image key={obs.imageVersion} src={obs.imageUrl} alt={obs.imageAlt} loading="lazy" decoding="async" className="w-full h-full object-contain" />
                           </div>
                           <div className="absolute bottom-0 left-0 right-0 p-2">
                             <span className="rounded bg-black/50 px-1.5 py-0.5 text-xs font-semibold text-white">
