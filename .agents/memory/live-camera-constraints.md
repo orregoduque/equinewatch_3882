@@ -50,3 +50,13 @@ pass cannot establish readiness of the separately hosted receiver and publisher.
 **How to apply:** Include a rolling, non-ended receiver-style window and repeated
 open/close attempts in native and MediaSource checks. State separately whether
 the authorized end-to-end Raspberry feed was actually verified.
+
+The user confirmed end-to-end playback of the Raspberry's synthetic source:
+changing that source video was reflected in Live video.
+
+**Why:** This is user-verified evidence that the Raspberry → receiver → app path
+works, beyond local fixtures. It does not establish which earlier failure caused
+the timeout, physical IP-camera compatibility, startup time or real-world delay.
+
+**How to apply:** Preserve this distinction when moving from the synthetic source
+to the physical camera; do not present the three-second target as measured.
