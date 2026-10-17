@@ -1,0 +1,17 @@
+{
+  "host": "127.0.0.1",
+  "port": 8099,
+  "supabaseUrl": "https://YOUR-PROJECT.supabase.co",
+  "supabaseAnonKey": "COPY-YOUR-EXISTING-PUBLIC-ANON-KEY-LOCALLY",
+  "adminUserIds": [],
+  "cameras": [
+    {
+      "id": "box-one",
+      "name": "Cámara de prueba",
+      "horseId": "EXISTING-HORSE-ID",
+      "ownerUserIds": [],
+      "stableOwnerUserIds": [],
+      "publisherKeySha256": "REPLACE-WITH-SHA256-HEX-OF-THE-DEVICE-KEY"
+    }
+  ]
+}

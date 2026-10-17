@@ -24,7 +24,7 @@ test('the production server preserves SPA routes, API health and correct version
   const base = `http://127.0.0.1:${port}`;
   try {
     for (const path of ['/', '/login', '/horse-list', '/horse-timeline?horseId=test', '/daily-summary',
-      '/profile', '/devices', '/bills', '/admin', '/admin/stables']) {
+      '/profile', '/devices', '/bills', '/admin', '/admin/stables', '/hls-pilot']) {
       const response = await fetch(base + path);
       assert.equal(response.status, 200, path);
       assert.match(response.headers.get('content-type'), /text\/html/);
@@ -32,6 +32,10 @@ test('the production server preserves SPA routes, API health and correct version
     }
     const health = await fetch(base + '/api/health');
     assert.deepEqual(await health.json(), { ok: true, emailProvider: 'resend' });
+    assert.deepEqual(await (await fetch(base + '/api/hls-pilot/config')).json(), { enabled: false });
+    assert.equal((await fetch(base + '/api/hls-pilot/cameras')).status, 404);
+    assert.match(await (await fetch(base + '/hls-pilot')).text(), /media-src 'self' blob:/);
+    assert.doesNotMatch(await (await fetch(base + '/horse-timeline')).text(), /media-src 'self' blob:/);
     for (const path of ['/assets/missing-aaaaaaaa.js', '/missing.css', '/api/missing']) {
       const response = await fetch(base + path);
       assert.equal(response.status, 404, path);

@@ -1,0 +1,8 @@
+{
+  "rtspUrl": "rtsp://REPLACE-WITH-ACTUAL-SECONDARY-URL",
+  "receiverOrigin": "https://REPLACE-WITH-PRIVATE-PILOT-RECEIVER",
+  "cameraId": "box-one",
+  "publisherKey": "REPLACE-WITH-DEVICE-KEY-LOCALLY",
+  "confirmedH264IndependentSegments": false,
+  "spoolRoot": "/run/stableeye-hls"
+}

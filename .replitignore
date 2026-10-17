@@ -1,0 +1,3 @@
+/generated-artifacts/
+/.local/hls-pilot-private/
+*.local.json

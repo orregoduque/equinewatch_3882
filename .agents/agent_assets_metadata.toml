@@ -1,0 +1,16 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "3bcrELzXAqfu8GQ0EzEbL"
+uri = "file://generated-artifacts/hls-pilot-guide.html"
+type = "html"
+title = "Guía del piloto HLS privado"
+description = "Comandos de diagnóstico, configuración, límites, permisos, pruebas y estimación de tráfico. Sin despliegue ni cambios en la cámara."
+logical_id = "f9425473-4535-4ee8-92f2-d6e53c1bba47"
+content_hash = "sha256:7b040cc2b722463065b646f0fdedffa8adb38dba7d96c29c219b895df41dd3b2"
+size = 19157
+mtime_ms = 1792242677712
+storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:3cd14c48-b7f3-4b26-917e-adc412cfbcce/f9425473-4535-4ee8-92f2-d6e53c1bba47/988e531e-cf26-48d6-a42f-db0c30a15a1b"
+storage_version_token = "1792242679414255"
+content_type = "text/html"

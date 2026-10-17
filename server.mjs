@@ -1,12 +1,14 @@
 import { createServer } from 'node:http';
-import { createReadStream, existsSync, statSync } from 'node:fs';
+import { createReadStream, existsSync, statSync, readFileSync } from 'node:fs';
 import { extname, join, resolve, sep } from 'node:path';
 import { ReplitConnectors } from '@replit/connectors-sdk';
+import { loadPilotProxy, pilotHtml } from './services/hls-pilot/app-proxy.mjs';
 
 const PORT = Number(process.env.PORT || 5000);
 const production = process.env.NODE_ENV === 'production';
 const buildDirectory = resolve('build');
 const connectors = new ReplitConnectors();
+const handlePilot = await loadPilotProxy();
 const recipient = 'founder@stable-eye.co';
 const allowedProfiles = new Set(['owner', 'manager', 'groom', 'vet']);
 const allowedQuestionKeys = {
@@ -188,6 +190,7 @@ function serveStatic(request, response) {
     'X-Content-Type-Options': 'nosniff',
   });
   if (request.method === 'HEAD') return response.end();
+  if (pathname === '/hls-pilot') return response.end(pilotHtml(readFileSync(file, 'utf8'), pathname));
   createReadStream(file).pipe(response);
 }
 
@@ -199,6 +202,7 @@ if (!production) {
 
 const server = createServer(async (request, response) => {
   const pathname = new URL(request.url, 'http://localhost').pathname;
+  if (pathname.startsWith('/api/hls-pilot/') && await handlePilot(request, response)) return;
   if (pathname === '/api/submit') return handleSubmit(request, response);
   if (pathname === '/api/health') return json(response, 200, { ok: true, emailProvider: 'resend' });
   if (!production) return vite.middlewares(request, response);

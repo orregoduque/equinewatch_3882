@@ -17,6 +17,7 @@ const Bills = lazy(() => import('./pages/bills'));
 const AdminDashboard = lazy(() => import('./pages/admin'));
 const AdminStables = lazy(() => import('./pages/admin/stables'));
 const Survey = lazy(() => import('./pages/survey'));
+const HlsPilot = lazy(() => import('./features/hls-pilot'));
 
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#FFFFFF' }}>
@@ -36,6 +37,7 @@ const Routes: React.FC = () => {
             <Route path="/contact" element={<Contact />} />
             <Route path="/daily-summary" element={<DailySummary />} />
             <Route path="/horse-timeline" element={<HorseTimeline />} />
+            <Route path="/hls-pilot" element={<HlsPilot />} />
             <Route path="/horse-list" element={<HorseList />} />
             <Route path="/world-map" element={<WorldMap />} />
             <Route path="/profile" element={<Profile />} />

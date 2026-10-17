@@ -8,5 +8,8 @@ package-lock.json
 vite.config.*s.*
 __pycache__/
 *.py[cod]
+/generated-artifacts/
+/.local/hls-pilot-private/
+*.local.json
 .pythonlibs/
 .venv/
