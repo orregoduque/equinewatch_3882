@@ -28,3 +28,17 @@ mtime_ms = 1792244842359
 storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:3cd14c48-b7f3-4b26-917e-adc412cfbcce/687464fe-09e4-46f0-8b8f-c26d79950b9a/8e2c0abe-74eb-4831-ae7d-c8195ec9bf17"
 storage_version_token = "1792245028821037"
 content_type = "video/mp4"
+
+[[outputs]]
+id = "1YeC9ZfDLQoG3D8QadeV5"
+uri = "file://generated-artifacts/hls-receiver.zip"
+type = "unspecified"
+title = "Paquete del receptor HLS"
+description = "Archivo ZIP del receptor independiente, con instrucciones de configuración e importación en Replit."
+logical_id = "d0406ed2-d67e-40bb-adb7-83e3911c7f07"
+content_hash = "sha256:ad3c50eaf4f82d5167d541c034de2523ea4fcaa60387b91b973147f83f35c104"
+size = 11854
+mtime_ms = 1792255817064
+storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:3cd14c48-b7f3-4b26-917e-adc412cfbcce/d0406ed2-d67e-40bb-adb7-83e3911c7f07/a9ecd4fc-e958-44b7-a995-9449ca2caa62"
+storage_version_token = "1792256391469593"
+content_type = "application/octet-stream"
