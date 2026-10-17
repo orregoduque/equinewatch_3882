@@ -3,6 +3,14 @@ name: Camera pilot authorization
 description: Why pilot camera access uses explicit trusted grants instead of inheriting current app role labels.
 ---
 
+Keep the pilot founder-only for now. An unauthorized Live video click must show
+the exact message “no access for now” and an X to close it.
+
+**Why:** The user explicitly requested this pilot restriction and message.
+
+**How to apply:** Preserve the receiver's trusted grants. Show the denial without
+a playable video or demo; do not expand access based on client-side roles.
+
 Do not silently migrate customer login or inherit client-side role labels when
 extending the camera pilot. Treat its manually assigned real Auth identities as
 provisional until the authoritative, server-controlled camera/horse permission

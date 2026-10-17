@@ -1,5 +1,6 @@
 import { createStartupMeasurement, StartupMeasurement } from './measurement';
 import type { PilotSession } from './api';
+import { NO_ACCESS_MESSAGE } from './access';
 
 interface Callbacks {
   request: (path: string, signal: AbortSignal) => Promise<PilotSession>;
@@ -110,6 +111,7 @@ export function startPilotPlayback(
         credentials: 'same-origin', cache: 'no-store', signal,
       });
       if (!response.ok) {
+        if (response.status === 401 || response.status === 403) throw new Error(NO_ACCESS_MESSAGE);
         const body = await response.json().catch(() => ({}));
         const reason = typeof body.error === 'string' ? body.error : 'Receptor no disponible.';
         throw new Error(`Estado de la cámara: HTTP ${response.status}. ${reason}`);

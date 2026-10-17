@@ -19,7 +19,7 @@ const cameras = [{
 }];
 
 async function setup({ mobile = false, forceMse = false, deny = false, discoveryDelay = 0,
-  cameraList = cameras, offline = false, disabled = false, signedOut = false } = {}) {
+  cameraList = cameras, offline = false, disabled = false, signedOut = false, cameraStatus = 200 } = {}) {
   const viewport = mobile ? { width: 390, height: 844 } : { width: 1280, height: 900 };
   const context = await browser.newContext({ viewport, isMobile: mobile, hasTouch: mobile });
   const page = await context.newPage();
@@ -47,7 +47,8 @@ async function setup({ mobile = false, forceMse = false, deny = false, discovery
   await page.route('**/api/hls-pilot/cameras', async route => {
     if (discoveryDelay) await new Promise(resolve => setTimeout(resolve, discoveryDelay));
     try {
-      await route.fulfill({ contentType: 'application/json', body: JSON.stringify({ cameras: cameraList }) });
+      await route.fulfill({ status: cameraStatus, contentType: 'application/json',
+        body: JSON.stringify(cameraStatus === 200 ? { cameras: cameraList } : { error: 'Not authorized' }) });
     } catch { /* An intentionally cancelled discovery request may already be gone. */ }
   });
   if (offline) await page.route('**/api/hls-pilot/session/*', route => route.fulfill({
@@ -134,11 +135,14 @@ try {
 
   for (const [name, options, expected] of [
     ['wrong-horse', { cameraList: [{ ...cameras[0], horseId: 'unrelated' }] }, /No hay una cámara asignada/],
-    ['no-cameras', { cameraList: [] }, /No hay una cámara asignada/],
-    ['denied', { deny: true }, /No tienes acceso/],
+    ['no-cameras', { cameraList: [] }, /^no access for now$/],
+    ['denied', { deny: true }, /^no access for now$/],
+    ['discovery-forbidden', { cameraStatus: 403 }, /^no access for now$/],
+    ['discovery-unauthenticated', { cameraStatus: 401 }, /^no access for now$/],
+    ['mobile-denied', { mobile: true, cameraList: [] }, /^no access for now$/],
     ['offline', { offline: true }, /desconectada|preparando segmentos/],
     ['disabled', { disabled: true }, /deshabilitado/],
-    ['signed-out', { signedOut: true }, /caballo seleccionado|sesión/],
+    ['signed-out', { signedOut: true }, /^no access for now$/],
   ]) {
     const test = await setup(options);
     try {
@@ -146,6 +150,12 @@ try {
       const alert = test.page.getByRole('alert');
       await alert.waitFor();
       assert.match(await alert.innerText(), expected);
+      if ((await alert.innerText()) === 'no access for now') {
+        assert.equal(await test.page.getByTestId('timeline-live-video').isVisible(), false);
+        assert.equal(await test.page.getByRole('button', { name: 'Reintentar', exact: true }).count(), 0);
+        await test.page.screenshot({ path: `${directory}/${name}.png` });
+        assert(await test.page.getByRole('button', { name: 'Cerrar vídeo', exact: true }).isVisible());
+      }
       assert(!test.requests.some(url => /\/media\//.test(url)), 'errors must not request camera media');
       if (['wrong-horse', 'no-cameras', 'disabled', 'signed-out'].includes(name))
         assert(!test.requests.some(url => /\/session\//.test(url)), 'do not authorize unrelated cameras');

@@ -1,5 +1,6 @@
 import { useAuth } from '../../../contexts/AuthContext';
 import { pilotRequest, type PilotCamera, type PilotSession } from '../../../features/hls-pilot/api';
+import { NO_ACCESS_MESSAGE, PilotAccessError } from '../../../features/hls-pilot/access';
 import { createStartupMeasurement, type StartupMeasurement } from '../../../features/hls-pilot/measurement';
 import { startPilotPlayback } from '../../../features/hls-pilot/playback';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -36,6 +37,7 @@ export default function TimelineLiveVideo({ horseId, horseName }: TimelineLiveVi
   const [attemptId, setAttemptId] = useState(0);
   const [loading, setLoading] = useState(false);
   const [failure, setFailure] = useState('');
+  const [accessDenied, setAccessDenied] = useState(false);
   const [status, setStatus] = useState('Sin conexión');
   const [measurement, setMeasurement] = useState<StartupMeasurement | null>(null);
   const [elapsedMs, setElapsedMs] = useState(0);
@@ -83,6 +85,7 @@ export default function TimelineLiveVideo({ horseId, horseName }: TimelineLiveVi
     setMeasurement(null);
     setElapsedMs(0);
     setFailure('');
+    setAccessDenied(false);
     setStatus('Preparando conexión');
     setThresholdExceeded(false);
     setLoading(true);
@@ -139,6 +142,7 @@ export default function TimelineLiveVideo({ horseId, horseName }: TimelineLiveVi
       if (!isCurrent()) return;
       setMeasurement(startupMeasurement.finish('failed', message, typeof video.requestVideoFrameCallback === 'function'));
       setFailure(message);
+      setAccessDenied(message === NO_ACCESS_MESSAGE);
       setStatus('Conexión interrumpida');
       setLoading(false);
       if (thresholdTimer !== undefined) window.clearTimeout(thresholdTimer);
@@ -156,7 +160,7 @@ export default function TimelineLiveVideo({ horseId, horseName }: TimelineLiveVi
 
     const run = async () => {
       try {
-        if (!horseId) throw new Error('No hay un caballo seleccionado para esta transmisión.');
+        if (!horseId) throw new PilotAccessError();
 
         const configResponse = await fetch('/api/hls-pilot/config', {
           cache: 'no-store',
@@ -178,6 +182,7 @@ export default function TimelineLiveVideo({ horseId, horseName }: TimelineLiveVi
           failBeforePlayback('La búsqueda de configuración y cámara superó el límite de 12 segundos desde el clic.');
           return;
         }
+        if (!data.cameras.length) throw new PilotAccessError();
         const camera = data.cameras.find((candidate) => candidate.horseId === horseId);
         if (!camera) throw new Error('No hay una cámara asignada a este caballo.');
         if (!camera.ready) throw new Error('La cámara asignada todavía no está lista para transmitir.');
@@ -191,6 +196,7 @@ export default function TimelineLiveVideo({ horseId, horseName }: TimelineLiveVi
           onError: (value: string) => {
             if (!isCurrent()) return;
             setFailure(value);
+            setAccessDenied(value === NO_ACCESS_MESSAGE);
             setLoading(false);
           },
           onMeasurement: (value: StartupMeasurement) => {
@@ -283,13 +289,14 @@ export default function TimelineLiveVideo({ horseId, horseName }: TimelineLiveVi
               data-testid="timeline-live-video"
               muted
               playsInline
-              controls
+              controls={!accessDenied}
+              hidden={accessDenied}
               preload="none"
               aria-label={`Transmisión de vídeo de ${horseName || 'caballo seleccionado'}`}
-              className="absolute inset-0 h-full w-full object-contain"
+              className={accessDenied ? 'hidden' : 'absolute inset-0 h-full w-full object-contain'}
             />
 
-            <div className="pointer-events-none absolute left-4 right-20 top-[max(1rem,env(safe-area-inset-top))] z-10 flex max-w-xl flex-col items-start gap-2 sm:left-6">
+            {!accessDenied && <div className="pointer-events-none absolute left-4 right-20 top-[max(1rem,env(safe-area-inset-top))] z-10 flex max-w-xl flex-col items-start gap-2 sm:left-6">
               <span className="rounded-full border border-white/20 bg-black/75 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-white">
                 Transmisión de la Raspberry
               </span>
@@ -302,7 +309,7 @@ export default function TimelineLiveVideo({ horseId, horseName }: TimelineLiveVi
                 </p>
                 {horseName && <p className="mt-1 text-white/60">{horseName}</p>}
               </div>
-            </div>
+            </div>}
 
             <button
               type="button"
@@ -313,7 +320,13 @@ export default function TimelineLiveVideo({ horseId, horseName }: TimelineLiveVi
               ×
             </button>
 
-            {loading && (
+            {accessDenied && (
+              <div role="alert" className="absolute inset-0 grid place-items-center px-6 text-center text-xl text-white">
+                <p>{NO_ACCESS_MESSAGE}</p>
+              </div>
+            )}
+
+            {!accessDenied && loading && (
               <div aria-live="polite" className="absolute inset-0 z-[5] flex items-center justify-center bg-black/45 px-6">
                 <div className="w-full max-w-sm rounded-2xl border border-white/15 bg-[#151515]/95 p-6 text-center shadow-2xl">
                   <div className="mx-auto mb-4 h-8 w-8 animate-pulse rounded-full border border-white/50" aria-hidden="true" />
@@ -325,13 +338,13 @@ export default function TimelineLiveVideo({ horseId, horseName }: TimelineLiveVi
               </div>
             )}
 
-            {thresholdExceeded && !measurement?.clickToMotionMs && !failure && (
+            {!accessDenied && thresholdExceeded && !measurement?.clickToMotionMs && !failure && (
               <p className="absolute bottom-[max(1rem,env(safe-area-inset-bottom))] left-4 right-4 z-10 rounded-xl border border-white/15 bg-black/80 px-4 py-3 text-sm text-white/90 sm:left-auto sm:right-6 sm:max-w-md">
                 Aún no se confirma movimiento de fotogramas. La medición continúa.
               </p>
             )}
 
-            {failure && (
+            {!accessDenied && failure && (
               <div role="alert" className="absolute bottom-[max(1rem,env(safe-area-inset-bottom))] left-4 right-4 z-10 flex flex-col gap-3 rounded-xl border border-white/20 bg-black/90 px-4 py-3 text-sm text-white sm:left-auto sm:right-6 sm:max-w-xl sm:flex-row sm:items-center sm:justify-between">
                 <p>{failure}</p>
                 <button

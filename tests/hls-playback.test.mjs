@@ -17,8 +17,10 @@ function moduleAt(path, require = () => { throw new Error('Unexpected import'); 
   return exports;
 }
 const measurement = moduleAt('src/features/hls-pilot/measurement.ts');
+const access = moduleAt('src/features/hls-pilot/access.ts');
 const { startPilotPlayback } = moduleAt('src/features/hls-pilot/playback.ts', name => {
   if (name === './measurement') return measurement;
+  if (name === './access') return access;
   throw new Error('Unexpected import: ' + name);
 });
 
