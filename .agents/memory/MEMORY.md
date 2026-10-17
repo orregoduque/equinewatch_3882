@@ -9,3 +9,4 @@
 - [Live camera constraints](live-camera-constraints.md) — Pi 4/2 GB verified; preserve main stream, verify secondary capabilities; measure click-to-motion separately from video delay.
 - [Camera pilot authorization](camera-pilot-authorization.md) — camera access must not inherit demo identities or force an unapproved customer-login migration.
 - [Supabase REST diagnostics](supabase-rest-diagnostics.md) — test a table with limit=0, not the REST root; distinguish API-key failures from grants and RLS.
+- [Registro permissions](checks-permissions.md) — user-confirmed owner/staff RLS and automatic authorship; anonymous checks access is intentionally denied.
