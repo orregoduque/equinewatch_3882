@@ -5,18 +5,29 @@ export function pilotHtml(html, path) {
     ? html.replace("base-uri 'self';", "media-src 'self' blob:; base-uri 'self';") : html;
 }
 
-// Opt-in command-line configuration only. No default receiver, secrets or deployment changes.
-export async function loadPilotProxy(argv = process.argv.slice(2)) {
+// Opt-in only. Environment configuration supports publishing without private config files.
+export async function loadPilotProxy(argv = process.argv.slice(2), env = process.env) {
   const index = argv.indexOf('--hls-pilot-config');
   let receiver;
+  let receiverOrigin = env.HLS_RECEIVER_ORIGIN;
+  const proxyKey = env.HLS_PROXY_KEY;
+  if (proxyKey && !/^[A-Za-z0-9_-]{32,256}$/.test(proxyKey))
+    throw new Error('Credencial privada del proxy inválida.');
   if (index !== -1) {
     if (!argv[index + 1]) throw new Error('Falta configuración privada del proxy HLS.');
     const config = JSON.parse(await readFile(argv[index + 1], 'utf8'));
-    receiver = new URL(config.receiverOrigin);
+    receiverOrigin = config.receiverOrigin;
+  }
+  if (receiverOrigin) {
+    receiver = new URL(receiverOrigin);
     if (receiver.username || receiver.password || receiver.pathname !== '/' || receiver.search || receiver.hash
       || (receiver.protocol !== 'https:' && !(receiver.protocol === 'http:'
         && ['127.0.0.1', '[::1]'].includes(receiver.hostname))))
       throw new Error('El receptor requiere HTTPS, o HTTP exclusivamente en loopback.');
+    if (index === -1 && (receiver.protocol !== 'https:' || !proxyKey))
+      throw new Error('La conexión publicada requiere HTTPS y HLS_PROXY_KEY.');
+  } else if (proxyKey) {
+    throw new Error('Configurar HLS_RECEIVER_ORIGIN junto con HLS_PROXY_KEY.');
   }
   return async (request, response) => {
     const path = new URL(request.url, 'http://app.invalid').pathname;
@@ -48,6 +59,7 @@ export async function loadPilotProxy(argv = process.argv.slice(2)) {
       for (const key of ['authorization', 'cookie', 'content-type']) {
         if (request.headers[key]) headers[key] = request.headers[key];
       }
+      if (proxyKey) headers['x-hls-proxy-key'] = proxyKey;
       // No user-supplied URL, redirect following, ingest forwarding or broad reverse proxy.
       if (!/^\/api\/hls-pilot\/(cameras|session\/[a-z0-9-]+|media\/[a-z0-9-]+\/(status|index\.m3u8|[a-f0-9-]{36}-\d{1,10}\.ts))$/.test(path)) {
         json(404, { error: 'Ruta no disponible.' }); return true;

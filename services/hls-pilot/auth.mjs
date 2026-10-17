@@ -7,6 +7,8 @@ export const cameraIdPattern = /^[a-z0-9][a-z0-9-]{0,47}$/;
 export function validateConfig(config) {
   if (!config || !Array.isArray(config.cameras) || config.cameras.length < 1 || config.cameras.length > 4)
     throw new Error('Configurar entre una y cuatro cámaras de prueba.');
+  if (config.appProxyKeySha256 !== undefined && !/^[a-f0-9]{64}$/.test(config.appProxyKeySha256))
+    throw new Error('Hash de la credencial del proxy inválido.');
   const authOrigin = new URL(config.supabaseUrl);
   if (authOrigin.protocol !== 'https:' || authOrigin.username || authOrigin.password
     || authOrigin.pathname !== '/' || !config.supabaseAnonKey)
@@ -21,6 +23,8 @@ export function validateConfig(config) {
       || !/^[a-f0-9]{64}$/.test(camera.publisherKeySha256 || ''))
       throw new Error('Registro de cámara inválido.');
     if (deviceKeys.has(camera.publisherKeySha256)) throw new Error('Cada cámara necesita una credencial de publicación distinta.');
+    if (camera.publisherKeySha256 === config.appProxyKeySha256)
+      throw new Error('El proxy y el dispositivo necesitan credenciales distintas.');
     ids.add(camera.id); deviceKeys.add(camera.publisherKeySha256);
     for (const key of ['ownerUserIds', 'stableOwnerUserIds']) {
       if (!Array.isArray(camera[key]) || camera[key].some(id => !uuid.test(id)))
@@ -36,6 +40,14 @@ export function createAuth(config, { fetcher = fetch, clock = Date.now, signingK
   function permitted(uid, camera) {
     return Boolean(camera && ((config.adminUserIds || []).includes(uid)
       || camera.ownerUserIds.includes(uid) || camera.stableOwnerUserIds.includes(uid)));
+  }
+  function proxy(request) {
+    if (!config.appProxyKeySha256) return; // Existing loopback/private-network pilot.
+    const value = request.headers['x-hls-proxy-key'];
+    if (typeof value !== 'string' || !/^[A-Za-z0-9_-]{32,256}$/.test(value)
+      || !timingSafeEqual(createHash('sha256').update(value).digest(),
+        Buffer.from(config.appProxyKeySha256, 'hex')))
+      throw new PilotError(403, 'Acceso exclusivo del proxy de la app.');
   }
   async function user(request) {
     const value = request.headers.authorization;
@@ -94,5 +106,5 @@ export function createAuth(config, { fetcher = fetch, clock = Date.now, signingK
     grant(data.uid, cameraId);
     return data.uid;
   }
-  return { user, grant, publisher, issue, viewer, permitted };
+  return { user, grant, publisher, issue, viewer, permitted, proxy };
 }

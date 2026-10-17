@@ -41,8 +41,9 @@ export function createReceiver(config, { authenticate, clock = Date.now } = {}) 
       if (++bucket.count > 1200) throw new PilotError(429, 'Demasiadas solicitudes.');
       const url = new URL(request.url, 'http://receiver.invalid');
       const path = url.pathname;
-      if (path === '/health' && ['GET', 'HEAD'].includes(request.method))
+      if (['/', '/health'].includes(path) && ['GET', 'HEAD'].includes(request.method))
         return send(200, { ok: true, mode: 'volatile-hls-pilot' });
+      if (path.startsWith('/api/hls-pilot/')) auth.proxy(request);
 
       const ingest = path.match(/^\/ingest\/([a-z0-9-]+)\/([a-f0-9-]{36})\/(\d{1,10})$/);
       if (ingest && request.method === 'PUT') {

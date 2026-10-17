@@ -4,6 +4,11 @@
 Supabase ni ningún plan contratado. El código arranca con el piloto desactivado.
 Las plantillas no funcionan hasta rellenar los valores reales localmente.
 
+Para publicar el receptor en un proyecto independiente, con terminación HTTPS
+del proveedor y sin cambiar el Autoscale de la app, consultar
+[RECEIVER-PUBLISH.md](RECEIVER-PUBLISH.md). Incluye el empaquetado del servicio,
+la configuración mediante Secrets y la credencial exclusiva del proxy.
+
 La ruta `/hls-pilot` también incluye una **demostración independiente de 5 segundos
 en bucle**, visible sin configurar cámaras. Es un MP4 pequeño y sin audio creado
 con paneo/zoom de una imagen de muestra, no un directo ni una medición HLS.
