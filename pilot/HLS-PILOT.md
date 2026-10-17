@@ -9,11 +9,12 @@ del proveedor y sin cambiar el Autoscale de la app, consultar
 [RECEIVER-PUBLISH.md](RECEIVER-PUBLISH.md). Incluye el empaquetado del servicio,
 la configuración mediante Secrets y la credencial exclusiva del proxy.
 
-La ruta `/hls-pilot` también incluye una **demostración independiente de 5 segundos
-en bucle**, visible sin configurar cámaras. Es un MP4 pequeño y sin audio creado
-con paneo/zoom de una imagen de muestra, no un directo ni una medición HLS.
-Se puede pausar o reanudar sin afectar a la conexión de cámaras. Se regenera con
-`node scripts/generate-hls-mock-video.mjs`.
+Las rutas `/hls-pilot` y el botón **Live video** de Timeline usan HLS autorizado,
+no el MP4 de demostración. El botón abre la transmisión asignada al caballo
+seleccionado en pantalla completa, con cierre mediante X. Si falta configuración,
+sesión, permiso o señal, muestra el error sin sustituirlo por un vídeo de muestra.
+El antiguo archivo público de 5 segundos se conserva para compatibilidad, pero
+no se monta en estas rutas ni se usa para medir la apertura de HLS.
 
 ## 1. Diagnóstico desde la Raspberry: empezar aquí
 

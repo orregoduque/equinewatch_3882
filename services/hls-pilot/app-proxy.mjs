@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises';
 
 export function pilotHtml(html, path) {
+  if (/\bmedia-src\s/.test(html)) return html;
   return path.split('?')[0] === '/hls-pilot'
     ? html.replace("base-uri 'self';", "media-src 'self' blob:; base-uri 'self';") : html;
 }

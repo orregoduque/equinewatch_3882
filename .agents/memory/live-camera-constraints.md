@@ -29,3 +29,13 @@ not count as motion. Do not assume cold on-demand publication meets this target.
 **How to apply:** Test continuously prepared HLS first, count threshold
 failures rather than replacing the target with an average, and begin with
 functional desktop/mobile checks before a large measurement campaign.
+
+HLS MediaSource playback must remain possible after navigation from any initial
+page, including login, without requiring a document reload.
+
+**Why:** This is a single-page app: the original document's CSP remains in force
+after route changes. Adding blob media permission only to direct pilot-page
+responses leaves playback broken when entering through another route.
+
+**How to apply:** Keep the shared document's media policy limited to same-origin
+and blob sources; test direct entry and navigation, not just a pilot deep link.

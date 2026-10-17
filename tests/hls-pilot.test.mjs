@@ -177,7 +177,7 @@ test('HTTP receiver enforces device, camera, session and segment access; include
     try {
       const file = join(directory, 'app.json');
       await writeFile(file, JSON.stringify({ receiverOrigin: url }));
-      const proxy = await loadPilotProxy(['--hls-pilot-config', file]);
+      const proxy = await loadPilotProxy(['--hls-pilot-config', file], {});
       app = await listen(proxy);
       const viaProxy = await fetch(app.url + '/api/hls-pilot/session/box-one', {
         method: 'POST', headers: {
@@ -206,7 +206,7 @@ test('HTTP receiver enforces device, camera, session and segment access; include
 });
 
 test('app proxy is disabled by default, opt-in only, validates origin and never exposes ingest', async () => {
-  const disabled = await loadPilotProxy([]);
+  const disabled = await loadPilotProxy([], {});
   const app = await listen(async (request, response) => {
     if (!await disabled(request, response)) { response.writeHead(404); response.end(); }
   });
@@ -216,9 +216,9 @@ test('app proxy is disabled by default, opt-in only, validates origin and never 
     assert.equal((await fetch(app.url + '/api/hls-pilot/cameras')).status, 404);
     const file = join(directory, 'app.json');
     await writeFile(file, JSON.stringify({ receiverOrigin: 'http://camera.example.test' }));
-    await assert.rejects(loadPilotProxy(['--hls-pilot-config', file]), /HTTPS/);
+    await assert.rejects(loadPilotProxy(['--hls-pilot-config', file], {}), /HTTPS/);
     await writeFile(file, JSON.stringify({ receiverOrigin: 'http://127.0.0.1:1' }));
-    const proxy = await loadPilotProxy(['--hls-pilot-config', file]);
+    const proxy = await loadPilotProxy(['--hls-pilot-config', file], {});
     const active = await listen(async (request, response) => {
       if (!await proxy(request, response)) { response.writeHead(404); response.end(); }
     });

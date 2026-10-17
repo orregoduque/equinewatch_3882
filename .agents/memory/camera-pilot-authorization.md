@@ -28,3 +28,14 @@ independent of the live customer app.
 **How to apply:** Prepare the receiver for a separate always-on project. Confirm
 the additional hosting cost before provisioning; do not replace the main app's
 publishing configuration with the receiver's configuration.
+
+Live-video entry points must request the authorized stream for the selected
+horse, not display or fall back to the standalone five-second demo.
+
+**Why:** The user reported still seeing the five-second clip instead of the
+Raspberry transmission after publication had started. Showing a working sample
+conceals connection problems and does not satisfy the requested live-video flow.
+
+**How to apply:** Show explicit authentication, assignment and connection errors.
+Keep the Raspberry's current synthetic source distinct from verified physical
+camera footage; successful synthetic playback does not prove real-world latency.

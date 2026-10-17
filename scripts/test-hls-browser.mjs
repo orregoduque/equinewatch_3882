@@ -39,13 +39,20 @@ async function download(page, name) {
 }
 try {
   if (!mseOnly) {
-  const disabled = await context({ width: 1366, height: 900 });
+  // Exercise disabled configuration explicitly, independently of this workspace's receiver setup.
+  // The backend default remains covered by tests/hls-pilot.test.mjs.
+  const disabledFixture = async route => route.fulfill({
+    contentType: 'application/json', body: JSON.stringify({ enabled: false }),
+  });
+  const disabled = await context({ width: 1366, height: 900 }, {});
+  await disabled.page.route('**/api/hls-pilot/config', disabledFixture);
+  await disabled.page.reload();
   await wait(disabled.page, 'h2:text-is("Piloto desactivado")');
   assert(await disabled.page.getByRole('button', { name: 'Ver vídeo', exact: true }).isDisabled());
   await disabled.page.screenshot({ path: `${directory}/disabled-desktop.png`, fullPage: true });
   assert.equal(disabled.errors.length, 0);
   await disabled.context.close();
-  report.results.push({ case: 'off-by-default', passed: true });
+  report.results.push({ case: 'disabled-config', passed: true });
   }
 
   for (const [name, viewport] of (mseOnly ? [

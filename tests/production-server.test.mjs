@@ -6,7 +6,8 @@ import test from 'node:test';
 
 test('the production server preserves SPA routes, API health and correct versioned asset responses', async () => {
   const child = spawn(process.execPath, ['server.mjs'], {
-    env: { ...process.env, NODE_ENV: 'production', PORT: '0' },
+    env: { ...process.env, NODE_ENV: 'production', PORT: '0',
+      HLS_RECEIVER_ORIGIN: '', HLS_PROXY_KEY: '' },
     stdio: ['ignore', 'pipe', 'pipe'],
   });
   let logs = '';
@@ -35,7 +36,9 @@ test('the production server preserves SPA routes, API health and correct version
     assert.deepEqual(await (await fetch(base + '/api/hls-pilot/config')).json(), { enabled: false });
     assert.equal((await fetch(base + '/api/hls-pilot/cameras')).status, 404);
     assert.match(await (await fetch(base + '/hls-pilot')).text(), /media-src 'self' blob:/);
-    assert.doesNotMatch(await (await fetch(base + '/horse-timeline')).text(), /media-src 'self' blob:/);
+    assert.match(await (await fetch(base + '/horse-timeline')).text(), /media-src 'self' blob:/);
+    assert.match(await (await fetch(base + '/login')).text(), /media-src 'self' blob:/,
+      'HLS must work after SPA navigation from login without a document reload');
     const demoPath = '/media/hls-demo-5s.mp4';
     const video = await readFile('public' + demoPath);
     const full = await fetch(base + demoPath);

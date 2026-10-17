@@ -117,9 +117,10 @@ No acepta una cabecera equivalente suministrada por el visitante.
 
 Primero verificar en `/hls-pilot` con una sesión real autorizada:
 lista de cámaras, recepción continua, avance de fotogramas, denegación a otro
-usuario y caída/reconexión de la Pi. La X y la pantalla completa de Timeline
-pertenecen todavía a la demostración: este paquete no los conecta al directo.
-Esa integración debe hacerse y comprobarse antes de anunciar vídeo real en Timeline.
+usuario y caída/reconexión de la Pi. En la app principal, **Live video** abre HLS
+en pantalla completa para la cámara asignada al caballo seleccionado, sin fallback
+al MP4 de demostración. Esa interfaz requiere la versión nueva de la app principal;
+publicar solo este paquete receptor no actualiza Timeline.
 
 Después preparar la app principal con su build de compatibilidad, y publicar
 desde su Publishing. Solo la publicación de cada proyecto cambia producción.

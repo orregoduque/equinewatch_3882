@@ -25,8 +25,9 @@ export function startPilotPlayback(
   let lastFrame = performance.now();
   let lastMediaTime = -1;
   const supported = typeof video.requestVideoFrameCallback === 'function';
-  const threshold = setTimeout(callbacks.onThreshold, 3000);
-  const deadline = setTimeout(() => fail('No se confirmaron fotogramas avanzando en 12 segundos.'), 12_000);
+  const threshold = setTimeout(callbacks.onThreshold, Math.max(0, 3000 - measurement.elapsed()));
+  const deadline = setTimeout(() => fail('No se confirmaron fotogramas avanzando en 12 segundos.'),
+    Math.max(0, 12_000 - measurement.elapsed()));
   const watchdog = setInterval(() => {
     if (!disposed && measured && performance.now() - lastFrame > 8000)
       fail('Vídeo detenido: ya no avanzan los fotogramas.');

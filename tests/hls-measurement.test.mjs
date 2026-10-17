@@ -14,6 +14,7 @@ test('click measurement includes all preparation and requires advancing presente
   let time = 100;
   const measure = api.createStartupMeasurement(() => time);
   time += 700;
+  assert.equal(measure.elapsed(), 700, 'discovery time is available before playback starts');
   measure.mark('authorizationMs');
   time += 800;
   measure.mark('playerReadyMs');

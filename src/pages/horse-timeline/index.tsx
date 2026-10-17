@@ -242,7 +242,11 @@ const HorseTimeline: React.FC = () => {
                   </p>
                 </div>
               </div>
-              <TimelineLiveVideo key={`${viewerKey}:${selectedHorseId}`} />
+              <TimelineLiveVideo
+                key={`${viewerKey}:${selectedHorseId}`}
+                horseId={selectedHorse?.id || ''}
+                horseName={selectedHorse?.name || ''}
+              />
             </div>
 
             {/* Horse Selector Tabs */}

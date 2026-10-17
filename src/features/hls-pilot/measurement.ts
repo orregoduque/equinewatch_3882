@@ -18,6 +18,7 @@ export function createStartupMeasurement(clock = () => performance.now()) {
   let firstFrames = 0;
   let finished: StartupMeasurement | null = null;
   return {
+    elapsed() { return clock() - click; },
     mark(name: 'authorizationMs' | 'playerReadyMs' | 'connectionReadyMs') {
       marks[name] ??= clock() - click;
     },

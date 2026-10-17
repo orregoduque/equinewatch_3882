@@ -23,7 +23,15 @@ try {
       if (/\/api\/hls-pilot\/(session|media)\//.test(request.url())) privateRequests.push(request.url());
     });
     try {
-      await page.goto(base + '/hls-pilot', { waitUntil: 'domcontentloaded' });
+      // Asset-only regression fixture. The actual app no longer mounts this demo on live routes.
+      await page.route('**/__mock-video-asset-test', route => route.fulfill({
+        contentType: 'text/html',
+        body: '<!doctype html><html><meta name="viewport" content="width=device-width,initial-scale=1">'
+          + '<body style="margin:0;background:#111;color:white"><p>Prueba aislada del archivo de demostración</p>'
+          + '<video data-testid="mock-video" src="/media/hls-demo-5s.mp4" autoplay loop muted playsinline controls style="width:100%"></video>'
+          + '<button onclick="document.querySelector(\'video\').play()">Reproducir</button></body></html>',
+      }));
+      await page.goto(base + '/__mock-video-asset-test', { waitUntil: 'domcontentloaded' });
       const video = page.getByTestId('mock-video');
       await video.waitFor();
       await page.waitForFunction(() => {
@@ -61,7 +69,7 @@ try {
       return { name, metadata, automaticWraps: await page.evaluate(() => window.__mockLoopState.wraps), passed: true };
     } finally { await context.close(); }
   }));
-  const report = { browser: browser.version(), physicalMobileTested: false, results };
+  const report = { browser: browser.version(), assetOnly: true, physicalMobileTested: false, results };
   await writeFile(`${directory}/report.json`, JSON.stringify(report, null, 2));
   console.log(JSON.stringify(report, null, 2));
 } finally { await browser.close(); }
