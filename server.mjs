@@ -27,6 +27,7 @@ const mimeTypes = {
   '.jpg': 'image/jpeg',
   '.js': 'text/javascript; charset=utf-8',
   '.json': 'application/json; charset=utf-8',
+  '.mp4': 'video/mp4',
   '.png': 'image/png',
   '.svg': 'image/svg+xml',
   '.webp': 'image/webp',
@@ -169,6 +170,37 @@ async function handleSubmit(request, response) {
   }
 }
 
+function serveDemoVideo(request, response, file) {
+  const size = statSync(file).size;
+  const headers = {
+    'Content-Type': 'video/mp4', 'Accept-Ranges': 'bytes', 'Cache-Control': 'no-cache',
+    'X-Content-Type-Options': 'nosniff',
+  };
+  let start = 0, end = size - 1, status = 200;
+  if (request.headers.range && !request.headers['if-range']) {
+    const match = /^bytes=(\d*)-(\d*)$/i.exec(request.headers.range);
+    if (match && (match[1] || match[2])) {
+      if (!match[1]) start = Math.max(0, size - Number(match[2]));
+      else start = Number(match[1]);
+      if (match[1] && match[2]) end = Math.min(size - 1, Number(match[2]));
+    }
+    if (!match || (!match[1] && !match[2]) || (!match[1] && Number(match[2]) === 0)
+      || !Number.isSafeInteger(start) || !Number.isSafeInteger(end)
+      || start > end || start >= size) {
+      response.writeHead(416, { ...headers, 'Content-Range': `bytes */${size}`, 'Content-Length': 0 });
+      return response.end();
+    }
+    status = 206;
+    headers['Content-Range'] = `bytes ${start}-${end}/${size}`;
+  }
+  response.writeHead(status, { ...headers, 'Content-Length': end - start + 1 });
+  if (request.method === 'HEAD') return response.end();
+  const stream = createReadStream(file, { start, end });
+  response.on('close', () => stream.destroy());
+  stream.on('error', () => response.destroy());
+  stream.pipe(response);
+}
+
 function serveStatic(request, response) {
   let pathname;
   try {
@@ -183,6 +215,7 @@ function serveStatic(request, response) {
     return json(response, 404, { error: 'Archivo no encontrado.' });
   }
   const file = found ? requested : join(buildDirectory, 'index.html');
+  if (extname(file) === '.mp4') return serveDemoVideo(request, response, file);
   const immutable = pathname.startsWith('/assets/') && /-[\w-]{8}\.\w+$/.test(pathname);
   response.writeHead(200, {
     'Content-Type': mimeTypes[extname(file)] || 'application/octet-stream',

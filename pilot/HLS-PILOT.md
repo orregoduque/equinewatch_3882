@@ -4,6 +4,12 @@
 Supabase ni ningún plan contratado. El código arranca con el piloto desactivado.
 Las plantillas no funcionan hasta rellenar los valores reales localmente.
 
+La ruta `/hls-pilot` también incluye una **demostración independiente de 5 segundos
+en bucle**, visible sin configurar cámaras. Es un MP4 pequeño y sin audio creado
+con paneo/zoom de una imagen de muestra, no un directo ni una medición HLS.
+Se puede pausar o reanudar sin afectar a la conexión de cámaras. Se regenera con
+`node scripts/generate-hls-mock-video.mjs`.
+
 ## 1. Diagnóstico desde la Raspberry: empezar aquí
 
 No modificar el principal `rtsp://192.168.1.99:554/stream1`. Obtener del fabricante,

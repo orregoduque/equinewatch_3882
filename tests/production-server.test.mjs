@@ -36,6 +36,28 @@ test('the production server preserves SPA routes, API health and correct version
     assert.equal((await fetch(base + '/api/hls-pilot/cameras')).status, 404);
     assert.match(await (await fetch(base + '/hls-pilot')).text(), /media-src 'self' blob:/);
     assert.doesNotMatch(await (await fetch(base + '/horse-timeline')).text(), /media-src 'self' blob:/);
+    const demoPath = '/media/hls-demo-5s.mp4';
+    const video = await readFile('public' + demoPath);
+    const full = await fetch(base + demoPath);
+    assert.equal(full.status, 200);
+    assert.equal(full.headers.get('content-type'), 'video/mp4');
+    assert.equal(full.headers.get('accept-ranges'), 'bytes');
+    assert.deepEqual(Buffer.from(await full.arrayBuffer()), video);
+    const range = await fetch(base + demoPath, { headers: { Range: 'bytes=0-31' } });
+    assert.equal(range.status, 206);
+    assert.equal(range.headers.get('content-range'), `bytes 0-31/${video.length}`);
+    assert.deepEqual(Buffer.from(await range.arrayBuffer()), video.subarray(0, 32));
+    const suffix = await fetch(base + demoPath, { headers: { Range: 'bytes=-16' } });
+    assert.equal(suffix.status, 206);
+    assert.deepEqual(Buffer.from(await suffix.arrayBuffer()), video.subarray(-16));
+    for (const value of ['bytes=999999999-1000000000', 'bytes=-0', 'bytes=2-1', 'bytes=0-1,3-4', 'bytes=']) {
+      const invalid = await fetch(base + demoPath, { headers: { Range: value } });
+      assert.equal(invalid.status, 416, value);
+      assert.equal(invalid.headers.get('content-range'), `bytes */${video.length}`);
+    }
+    const videoHead = await fetch(base + demoPath, { method: 'HEAD' });
+    assert.equal(videoHead.headers.get('content-length'), String(video.length));
+    assert.equal((await videoHead.arrayBuffer()).byteLength, 0);
     for (const path of ['/assets/missing-aaaaaaaa.js', '/missing.css', '/api/missing']) {
       const response = await fetch(base + path);
       assert.equal(response.status, 404, path);

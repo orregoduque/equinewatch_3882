@@ -5,6 +5,7 @@ import { pilotRequest, PilotCamera, PilotSession } from './api';
 import { createStartupMeasurement, StartupMeasurement } from './measurement';
 import { startPilotPlayback } from './playback';
 import PilotView from './PilotView';
+import MockVideoDemo from './MockVideoDemo';
 
 export default function HlsPilotPage() {
   const { user } = useAuth();
@@ -93,6 +94,7 @@ export default function HlsPilotPage() {
   return <>
     <nav className="px-4 py-3 bg-white text-sm"><Link to="/horse-timeline">Volver al Timeline</Link>
       {!user && <Link className="ml-6 underline" to="/login">Iniciar sesión</Link>}</nav>
+    <MockVideoDemo />
     <PilotView enabled={enabled} cameras={cameras} selectedId={selectedId}
       onSelect={id => { stop(); setSelectedId(id); }} onReload={() => void reload()}
       onStart={start} onStop={stop} onExport={exportResults}

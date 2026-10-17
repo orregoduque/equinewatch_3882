@@ -58,7 +58,7 @@ try {
     await wait(test.page, 'button:has-text("Cámara sintética")');
     await test.page.getByRole('button', { name: 'Ver vídeo', exact: true }).click();
     await wait(test.page, 'text=Reproduciendo · retraso real no medido');
-    const frames = await test.page.locator('video').evaluate(video => ({
+    const frames = await test.page.getByLabel('Vídeo en directo de la cámara seleccionada').evaluate(video => ({
       time: video.currentTime, width: video.videoWidth, height: video.videoHeight,
       decoded: video.getVideoPlaybackQuality().totalVideoFrames, paused: video.paused,
       native: Boolean(video.canPlayType('application/vnd.apple.mpegurl')),
@@ -73,7 +73,7 @@ try {
     assert(await test.page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'horizontal overflow');
     await test.page.screenshot({ path: `${directory}/${name}-playing.png`, fullPage: true });
     await test.page.getByRole('button', { name: 'Cerrar conexión', exact: true }).click();
-    assert(await test.page.locator('video').evaluate(video => video.paused && !video.getAttribute('src')));
+    assert(await test.page.getByLabel('Vídeo en directo de la cámara seleccionada').evaluate(video => video.paused && !video.getAttribute('src')));
     await test.page.getByRole('button', { name: 'Ver vídeo', exact: true }).click();
     await wait(test.page, 'text=Reproduciendo · retraso real no medido');
     assert.equal((await download(test.page, `${name}-reopened`)).results.length, 2);

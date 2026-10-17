@@ -14,3 +14,17 @@ mtime_ms = 1792242677712
 storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:3cd14c48-b7f3-4b26-917e-adc412cfbcce/f9425473-4535-4ee8-92f2-d6e53c1bba47/988e531e-cf26-48d6-a42f-db0c30a15a1b"
 storage_version_token = "1792242679414255"
 content_type = "text/html"
+
+[[outputs]]
+id = "O4Xm6xSrTSqRqNzPIp-Hi"
+uri = "file://public/media/hls-demo-5s.mp4"
+type = "video"
+title = "Vídeo mockup de 5 segundos"
+description = "Clip H.264 sin audio, con movimiento simulado de una imagen de muestra. Cargado en /hls-pilot con reproducción automática en bucle; no es una cámara en directo."
+logical_id = "687464fe-09e4-46f0-8b8f-c26d79950b9a"
+content_hash = "sha256:9133f307d888b7776fa0e93a7f5bd4174a90ba5e8543ba92505c3712e73a7150"
+size = 299115
+mtime_ms = 1792244842359
+storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:3cd14c48-b7f3-4b26-917e-adc412cfbcce/687464fe-09e4-46f0-8b8f-c26d79950b9a/8e2c0abe-74eb-4831-ae7d-c8195ec9bf17"
+storage_version_token = "1792245028821037"
+content_type = "video/mp4"
