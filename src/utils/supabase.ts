@@ -151,7 +151,7 @@ const loadHorses = async (viewer: HorseViewer): Promise<SupabaseHorse[]> => {
   return data || [];
 };
 
-const requireHorseAccess = async (horseId: string | undefined, viewer: HorseViewer | null) => {
+export const requireHorseAccess = async (horseId: string | undefined, viewer: HorseViewer | null) => {
   if (!horseId || !viewer) throw new HorseAccessError('Sign in to access this horse.');
   const horses = await fetchHorses(viewer);
   if (!horses.some((horse) => horse.id === horseId)) {

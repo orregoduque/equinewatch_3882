@@ -8,6 +8,7 @@ const Landing = lazy(() => import('./pages/landing'));
 const Login = lazy(() => import('./pages/login'));
 const Contact = lazy(() => import('./pages/contact'));
 const DailySummary = lazy(() => import('./pages/daily-summary'));
+const Registro = lazy(() => import('./pages/registro'));
 const HorseTimeline = lazy(() => import('./pages/horse-timeline'));
 const HorseList = lazy(() => import('./pages/horse-list'));
 const WorldMap = lazy(() => import('./pages/world-map'));
@@ -36,6 +37,7 @@ const Routes: React.FC = () => {
             <Route path="/login" element={<Login />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/daily-summary" element={<DailySummary />} />
+            <Route path="/registro" element={<Registro />} />
             <Route path="/horse-timeline" element={<HorseTimeline />} />
             <Route path="/hls-pilot" element={<HlsPilot />} />
             <Route path="/horse-list" element={<HorseList />} />

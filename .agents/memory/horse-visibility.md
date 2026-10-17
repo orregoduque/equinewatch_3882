@@ -5,7 +5,9 @@ description: Records the owner's restricted horse visibility and supersedes the 
 
 The user requires: “el rol owner debe solo poder ver a su caballo.”
 Horse owners must only see their assigned horses, including Horse List,
-Timeline selectors, photos, video, and direct links to horse data.
+Timeline selectors, photos, video, Registro history and creation, and direct
+links to horse data. The user explicitly confirmed that an owner only sees and
+creates checks for their own horses.
 
 The user also explicitly requires: “quiero que el rol admin pueda ver todos los caballos.”
 Admin visibility must remain unrestricted by horse ownership, including

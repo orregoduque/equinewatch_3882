@@ -20,6 +20,7 @@ const Header = ({ className = '' }: HeaderProps) => {
     { label: 'Horses', path: '/horse-list', icon: 'Home' },
     { label: 'Timeline', path: '/horse-timeline', icon: 'Clock' },
     { label: 'Insights', path: '/daily-summary', icon: 'BarChart3' },
+    { label: 'Registro', path: '/registro', icon: 'ClipboardList' },
   ];
 
   const stableOwnerItems = [

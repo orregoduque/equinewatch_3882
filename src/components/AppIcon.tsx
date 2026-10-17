@@ -1,7 +1,7 @@
 import React from 'react';
 import {
     Activity, AlertCircle, AlertTriangle, ArrowLeft, ArrowRight, Award, Baby, BarChart3, Battery, Bell, Building,
-    Calendar, Camera, Check, CheckCircle, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Clock,
+    Calendar, Camera, Check, CheckCircle, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, ClipboardList, Clock,
     CreditCard, Crown, DollarSign, Download, Droplet, Edit, Eye, EyeOff, FileText, Globe, Headphones, Heart, HelpCircle,
     Home, Info, Lightbulb, Lock, LogOut, Mail, Moon, MoreVertical, Package, Pause, Plane, Play, Plus, RotateCcw, Search,
     Send, Share2, Shield, Smartphone, Stethoscope, Thermometer, Trash2, TrendingDown, TrendingUp, User, UserCheck,
@@ -10,7 +10,7 @@ import {
 
 const iconMap: Record<string, React.ComponentType<LucideProps>> = {
     Activity, AlertCircle, AlertTriangle, ArrowLeft, ArrowRight, Award, Baby, BarChart3, Battery, Bell, Building,
-    Calendar, Camera, Check, CheckCircle, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Clock,
+    Calendar, Camera, Check, CheckCircle, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, ClipboardList, Clock,
     CreditCard, Crown, DollarSign, Download, Droplet, Edit, Eye, EyeOff, FileText, Globe, Headphones, Heart, HelpCircle, Home, Info,
     Lightbulb, Lock, LogOut, Mail, Moon, MoreVertical, Package, Pause, Plane, Play, Plus, RotateCcw, Search, Send, Share2,
     Shield, Smartphone, Stethoscope, Thermometer, Trash2, TrendingDown, TrendingUp, User, UserCheck, UserPlus, Users,

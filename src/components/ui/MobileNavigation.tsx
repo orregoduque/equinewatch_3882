@@ -11,6 +11,7 @@ const MobileNavigation: React.FC = () => {
     { icon: 'Home', label: 'Horses', path: '/horse-list' },
     { icon: 'Clock', label: 'Timeline', path: '/horse-timeline' },
     { icon: 'BarChart3', label: 'Insights', path: '/daily-summary' },
+    { icon: 'ClipboardList', label: 'Registro', path: '/registro' },
   ];
 
   const stableOwnerItems = [
