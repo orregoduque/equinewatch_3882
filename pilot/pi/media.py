@@ -14,7 +14,7 @@ STREAM_FIELDS = (
 def probe(source, seconds=0):
     command = [
         "ffprobe", "-v", "error", "-rtsp_transport", "tcp",
-        "-rw_timeout", "10000000", "-analyzeduration", "5000000",
+        "-timeout", "10000000", "-analyzeduration", "5000000",
         "-probesize", "5000000", "-i", source, "-select_streams", "v:0",
         "-show_streams", "-show_entries", "stream=" + STREAM_FIELDS,
     ]
@@ -68,7 +68,7 @@ def trace_summary(text, time_base):
 def inspect_idr(source, time_base, seconds=10):
     result = subprocess.run([
         "ffmpeg", "-nostdin", "-hide_banner", "-loglevel", "info",
-        "-rtsp_transport", "tcp", "-rw_timeout", "10000000", "-i", source,
+        "-rtsp_transport", "tcp", "-timeout", "10000000", "-i", source,
         "-map", "0:v:0", "-an", "-c:v", "copy", "-t", str(seconds),
         "-bsf:v", "trace_headers", "-f", "null", "-",
     ], capture_output=True, timeout=seconds + 25, check=False)

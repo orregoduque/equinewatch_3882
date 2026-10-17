@@ -3,13 +3,16 @@ name: Live camera constraints
 description: User-specified hardware, camera preservation and live video startup requirements.
 ---
 
-The user has a Raspberry Pi 5 with 2 GB RAM. The secondary camera stream
+The latest hardware report supplied by the user identifies the pilot device as
+a Raspberry Pi 4 Model B, 2 GB RAM, aarch64, not a Pi 5. This supersedes the
+earlier Pi 5 specification. The secondary camera stream
 previously advertised 640 × 480; do not assume it supports 720p. Preserve
 the main stream's configuration and prioritize camera-native H.264 with
 retransmission without re-encoding.
 
-**Why:** The user explicitly specified this hardware, corrected the secondary
-stream resolution assumption, and asked to preserve the main stream.
+**Why:** The user supplied a hardware verification report correcting the earlier
+device identification, corrected the secondary stream resolution assumption,
+and asked to preserve the main stream.
 
 **How to apply:** Inspect the real secondary URL and encoded stream before
 choosing resolution or bitrate; measure keyframe intervals rather than relying

@@ -1,4 +1,4 @@
-# Piloto privado HLS — una cámara, Pi 5 / 2 GB
+# Piloto privado HLS — una cámara, Raspberry / 2 GB
 
 **Preparación, no despliegue.** No se cambió la app publicada, la cámara, el router,
 Supabase ni ningún plan contratado. El código arranca con el piloto desactivado.
@@ -68,6 +68,23 @@ de confirmar la opción del agente. Una muestra no garantiza todos los GOP futur
 
 No se transforma H.265 en H.264, no se escala ni se cambian FPS en la Pi.
 Si no hay un secundario H.264 compatible, detener esta vía y revisar alternativas.
+
+### Compatibilidad del equipo y pruebas sintéticas
+
+El informe de hardware aportado para el piloto identifica una **Raspberry Pi 4
+Model B, 2 GB, aarch64**, corrigiendo la identificación previa como Pi 5.
+Su FFmpeg 7.1.5 requiere la opción del demuxer RTSP `-timeout 10000000`
+(10 segundos, en microsegundos), antes de `-i`. La retransmisión, el diagnóstico
+y la inspección IDR usan esa misma opción; no usar `-rw_timeout` en su lugar.
+Los límites y la retransmisión sin recodificación se mantienen.
+
+Una fuente sintética en `rtsp://127.0.0.1:8554/cam-demo` se abre **desde la Pi**:
+el receptor público solo recibe segmentos HTTPS, nunca intenta abrir ese RTSP.
+Una prueba con RTSP local y receptor HTTPS local no verifica conectividad pública
+ni apertura desde el navegador. Para ello hace falta publicar y configurar
+el receptor aislado, sus permisos y el reproductor de la app.
+Un clip que reinicia su reloj al repetirse no sirve para medir retraso respecto
+a la realidad; medir por separado apertura hasta fotogramas avanzando.
 
 ## 2. Qué está preparado
 

@@ -8,6 +8,7 @@ import tempfile
 import threading
 import unittest
 from unittest.mock import patch
+from types import SimpleNamespace
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "pilot/pi"))
 import agent
@@ -47,6 +48,24 @@ class PiPilotTests(unittest.TestCase):
         self.assertNotIn("-vf", command)
         self.assertNotIn("-r", command)
         self.assertNotIn("independent_segments", " ".join(command))
+
+    def test_all_rtsp_inputs_use_demuxer_socket_timeout_before_input(self):
+        commands = [agent.ffmpeg_command("rtsp://fixture/secondary", "/tmp/test")]
+        with patch.object(media.subprocess, "run", return_value=SimpleNamespace(
+                returncode=0, stdout=b'{"streams":[]}', stderr=b"")) as run:
+            media.probe("rtsp://fixture/secondary")
+            commands.append(run.call_args.args[0])
+            media.probe("rtsp://fixture/secondary", seconds=10)
+            commands.append(run.call_args.args[0])
+            media.inspect_idr("rtsp://fixture/secondary", "1/90000")
+            commands.append(run.call_args.args[0])
+        for command in commands:
+            with self.subTest(binary=command[0], arguments=command):
+                self.assertNotIn("-rw_timeout", command)
+                index = command.index("-timeout")
+                self.assertEqual(command[index + 1], "10000000")
+                self.assertLess(index, command.index("-i"))
+                self.assertEqual(command[command.index("-rtsp_transport") + 1], "tcp")
 
     def test_actual_idr_intervals_deduplicate_multiple_slices_and_check_headers(self):
         text = ""

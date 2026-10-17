@@ -1,0 +1,36 @@
+Bacatá ya está preparada para la prueba con vídeo sintético.
+
+Hardware verificado: Raspberry Pi 4 Model B Rev 1.1, 2 GB, aarch64. No es una Pi 5.
+
+En la Raspberry instalé el clip H.264 sintético y una cámara RTSP local supervisada por systemd:
+rtsp://127.0.0.1:8554/cam-demo
+Esta URL es local a la Raspberry; Replit no debe intentar abrirla directamente.
+
+Vídeo: Constrained Baseline, 640x480, yuv420p, 15 fps, sin B-frames, IDR cada segundo y SPS/PPS verificados. La Raspberry lo reenvía en bucle sin recodificar.
+
+Copié pilot/pi/agent.py y media.py del proyecto y los instalé en:
+/home/admin/Documents/Stable_eye_hls_pilot/pi
+
+Corrección necesaria: FFmpeg 7.1.5 de Raspberry rechaza -rw_timeout al abrir RTSP. Cambié -rw_timeout por -timeout en ffmpeg_command de agent.py y en las dos funciones de media.py que crean comandos. Conservé los originales y el contrato HTTP. Aplica esta misma corrección a vuestra copia del código antes de darla por compatible con esta instalación.
+
+Prueba REAL ejecutada en la Raspberry: cámara RTSP local -> agente Replit con esa corrección -> receptor HTTPS efímero en loopback, validando TLS con CA de prueba explícita y sin desactivar certificados. Recibidos 12 segmentos consecutivos de 1 segundo, 1.626.012 bytes; tres segmentos se decodifican independientemente, con 15 fotogramas distintos cada uno. Esto NO prueba aún el receptor público ni el botón de la app.
+
+Contrato comprobado:
+PUT /ingest/{cameraId}/{epochUUID}/{sequenceNumber}
+Authorization: Bearer <publisherKey>
+Content-Type: video/mp2t
+X-Segment-Duration: 1.0
+X-Segment-Start: <ISO8601>
+Respuesta: 204
+
+Pendiente del lado de Replit: receptor HTTPS real, cameraId de prueba (propuesta: bacata-mock), credencial del publicador, configuración de lectura/credencial app-receptor y conexión del botón al reproductor real. No reutilices el contrato PUT de archivos index.m3u8/.ts del mock anterior: el agente original envía segmentos con secuencia numérica y el receptor genera la lista.
+
+No compartas claves en el chat. Cuando estén disponibles, la configuración privada se guarda en la Raspberry con:
+python3 /home/admin/Documents/Stable_eye_hls_pilot/configurar_receptor.py
+
+El servicio preparado para después es:
+systemctl --user enable --now stableeye-hls-pilot.service
+
+El clip tiene tiempo de reproducción que se reinicia cada 20 s; no usarlo como reloj real para medir antigüedad visual. Medir desde el clic hasta fotogramas avanzando y distinguir eso de latencia.
+
+No he republicado Stable Eye, no he contratado alojamiento y los servicios existentes de fotos siguen activos.

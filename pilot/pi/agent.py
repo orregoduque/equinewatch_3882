@@ -25,7 +25,7 @@ SPOOL_LIMIT = 16 * 1024 * 1024
 def ffmpeg_command(source, directory):
     return [
         "ffmpeg", "-nostdin", "-hide_banner", "-loglevel", "error",
-        "-rtsp_transport", "tcp", "-rw_timeout", "10000000",
+        "-rtsp_transport", "tcp", "-timeout", "10000000",
         "-i", source, "-map", "0:v:0", "-an", "-c:v", "copy",
         "-f", "hls", "-hls_time", "1", "-hls_list_size", "6",
         "-hls_delete_threshold", "1", "-hls_segment_type", "mpegts",
