@@ -6,6 +6,22 @@ export function pilotHtml(html, path) {
     ? html.replace("base-uri 'self';", "media-src 'self' blob:; base-uri 'self';") : html;
 }
 
+// Video is optional: invalid pilot configuration must fail closed for video,
+// without preventing login, photos or any other existing customer route.
+export async function loadOptionalPilotProxy(argv = process.argv.slice(2), env = process.env) {
+  try {
+    return await loadPilotProxy(argv, env);
+  } catch {
+    console.error('[HLS] Piloto no disponible por configuración inválida; la app principal continúa activa.');
+    return async (request, response) => {
+      if (!new URL(request.url, 'http://app.invalid').pathname.startsWith('/api/hls-pilot/')) return false;
+      response.writeHead(503, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
+      response.end(JSON.stringify({ error: 'El vídeo no está disponible por un problema de configuración.' }));
+      return true;
+    };
+  }
+}
+
 // Opt-in only. Environment configuration supports publishing without private config files.
 export async function loadPilotProxy(argv = process.argv.slice(2), env = process.env) {
   const index = argv.indexOf('--hls-pilot-config');

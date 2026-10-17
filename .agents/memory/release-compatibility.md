@@ -26,3 +26,15 @@ actual prepared artifact. If old files cannot be retained, fail compilation
 rather than silently dropping compatibility. Reverify the external production
 origin when changing domains. Do not promise zero downtime or claim a database
 security audit from client-side permission tests.
+
+An optional HLS pilot failure must not prevent the customer-facing app from
+starting or serving its existing routes. Video must fail closed, not substitute
+a demo or weaken authorization.
+
+**Why:** The user reiterated that publication must not affect the existing
+production service and its customers. Coupling core startup to optional pilot
+configuration would make an unrelated video problem an app-wide outage.
+
+**How to apply:** Isolate optional-video configuration and receiver failures in
+the main app. Keep strict validation in the receiver itself; test missing and
+invalid video settings as well as receiver outages against ordinary app routes.

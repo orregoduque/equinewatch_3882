@@ -2,13 +2,13 @@ import { createServer } from 'node:http';
 import { createReadStream, existsSync, statSync, readFileSync } from 'node:fs';
 import { extname, join, resolve, sep } from 'node:path';
 import { ReplitConnectors } from '@replit/connectors-sdk';
-import { loadPilotProxy, pilotHtml } from './services/hls-pilot/app-proxy.mjs';
+import { loadOptionalPilotProxy, pilotHtml } from './services/hls-pilot/app-proxy.mjs';
 
 const PORT = Number(process.env.PORT || 5000);
 const production = process.env.NODE_ENV === 'production';
 const buildDirectory = resolve('build');
 const connectors = new ReplitConnectors();
-const handlePilot = await loadPilotProxy();
+const handlePilot = await loadOptionalPilotProxy();
 const recipient = 'founder@stable-eye.co';
 const allowedProfiles = new Set(['owner', 'manager', 'groom', 'vet']);
 const allowedQuestionKeys = {

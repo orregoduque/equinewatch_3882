@@ -4,10 +4,10 @@ import { readFile } from 'node:fs/promises';
 import { once } from 'node:events';
 import test from 'node:test';
 
-test('the production server preserves SPA routes, API health and correct versioned asset responses', async () => {
+async function startProduction(overrides = {}) {
   const child = spawn(process.execPath, ['server.mjs'], {
     env: { ...process.env, NODE_ENV: 'production', PORT: '0',
-      HLS_RECEIVER_ORIGIN: '', HLS_PROXY_KEY: '' },
+      HLS_RECEIVER_ORIGIN: '', HLS_PROXY_KEY: '', ...overrides },
     stdio: ['ignore', 'pipe', 'pipe'],
   });
   let logs = '';
@@ -23,6 +23,11 @@ test('the production server preserves SPA routes, API health and correct version
     child.once('exit', code => { clearTimeout(timeout); reject(new Error(`Server exited ${code}: ${logs}`)); });
   });
   const base = `http://127.0.0.1:${port}`;
+  return { child, base };
+}
+
+test('the production server preserves SPA routes, API health and correct versioned asset responses', async () => {
+  const { child, base } = await startProduction();
   try {
     for (const path of ['/', '/login', '/horse-list', '/horse-timeline?horseId=test', '/daily-summary',
       '/profile', '/devices', '/bills', '/admin', '/admin/stables', '/hls-pilot']) {
@@ -91,6 +96,47 @@ test('the production server preserves SPA routes, API health and correct version
     }
   } finally {
     child.kill('SIGTERM');
+    await once(child, 'exit');
+  }
+});
+
+for (const [name, settings] of [
+  ['missing video credential', { HLS_RECEIVER_ORIGIN: 'https://receiver.example.test' }],
+  ['missing receiver URL', { HLS_PROXY_KEY: 'synthetic-test-key-only-'.repeat(2) }],
+  ['invalid video credential', { HLS_RECEIVER_ORIGIN: 'https://receiver.example.test', HLS_PROXY_KEY: 'invalid' }],
+]) {
+  test(`${name} disables video without preventing existing customer routes from starting`, async () => {
+    const { child, base } = await startProduction(settings);
+    try {
+      for (const path of ['/', '/login', '/horse-list', '/horse-timeline', '/daily-summary', '/api/health']) {
+        assert.equal((await fetch(base + path)).status, 200, path);
+      }
+      for (const path of ['/api/hls-pilot/config', '/api/hls-pilot/cameras',
+        '/api/hls-pilot/media/synthetic/index.m3u8']) {
+        const result = await fetch(base + path);
+        assert.equal(result.status, 503, path);
+        assert.match((await result.json()).error, /problema de configuración/);
+      }
+    } finally {
+      child.kill();
+      await once(child, 'exit');
+    }
+  });
+}
+
+test('an unavailable receiver cannot prevent login, Timeline or health from responding', async () => {
+  const { child, base } = await startProduction({
+    HLS_RECEIVER_ORIGIN: 'https://receiver.invalid',
+    HLS_PROXY_KEY: 'synthetic-test-key-only-'.repeat(2),
+  });
+  try {
+    const video = fetch(base + '/api/hls-pilot/cameras');
+    for (const path of ['/login', '/horse-timeline', '/daily-summary', '/api/health']) {
+      assert.equal((await fetch(base + path)).status, 200, path);
+    }
+    assert.equal((await video).status, 503);
+  } finally {
+    child.kill();
     await once(child, 'exit');
   }
 });
