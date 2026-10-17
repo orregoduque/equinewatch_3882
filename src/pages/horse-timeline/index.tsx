@@ -10,6 +10,7 @@ import { Observation, Horse } from './types';
 import { fetchHorseImages, getImageUrl, HorseImage } from '../../utils/supabase';
 import { useAccessibleHorses } from '../../hooks/useAccessibleHorses';
 import { watchHorseImages } from '../../utils/liveHorseImages';
+import TimelineLiveVideo from './components/TimelineLiveVideo';
 
 const VIDEO_DURATION_SECONDS = 120;
 const VIDEO_DURATION_MS = VIDEO_DURATION_SECONDS * 1000;
@@ -229,7 +230,7 @@ const HorseTimeline: React.FC = () => {
         <main className="pt-24 pb-24 md:pb-12 px-4 sm:px-6 lg:px-8">
           <div className="max-w-6xl mx-auto">
             {/* Header */}
-            <div className="mb-6">
+            <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-1 h-12 rounded-full" style={{ backgroundColor: '#40352C' }} />
                 <div>
@@ -241,6 +242,7 @@ const HorseTimeline: React.FC = () => {
                   </p>
                 </div>
               </div>
+              <TimelineLiveVideo key={`${viewerKey}:${selectedHorseId}`} />
             </div>
 
             {/* Horse Selector Tabs */}
