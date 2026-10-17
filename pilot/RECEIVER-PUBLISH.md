@@ -56,6 +56,24 @@ La clave del dispositivo solo se guarda en la Pi; el receptor guarda su hash.
 La credencial del proxy solo se guarda en Secrets de la app principal; el receptor
 guarda su hash. No usar la service-role key de Supabase.
 
+Para preparar ambos valores en la Raspberry sin mostrarlos en terminal ni chat,
+existe `pilot/pi/prepare_receiver.py`. Se ejecuta **por el operador en la Pi**,
+no en el workspace del agente, con una plantilla que contenga los datos
+confirmados de Supabase, una cámara y un administrador:
+
+```bash
+python3 prepare_receiver.py --template receiver.template.json \
+  --output "$HOME/stableeye-hls-private" --generate-private-files
+```
+
+La carpeta debe ser nueva y estar fuera de Git. Genera archivos privados:
+`receiver.secret.json` para el Secret `HLS_RECEIVER_CONFIG` del receptor,
+`app-proxy.secret.txt` para `HLS_PROXY_KEY` de la app principal y
+`publisher.secret.txt` para el configurador privado del agente en la Pi.
+El programa no imprime claves ni altera servicios. No ejecutarlo de nuevo para
+sobrescribir una configuración existente: generar otras claves exigiría actualizar
+ambos extremos. No añadir estas salidas a un ZIP, chat o repositorio.
+
 Los permisos contienen **UUID reales de Supabase Auth**, no nombres, correos,
 identidades demo ni roles editables del navegador. Admin ve las cámaras configuradas;
 los otros usuarios solo las cámaras concedidas explícitamente.

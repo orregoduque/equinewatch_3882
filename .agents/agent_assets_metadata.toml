@@ -42,3 +42,17 @@ mtime_ms = 1792255817064
 storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:3cd14c48-b7f3-4b26-917e-adc412cfbcce/d0406ed2-d67e-40bb-adb7-83e3911c7f07/a9ecd4fc-e958-44b7-a995-9449ca2caa62"
 storage_version_token = "1792256391469593"
 content_type = "application/octet-stream"
+
+[[outputs]]
+id = "I_XMUTTBQWvr677mC8Eh1"
+uri = "file://generated-artifacts/bacata-hls-setup.zip"
+type = "unspecified"
+title = "Configuración Bacatá para la Raspberry"
+description = "Plantilla con el caballo y administrador indicados, asistente local para generar credenciales sin imprimirlas e instrucciones para Codex. No contiene claves privadas ni sustituye el paquete del receptor."
+logical_id = "f3f0303d-9f31-4e82-b743-e9e6e957dce7"
+content_hash = "sha256:96b97f1d7f7d8d525cacfd73e1249316f35d9581d2f279214f34e51a80070556"
+size = 3677
+mtime_ms = 1792257731465
+storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:3cd14c48-b7f3-4b26-917e-adc412cfbcce/f3f0303d-9f31-4e82-b743-e9e6e957dce7/35a51f46-1054-4834-81be-829089bd849a"
+storage_version_token = "1792257769442875"
+content_type = "application/octet-stream"
