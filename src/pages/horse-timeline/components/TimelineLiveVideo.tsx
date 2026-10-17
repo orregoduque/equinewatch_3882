@@ -13,7 +13,7 @@ interface TimelineLiveVideoProps {
 interface ActiveAttempt {
   id: number;
   controller: AbortController;
-  dispose?: () => void;
+  dispose?: ReturnType<typeof startPilotPlayback>;
 }
 
 const ink = '#40352C';
@@ -33,6 +33,7 @@ export default function TimelineLiveVideo({ horseId, horseName }: TimelineLiveVi
   const lastIdentityKeyRef = useRef(`${horseId}:${uid || ''}`);
   const openRef = useRef(false);
   const attemptStartedAtRef = useRef(0);
+  const warmExpiryRef = useRef<number>();
   const [open, setOpen] = useState(false);
   const [attemptId, setAttemptId] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -53,6 +54,7 @@ export default function TimelineLiveVideo({ horseId, horseName }: TimelineLiveVi
   }, []);
 
   const cancelActiveAttempt = useCallback(() => {
+    window.clearTimeout(warmExpiryRef.current);
     const active = activeAttemptRef.current;
     activeAttemptRef.current = null;
     if (active) {
@@ -90,17 +92,40 @@ export default function TimelineLiveVideo({ horseId, horseName }: TimelineLiveVi
     setThresholdExceeded(false);
     setLoading(true);
 
+    const reusable = opening && activeAttemptRef.current && !activeAttemptRef.current.controller.signal.aborted;
     if (opening) {
       scrollPositionRef.current = window.scrollY;
       openRef.current = true;
       if (!dialogRef.current?.open) dialogRef.current?.showModal();
       setOpen(true);
+      window.clearTimeout(warmExpiryRef.current);
+      if (reusable) {
+        activeAttemptRef.current?.dispose?.activate(startupMeasurement);
+        return startupMeasurement;
+      }
     }
 
     const nextId = ++attemptSequenceRef.current;
     setAttemptId(nextId);
     return startupMeasurement;
   }, []);
+
+  useEffect(() => {
+    if (!horseId || !uid || document.hidden) return;
+    // Allow the timeline's initial render to finish before optional video work.
+    const timer = window.setTimeout(() => {
+      if (!openRef.current && !activeAttemptRef.current && !document.hidden) beginAttempt();
+    }, 500);
+    const visibility = () => {
+      if (document.hidden && !openRef.current) cancelActiveAttempt();
+    };
+    document.addEventListener('visibilitychange', visibility);
+    return () => {
+      window.clearTimeout(timer);
+      document.removeEventListener('visibilitychange', visibility);
+      cancelActiveAttempt();
+    };
+  }, [horseId, uid, beginAttempt, cancelActiveAttempt]);
 
   useEffect(() => {
     const identityKey = `${horseId}:${uid || ''}`;
@@ -120,7 +145,7 @@ export default function TimelineLiveVideo({ horseId, horseName }: TimelineLiveVi
   }, [open]);
 
   useEffect(() => {
-    if (!open || !openRef.current || !attemptId) return;
+    if (!attemptId) return;
     const video = videoRef.current;
     const startupMeasurement = startupMeasurementRef.current;
     if (!video || !startupMeasurement) return;
@@ -140,7 +165,7 @@ export default function TimelineLiveVideo({ horseId, horseName }: TimelineLiveVi
 
     const failBeforePlayback = (message: string) => {
       if (!isCurrent()) return;
-      setMeasurement(startupMeasurement.finish('failed', message, typeof video.requestVideoFrameCallback === 'function'));
+      setMeasurement(startupMeasurementRef.current!.finish('failed', message, typeof video.requestVideoFrameCallback === 'function'));
       setFailure(message);
       setAccessDenied(message === NO_ACCESS_MESSAGE);
       setStatus('Conexión interrumpida');
@@ -152,11 +177,17 @@ export default function TimelineLiveVideo({ horseId, horseName }: TimelineLiveVi
 
     const clickElapsed = startupMeasurement.elapsed();
     thresholdTimer = window.setTimeout(() => {
-      if (isCurrent()) setThresholdExceeded(true);
+      if (isCurrent() && openRef.current) setThresholdExceeded(true);
     }, Math.max(0, 3000 - clickElapsed));
-    discoveryDeadlineTimer = window.setTimeout(() => {
+    const discoveryDeadline = () => {
+      const remaining = 12_000 - startupMeasurementRef.current!.elapsed();
+      if (remaining > 0) {
+        discoveryDeadlineTimer = window.setTimeout(discoveryDeadline, remaining);
+        return;
+      }
       failBeforePlayback('La búsqueda de configuración y cámara superó el límite de 12 segundos desde el clic.');
-    }, Math.max(0, 12_000 - clickElapsed));
+    };
+    discoveryDeadlineTimer = window.setTimeout(discoveryDeadline, Math.max(0, 12_000 - clickElapsed));
 
     const run = async () => {
       try {
@@ -170,7 +201,7 @@ export default function TimelineLiveVideo({ horseId, horseName }: TimelineLiveVi
         if (!configResponse.ok) throw new Error('No se pudo consultar la configuración del piloto de vídeo.');
         const config = await configResponse.json();
         if (!isCurrent()) return;
-        if (startupMeasurement.elapsed() >= 12_000) {
+        if (startupMeasurementRef.current!.elapsed() >= 12_000) {
           failBeforePlayback('La búsqueda de configuración y cámara superó el límite de 12 segundos desde el clic.');
           return;
         }
@@ -178,7 +209,7 @@ export default function TimelineLiveVideo({ horseId, horseName }: TimelineLiveVi
 
         const data = await pilotRequest<{ cameras: PilotCamera[] }>('cameras', signal, uid);
         if (!isCurrent()) return;
-        if (startupMeasurement.elapsed() >= 12_000) {
+        if (startupMeasurementRef.current!.elapsed() >= 12_000) {
           failBeforePlayback('La búsqueda de configuración y cámara superó el límite de 12 segundos desde el clic.');
           return;
         }
@@ -195,6 +226,7 @@ export default function TimelineLiveVideo({ horseId, horseName }: TimelineLiveVi
           },
           onError: (value: string) => {
             if (!isCurrent()) return;
+            controller.abort();
             setFailure(value);
             setAccessDenied(value === NO_ACCESS_MESSAGE);
             setLoading(false);
@@ -211,13 +243,18 @@ export default function TimelineLiveVideo({ horseId, horseName }: TimelineLiveVi
         };
 
         if (!isCurrent()) return;
-        if (startupMeasurement.elapsed() >= 12_000) {
+        if (startupMeasurementRef.current!.elapsed() >= 12_000) {
           failBeforePlayback('La búsqueda de configuración y cámara superó el límite de 12 segundos desde el clic.');
           return;
         }
         if (discoveryDeadlineTimer !== undefined) window.clearTimeout(discoveryDeadlineTimer);
         if (thresholdTimer !== undefined) window.clearTimeout(thresholdTimer);
-        active.dispose = startPilotPlayback(video, camera.id, callbacks, startupMeasurement);
+        active.dispose = startPilotPlayback(video, camera.id, callbacks, startupMeasurementRef.current!, !openRef.current);
+        if (!openRef.current) {
+          warmExpiryRef.current = window.setTimeout(() => {
+            if (!openRef.current && isCurrent()) cancelActiveAttempt();
+          }, 30_000);
+        }
       } catch (error) {
         if (signal.aborted || !isCurrent()) return;
         failBeforePlayback(error instanceof Error ? error.message : 'No se pudo iniciar la transmisión.');
@@ -234,11 +271,15 @@ export default function TimelineLiveVideo({ horseId, horseName }: TimelineLiveVi
       active.dispose?.();
       releaseVideo(video);
     };
-  }, [attemptId, horseId, open, releaseVideo, uid]);
+  }, [attemptId, horseId, releaseVideo, uid, cancelActiveAttempt]);
 
   useEffect(() => {
     if (!open || !loading) return;
-    const updateElapsed = () => setElapsedMs(performance.now() - attemptStartedAtRef.current);
+    const updateElapsed = () => {
+      const elapsed = performance.now() - attemptStartedAtRef.current;
+      setElapsedMs(elapsed);
+      if (elapsed >= 3000) setThresholdExceeded(true);
+    };
     const timer = window.setInterval(updateElapsed, 100);
     updateElapsed();
     return () => window.clearInterval(timer);
@@ -282,7 +323,6 @@ export default function TimelineLiveVideo({ horseId, horseName }: TimelineLiveVi
           Transmisión HLS asignada al caballo seleccionado. El estado y la medición reflejan esta sesión de conexión.
         </p>
 
-        {open && (
           <div className="absolute inset-0 overflow-hidden bg-black">
             <video
               ref={videoRef}
@@ -357,7 +397,6 @@ export default function TimelineLiveVideo({ horseId, horseName }: TimelineLiveVi
               </div>
             )}
           </div>
-        )}
       </dialog>
     </>
   );

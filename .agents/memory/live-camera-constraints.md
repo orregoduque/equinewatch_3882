@@ -51,6 +51,18 @@ pass cannot establish readiness of the separately hosted receiver and publisher.
 open/close attempts in native and MediaSource checks. State separately whether
 the authorized end-to-end Raspberry feed was actually verified.
 
+Preload the selected horse's authorized live video when entering its timeline.
+Keep preloading bounded and cancel it when the page is hidden or left; do not
+broaden founder-only access. Measure startup from the actual click, not from
+the beginning of preloading.
+
+**Why:** The user expects that someone viewing a horse will probably open Live
+video and explicitly requested preparation before the click to reduce waiting.
+
+**How to apply:** Reuse the prepared player rather than fetching and authorizing
+again, retain a cold-start path after expiration, and explain that preloading
+uses data even if the viewer never opens the video.
+
 The user confirmed end-to-end playback of the Raspberry's synthetic source:
 changing that source video was reflected in Live video.
 

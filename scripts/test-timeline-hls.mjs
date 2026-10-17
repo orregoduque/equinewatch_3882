@@ -61,8 +61,7 @@ async function setup({ mobile = false, forceMse = false, deny = false, discovery
   const trigger = page.getByRole('button', { name: 'Live video', exact: true });
   await trigger.waitFor();
   if (!signedOut) await page.getByRole('button', { name: /^Fixture horse/ }).waitFor();
-  assert.equal(requests.length, 0, 'no camera discovery or media before click');
-  assert.equal(await page.getByTestId('timeline-live-video').count(), 0);
+  assert.equal(await page.getByRole('dialog').count(), 0, 'preload does not open a dialog');
   return { context, page, trigger, errors, requests, viewport };
 }
 
@@ -95,13 +94,66 @@ async function closeDialog(test) {
   const video = test.page.getByTestId('timeline-live-video');
   await video.evaluate(video => { window.__lastVideo = video; });
   await test.page.getByRole('button', { name: 'Cerrar vídeo', exact: true }).click();
-  assert.equal(await video.count(), 0);
+  assert.equal(await test.page.getByRole('dialog').count(), 0);
   assert(await test.page.evaluate(() => window.__lastVideo.paused && !window.__lastVideo.getAttribute('src')));
   await test.page.waitForFunction(() => document.activeElement?.getAttribute('aria-label') === 'Live video');
   assert.notEqual(await test.page.evaluate(() => document.body.style.overflow), 'hidden');
 }
 
 try {
+  for (const options of [{}, { forceMse: true }, { mobile: true }]) {
+    const test = await setup(options);
+    try {
+      await test.page.waitForFunction(() => {
+        const video = document.querySelector('[data-testid="timeline-live-video"]');
+        return video && video.readyState >= 2;
+      }, { timeout: 12000 });
+      assert(test.requests.some(url => /\/session\/synthetic$/.test(url)), 'authorize before click');
+      assert(test.requests.some(url => url.endsWith('.ts')), 'preload real HLS segments before click');
+      assert(await test.page.getByTestId('timeline-live-video').evaluate(video => video.paused));
+      const sessions = test.requests.filter(url => /\/session\/synthetic$/.test(url)).length;
+      await open(test);
+      await moving(test.page);
+      const timing = await test.page.getByText('Movimiento de fotogramas confirmado en', { exact: false }).innerText();
+      assert.equal(test.requests.filter(url => /\/session\/synthetic$/.test(url)).length, sessions, 'reuse authorized player');
+      await closeDialog(test);
+      noDemo(test);
+      results.push({ name: options.forceMse ? 'preload-mse-reused' : options.mobile ? 'preload-mobile-reused' : 'preload-native-reused', passed: true, timing });
+    } finally { await test.context.close(); }
+  }
+
+  for (const hidden of [true, false]) {
+    const test = await setup({ forceMse: true });
+    try {
+      await test.page.waitForFunction(() => document.querySelector('video')?.readyState >= 2);
+      if (hidden) {
+        await test.page.evaluate(() => {
+          Object.defineProperty(document, 'hidden', { configurable: true, value: true });
+          document.dispatchEvent(new Event('visibilitychange'));
+        });
+      } else {
+        // Real timers verify expiry while the timeline remains visible.
+        await test.page.waitForTimeout(31_000);
+      }
+      assert(await test.page.getByTestId('timeline-live-video').evaluate(video => video.paused && !video.getAttribute('src')));
+      const count = test.requests.length;
+      await test.page.waitForTimeout(3500);
+      assert.equal(test.requests.length, count, 'no polling or media traffic after cancellation');
+      results.push({ name: hidden ? 'hidden-tab-stops-preload' : 'preload-expires', passed: true });
+    } finally { await test.context.close(); }
+  }
+
+  const warmDenied = await setup({ cameraList: [] });
+  try {
+    await warmDenied.page.waitForTimeout(1200);
+    assert(!warmDenied.requests.some(url => /\/session\/|\/media\//.test(url)), 'unauthorized users never preload media');
+    assert.equal(await warmDenied.page.getByRole('dialog').count(), 0);
+    await open(warmDenied);
+    assert.equal(await warmDenied.page.getByRole('alert').innerText(), 'no access for now');
+    await closeDialog(warmDenied);
+    results.push({ name: 'unauthorized-preload-blocked', passed: true });
+  } finally { await warmDenied.context.close(); }
+
   for (const [name, options] of [
     ['desktop', {}], ['mobile-viewport', { mobile: true }], ['desktop-mse', { forceMse: true }],
   ]) {

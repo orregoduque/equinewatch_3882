@@ -19,7 +19,7 @@ export interface PilotSession {
 export async function pilotRequest<T>(path: string, signal?: AbortSignal, expectedUid?: string): Promise<T> {
   if (!expectedUid || !/^[0-9a-f-]{36}$/i.test(expectedUid))
     throw new PilotAccessError();
-  // getSession includes the SDK's refresh work; call only after recording the click.
+  // The SDK refreshes the real session, including during authorized preloading.
   const { data, error } = await supabase.auth.getSession();
   if (error || !data.session || data.session.user.id !== expectedUid)
     throw new PilotAccessError();

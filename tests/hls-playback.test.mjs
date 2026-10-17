@@ -29,6 +29,7 @@ function videoFixture({ blocked = false } = {}) {
   const frames = new Map(), listeners = new Map();
   return {
     preload: 'none', src: '', paused: true, readyState: 0, networkState: 0,
+    seekable: { length: 0 },
     playCalls: 0, loadCalls: 0,
     canPlayType() { return 'maybe'; },
     addEventListener(name, callback) { listeners.set(name, callback); },
@@ -93,4 +94,30 @@ test('native play rejection produces an actionable error, not a 12 second silent
     assert.match(errors[0], /bloqueó la reproducción/);
     assert(video.paused && video.src === '');
   } finally { dispose(); }
+});
+
+test('authorized preloading stays paused and measures only advancing frames after activation', async () => {
+  const video = videoFixture(), results = [], errors = [];
+  let moving = 0, now = 0;
+  const stop = startPilotPlayback(video, 'synthetic', {
+    request: async () => ({ ready: true, playbackUrl: '/api/hls-pilot/media/synthetic/index.m3u8' }),
+    onStatus() {}, onError: error => errors.push(error), onThreshold() {},
+    onMeasurement: result => results.push(result), onMoving() { moving++; },
+  }, measurement.createStartupMeasurement(() => now), true);
+  try {
+    await new Promise(resolve => setImmediate(resolve));
+    assert(video.src.endsWith('index.m3u8'));
+    assert(video.paused);
+    assert.equal(video.playCalls, 0);
+    now = 8000;
+    stop.activate(measurement.createStartupMeasurement(() => now));
+    assert.equal(video.playCalls, 1);
+    now = 8100;
+    video.frame(1, 1);
+    now = 8200;
+    video.frame(1.04, 2);
+    assert.equal(moving, 1);
+    assert.equal(results[0].clickToMotionMs, 200, 'exclude time spent preloading before the click');
+    assert.equal(errors.length, 0);
+  } finally { stop(); }
 });

@@ -14,12 +14,14 @@ interface Callbacks {
 export function startPilotPlayback(
   video: HTMLVideoElement, cameraId: string, callbacks: Callbacks,
   measurement = createStartupMeasurement(),
+  prepareOnly = false,
 ) {
   const controller = new AbortController();
   const { signal } = controller;
   let disposed = false;
   let measured = false;
-  let hls: { destroy: () => void } | undefined;
+  let hls: { destroy: () => void; liveSyncPosition?: number | null; startLoad?: () => void } | undefined;
+  let activated = !prepareOnly;
   let frameCallback: number | undefined;
   let renewal: ReturnType<typeof setTimeout> | undefined;
   let statusTimer: ReturnType<typeof setTimeout> | undefined;
@@ -28,8 +30,11 @@ export function startPilotPlayback(
   let stage = 'Autorizando cámara';
   let lastHlsError = '';
   const supported = typeof video.requestVideoFrameCallback === 'function';
-  const threshold = setTimeout(callbacks.onThreshold, Math.max(0, 3000 - measurement.elapsed()));
-  const deadline = setTimeout(() => {
+  let threshold: ReturnType<typeof setTimeout> | undefined;
+  let deadline: ReturnType<typeof setTimeout> | undefined;
+  function armMeasurement() {
+    threshold = setTimeout(callbacks.onThreshold, Math.max(0, 3000 - measurement.elapsed()));
+    deadline = setTimeout(() => {
     const detail = video.readyState === 0
       ? 'No se recibieron metadatos del vídeo.'
       : video.readyState === 1
@@ -37,14 +42,16 @@ export function startPilotPlayback(
         : 'Se recibieron datos, pero no se confirmó avance de los fotogramas.';
     fail(`No se confirmaron fotogramas avanzando en 12 segundos. ${stage}. ${detail}${lastHlsError ? ` ${lastHlsError}` : ''}`);
   },
-    Math.max(0, 12_000 - measurement.elapsed()));
+      Math.max(0, 12_000 - measurement.elapsed()));
+  }
+  if (activated) armMeasurement();
   const watchdog = setInterval(() => {
     if (!disposed && measured && performance.now() - lastFrame > 8000)
       fail('Vídeo detenido: ya no avanzan los fotogramas.');
   }, 1000);
 
   function record(outcome?: 'failed' | 'cancelled', message?: string) {
-    if (measured) return;
+    if (measured || !activated) return;
     measured = true;
     clearTimeout(threshold);
     clearTimeout(deadline);
@@ -85,6 +92,7 @@ export function startPilotPlayback(
     callbacks.onStatus(value);
   }
   function play() {
+    if (!activated) return;
     video.play().catch(() => fail('El navegador bloqueó la reproducción; vuelve a pulsar Ver vídeo.'));
   }
   function loaded() {
@@ -97,7 +105,7 @@ export function startPilotPlayback(
       lastFrame = performance.now();
       lastMediaTime = metadata.mediaTime;
     }
-    if (measurement.frame(metadata.mediaTime, metadata.presentedFrames) && !measured) {
+    if (activated && measurement.frame(metadata.mediaTime, metadata.presentedFrames) && !measured) {
       record();
       callbacks.onStatus('Reproduciendo · retraso real no medido');
       callbacks.onMoving();
@@ -142,8 +150,8 @@ export function startPilotPlayback(
       if (!supported) throw new Error('Este navegador no permite medir fotogramas presentados. Actualízalo para validar el piloto.');
       video.muted = true;
       video.playsInline = true;
-      // Set only after a click and authorization. `preload=none` + waiting for
-      // loadeddata before play can deadlock native HLS on real browsers.
+      // Preloading is permitted only after server authorization. On activation,
+      // play immediately: native HLS must not wait for loadeddata to start.
       video.preload = 'auto';
       video.addEventListener('error', videoError);
       video.addEventListener('loadeddata', loaded);
@@ -156,7 +164,7 @@ export function startPilotPlayback(
         play();
       } else {
         setStage('Preparando reproductor HLS');
-        // Optional chunk, imported AFTER the click; its load time is included in the measurement.
+        // Loaded only for an authorized camera, including bounded timeline preloading.
         const { default: Hls } = await import('hls.js');
         if (disposed) return;
         if (!Hls.isSupported()) throw new Error('HLS no está disponible en este navegador.');
@@ -189,5 +197,18 @@ export function startPilotPlayback(
     }
   }
   void connect();
-  return () => { record('cancelled'); dispose(); };
+  const stop = () => { record('cancelled'); dispose(); };
+  stop.activate = (clickMeasurement: ReturnType<typeof createStartupMeasurement>) => {
+    if (disposed || activated) return;
+    measurement = clickMeasurement;
+    activated = true;
+    armMeasurement();
+    // A paused prebuffer can be behind the current live window.
+    const livePosition = hls?.liveSyncPosition;
+    if (typeof livePosition === 'number' && Number.isFinite(livePosition)) video.currentTime = livePosition;
+    else if (video.seekable.length) video.currentTime = Math.max(video.seekable.start(0), video.seekable.end(video.seekable.length - 1) - 2);
+    hls?.startLoad?.();
+    if (video.src || hls) play();
+  };
+  return stop;
 }
