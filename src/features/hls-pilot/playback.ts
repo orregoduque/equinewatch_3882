@@ -24,9 +24,18 @@ export function startPilotPlayback(
   let statusTimer: ReturnType<typeof setTimeout> | undefined;
   let lastFrame = performance.now();
   let lastMediaTime = -1;
+  let stage = 'Autorizando cámara';
+  let lastHlsError = '';
   const supported = typeof video.requestVideoFrameCallback === 'function';
   const threshold = setTimeout(callbacks.onThreshold, Math.max(0, 3000 - measurement.elapsed()));
-  const deadline = setTimeout(() => fail('No se confirmaron fotogramas avanzando en 12 segundos.'),
+  const deadline = setTimeout(() => {
+    const detail = video.readyState === 0
+      ? 'No se recibieron metadatos del vídeo.'
+      : video.readyState === 1
+        ? 'Se recibieron metadatos, pero todavía no hay fotogramas decodificados.'
+        : 'Se recibieron datos, pero no se confirmó avance de los fotogramas.';
+    fail(`No se confirmaron fotogramas avanzando en 12 segundos. ${stage}. ${detail}${lastHlsError ? ` ${lastHlsError}` : ''}`);
+  },
     Math.max(0, 12_000 - measurement.elapsed()));
   const watchdog = setInterval(() => {
     if (!disposed && measured && performance.now() - lastFrame > 8000)
@@ -57,15 +66,29 @@ export function startPilotPlayback(
   }
   function fail(message: string) {
     if (disposed) return;
+    // No credentials, identifiers, signed URLs or raw network responses.
+    console.warn('[HLS playback]', {
+      stage, readyState: video.readyState, networkState: video.networkState,
+      elapsedMs: Math.round(measurement.elapsed()), detail: lastHlsError,
+    });
     record('failed', message);
     callbacks.onStatus('Conexión interrumpida');
     callbacks.onError(message);
     dispose();
   }
-  function videoError() { fail('El navegador no pudo reproducir el vídeo H.264.'); }
+  function videoError() {
+    fail(`El navegador no pudo reproducir el vídeo H.264 (código ${video.error?.code ?? 'desconocido'}).`);
+  }
+  function setStage(value: string) {
+    stage = value;
+    callbacks.onStatus(value);
+  }
+  function play() {
+    video.play().catch(() => fail('El navegador bloqueó la reproducción; vuelve a pulsar Ver vídeo.'));
+  }
   function loaded() {
     measurement.mark('connectionReadyMs');
-    video.play().catch(() => fail('El navegador bloqueó la reproducción; vuelve a pulsar Ver vídeo.'));
+    play();
   }
   function frame(_now: number, metadata: VideoFrameCallbackMetadata) {
     if (disposed) return;
@@ -86,7 +109,11 @@ export function startPilotPlayback(
       const response = await fetch(`/api/hls-pilot/media/${cameraId}/status`, {
         credentials: 'same-origin', cache: 'no-store', signal,
       });
-      if (!response.ok) throw new Error('Acceso vencido o receptor no disponible.');
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        const reason = typeof body.error === 'string' ? body.error : 'Receptor no disponible.';
+        throw new Error(`Estado de la cámara: HTTP ${response.status}. ${reason}`);
+      }
       const status = await response.json();
       if (!status.ready) throw new Error('Cámara desconectada o preparando segmentos.');
       if (measured && performance.now() - lastFrame > 8000)
@@ -103,7 +130,7 @@ export function startPilotPlayback(
   }
   async function connect() {
     try {
-      callbacks.onStatus('Autorizando cámara');
+      setStage('Autorizando cámara');
       const session = await callbacks.request(`session/${cameraId}`, signal);
       if (disposed) return;
       measurement.mark('authorizationMs');
@@ -113,14 +140,20 @@ export function startPilotPlayback(
       if (!supported) throw new Error('Este navegador no permite medir fotogramas presentados. Actualízalo para validar el piloto.');
       video.muted = true;
       video.playsInline = true;
+      // Set only after a click and authorization. `preload=none` + waiting for
+      // loadeddata before play can deadlock native HLS on real browsers.
+      video.preload = 'auto';
       video.addEventListener('error', videoError);
       video.addEventListener('loadeddata', loaded);
       frameCallback = video.requestVideoFrameCallback(frame);
       if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        setStage('Solicitando vídeo HLS al receptor');
         measurement.mark('playerReadyMs');
         video.src = session.playbackUrl;
         video.load();
+        play();
       } else {
+        setStage('Preparando reproductor HLS');
         // Optional chunk, imported AFTER the click; its load time is included in the measurement.
         const { default: Hls } = await import('hls.js');
         if (disposed) return;
@@ -132,18 +165,20 @@ export function startPilotPlayback(
         });
         hls = player;
         player.on(Hls.Events.ERROR, (_event, data) => {
-          if (data.fatal) fail('Se interrumpió HLS. Vuelve a abrir el vídeo para reconectar.');
+          lastHlsError = `HLS: ${data.details}${data.response?.code ? ` · HTTP ${data.response.code}` : ''}.`;
+          if (data.fatal) fail(`Se interrumpió HLS. ${lastHlsError} Vuelve a abrir el vídeo para reconectar.`);
         });
         player.on(Hls.Events.MANIFEST_PARSED, () => {
           measurement.mark('connectionReadyMs');
-          video.play().catch(() => fail('El navegador bloqueó la reproducción.'));
+          setStage('Lista HLS recibida; solicitando fotogramas');
+          play();
         });
+        setStage('Solicitando la lista HLS al receptor');
         player.attachMedia(video);
         player.loadSource(session.playbackUrl);
         measurement.mark('playerReadyMs');
       }
       if (!disposed) {
-        callbacks.onStatus('Conectando vídeo');
         renewal = setTimeout(renew, 45_000);
         statusTimer = setTimeout(checkStatus, 3000);
       }

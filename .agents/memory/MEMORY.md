@@ -6,5 +6,5 @@
 - [Daily detection summary](daily-detection-summary.md) — summary-only view; the user's photo cadence is 10 seconds, and detector-based presence is an estimate.
 - [Live photo refresh](live-photo-refresh.md) — retain a reliable refresh baseline without unverified Realtime dependencies; keep deliberate historical selections stable.
 - [Release compatibility](release-compatibility.md) — real customers keep tabs open across publishes; retaining old lazy assets is required, not unused-file bloat.
-- [Live camera constraints](live-camera-constraints.md) — Pi 5/2 GB; preserve main stream, verify actual secondary capabilities; measure click-to-motion separately from video delay.
+- [Live camera constraints](live-camera-constraints.md) — Pi 4/2 GB verified; preserve main stream, verify secondary capabilities; measure click-to-motion separately from video delay.
 - [Camera pilot authorization](camera-pilot-authorization.md) — camera access must not inherit demo identities or force an unapproved customer-login migration.

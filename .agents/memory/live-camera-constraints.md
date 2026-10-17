@@ -39,3 +39,14 @@ responses leaves playback broken when entering through another route.
 
 **How to apply:** Keep the shared document's media policy limited to same-origin
 and blob sources; test direct entry and navigation, not just a pilot deep link.
+
+Treat fixed-length HLS fixtures as codec/playback checks, not evidence that live
+window rollover or the actual Raspberry transmission works.
+
+**Why:** Earlier checks used an ended playlist and passed while the user still
+reported slow openings and no advancing frames from the Raspberry. A synthetic
+pass cannot establish readiness of the separately hosted receiver and publisher.
+
+**How to apply:** Include a rolling, non-ended receiver-style window and repeated
+open/close attempts in native and MediaSource checks. State separately whether
+the authorized end-to-end Raspberry feed was actually verified.
