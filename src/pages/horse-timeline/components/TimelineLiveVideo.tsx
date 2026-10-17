@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 const ink = '#40352C';
-const muted = 'rgba(64,53,44,0.62)';
 const border = 'rgba(64,53,44,0.14)';
 
 export default function TimelineLiveVideo() {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const scrollPositionRef = useRef(0);
   const [open, setOpen] = useState(false);
   const [failure, setFailure] = useState('');
 
@@ -22,6 +22,10 @@ export default function TimelineLiveVideo() {
     releaseVideo();
     if (dialogRef.current?.open) dialogRef.current.close();
     setOpen(false);
+    window.requestAnimationFrame(() => {
+      window.scrollTo(0, scrollPositionRef.current);
+      triggerRef.current?.focus({ preventScroll: true });
+    });
   }, [releaseVideo]);
 
   useEffect(() => {
@@ -44,6 +48,7 @@ export default function TimelineLiveVideo() {
 
   const openVideo = () => {
     setFailure('');
+    scrollPositionRef.current = window.scrollY;
     dialogRef.current?.showModal();
     setOpen(true);
   };
@@ -83,31 +88,17 @@ export default function TimelineLiveVideo() {
         onCancel={(event) => { event.preventDefault(); close(); }}
         onClose={() => { releaseVideo(); setOpen(false); }}
         onClick={(event) => { if (event.target === event.currentTarget) close(); }}
-        className="w-[min(94vw,900px)] max-w-none overflow-hidden rounded-2xl border p-0 shadow-2xl backdrop:bg-[#211c18]/70"
-        style={{ background: '#fbfaf7', color: ink, borderColor: border }}
+        className="fixed inset-0 m-0 h-screen h-[100dvh] w-screen max-h-none max-w-none overflow-hidden rounded-none border-0 bg-black p-0 text-white shadow-none backdrop:bg-black"
+        style={{ height: '100dvh', width: '100vw', background: '#000', color: '#fff', border: 0 }}
       >
-        <div className="flex items-start justify-between gap-4 border-b px-5 py-4 sm:px-7" style={{ borderColor: border }}>
-          <div>
-            <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color: '#8a7356' }}>Muestra de vídeo · demo</p>
-            <h2 id="timeline-live-title" className="text-xl font-bold sm:text-2xl" style={{ fontFamily: 'Syne, sans-serif' }}>Live video</h2>
-            <p id="timeline-live-description" className="mt-1 max-w-2xl text-sm leading-5" style={{ color: muted }}>
-              Clip simulado a partir de una imagen de muestra. Bucle de 5 segundos; no corresponde al caballo seleccionado ni a una conexión en directo.
-            </p>
-          </div>
-          <button
-            type="button"
-            aria-label="Cerrar vídeo"
-            onClick={close}
-            className="grid h-10 w-10 shrink-0 place-items-center rounded-full border text-xl leading-none hover:bg-[#f1eee8] focus-visible:outline focus-visible:outline-2"
-            style={{ borderColor: border, color: ink }}
-          >
-            ×
-          </button>
-        </div>
+        <h2 id="timeline-live-title" className="sr-only">Live video</h2>
+        <p id="timeline-live-description" className="sr-only">
+          Clip simulado a partir de una imagen de muestra. Bucle de 5 segundos; no corresponde al caballo seleccionado ni a una conexión en directo.
+        </p>
 
         {open && (
-          <div className="p-4 sm:p-6">
-            <div className="relative aspect-video overflow-hidden rounded-xl bg-[#24211e]">
+          <div className="absolute inset-0 overflow-hidden bg-black">
+            <div className="absolute inset-0 bg-black">
               <video
                 ref={videoRef}
                 data-testid="timeline-live-video"
@@ -123,14 +114,22 @@ export default function TimelineLiveVideo() {
                 onPlay={() => setFailure('')}
                 className="absolute inset-0 h-full w-full object-contain"
               />
-              <span className="pointer-events-none absolute left-3 top-3 rounded-full border border-white/20 bg-[#342f2b]/85 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#fbfaf7]">
-                Muestra simulada
-              </span>
             </div>
+            <span className="pointer-events-none absolute left-4 top-[max(1rem,env(safe-area-inset-top))] rounded-full border border-white/20 bg-black/75 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-white">
+              Demo · vídeo simulado
+            </span>
+            <button
+              type="button"
+              aria-label="Cerrar vídeo"
+              onClick={close}
+              className="absolute right-[max(1rem,env(safe-area-inset-right))] top-[max(1rem,env(safe-area-inset-top))] z-20 grid h-11 w-11 place-items-center rounded-full border border-white/35 bg-black/75 text-2xl leading-none text-white transition-colors hover:bg-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+            >
+              ×
+            </button>
             {failure && (
-              <div role="alert" className="mt-4 flex flex-col gap-3 rounded-xl border px-4 py-3 text-sm sm:flex-row sm:items-center sm:justify-between" style={{ background: '#f3e9e3', borderColor: '#d8b9aa', color: '#714b40' }}>
+              <div role="alert" className="absolute bottom-[max(1rem,env(safe-area-inset-bottom))] left-4 right-4 z-10 flex flex-col gap-3 rounded-xl border border-white/20 bg-black/85 px-4 py-3 text-sm text-white sm:left-auto sm:right-6 sm:max-w-xl sm:flex-row sm:items-center sm:justify-between">
                 <p>{failure}</p>
-                <button type="button" onClick={() => void retry()} className="w-fit shrink-0 rounded-lg px-4 py-2 font-semibold text-white focus-visible:outline focus-visible:outline-2" style={{ background: ink }}>
+                <button type="button" onClick={() => void retry()} className="w-fit shrink-0 rounded-lg bg-white px-4 py-2 font-semibold text-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-white">
                   Reproducir
                 </button>
               </div>
