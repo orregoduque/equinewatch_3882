@@ -12,14 +12,19 @@ const HorseCard: React.FC<HorseCardProps> = ({ horse }) => {
         boxShadow: '0 2px 12px rgba(64,53,44,0.06)',
       }}
     >
-      <div className="relative w-full aspect-[4/3] overflow-hidden bg-stone-100">
+      <Link
+        to={`/horse-timeline?horseId=${encodeURIComponent(horse.id)}`}
+        aria-label={`Ver fotos de cámara de ${horse.name}`}
+        title="Ver fotos de cámara"
+        className="relative block w-full aspect-[4/3] overflow-hidden bg-stone-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#8C7350]"
+      >
         <Image
           src={horse.profile_photo_url?.trim() ? horse.profile_photo_url : '/assets/images/no_image.png'}
           alt={horse.name}
           className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent opacity-60 group-hover:opacity-40 transition-opacity duration-500" />
-      </div>
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent opacity-60 group-hover:opacity-40 transition-opacity duration-500" />
+      </Link>
       <div className="p-6">
       <h3
         className="break-words text-xl font-bold"

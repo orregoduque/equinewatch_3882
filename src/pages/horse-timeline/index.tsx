@@ -7,7 +7,7 @@ import MobileNavigation from '../../components/ui/MobileNavigation';
 import Image from '../../components/AppImage';
 import Icon from '../../components/AppIcon';
 import { Observation, Horse } from './types';
-import { fetchHorseImages, getImageUrl, HorseImage } from '../../utils/supabase';
+import { fetchHorseImages, getImageUrl, CameraImage } from '../../utils/supabase';
 import { useAccessibleHorses } from '../../hooks/useAccessibleHorses';
 import { watchHorseImages } from '../../utils/liveHorseImages';
 import TimelineLiveVideo from './components/TimelineLiveVideo';
@@ -23,7 +23,7 @@ const formatVideoTime = (seconds: number) => {
   return `${minutes}:${remainingSeconds}`;
 };
 const mapHorseImagesToObservations = (
-  images: HorseImage[],
+  images: CameraImage[],
   horseId: string,
   horseName: string,
 ): Observation[] =>

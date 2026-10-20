@@ -13,6 +13,16 @@ that the horse's photo should remain as before.
 **How to apply:** Keep detailed information in the horse profile, with the
 timeline accessible from there. Preserve active-horse filtering and permissions.
 
+The portrait itself links to that horse's camera timeline, passing its ID.
+“Ver ficha” separately links to the read-only profile. Do not make the whole
+card navigate to the profile or give both actions the same destination.
+
+**Why:** The user confirmed the portraits were correct but reported losing
+the former photo-to-camera navigation and explicitly requested its restoration.
+
+**How to apply:** Keep independent, keyboard-accessible links; changing the
+portrait's click destination must never change its profile-photo source.
+
 Use the saved horses.profile_photo_url directly in cards and profile headers.
 Do not transform it through getImageUrl or replace it with the latest camera
 image. Missing or broken profiles show the ordinary placeholder, not a capture.

@@ -63,6 +63,23 @@ function fixture(load = async () => [image(1)], limit = 240) {
   };
 }
 
+test('late uploads sort by uploaded_at even when their capture was older', () => {
+  const f = fixture();
+  const late = { ...image(1), uploaded_at: image(101).created_at };
+  const merged = f.api.mergeHorseImages([image(100)], [late], 240);
+  assert.equal(merged[0].id, 1);
+  f.stop();
+});
+
+test('incremental refresh uses the upload timestamp for late captures', async () => {
+  const uploaded = image(101).created_at;
+  const f = fixture(async () => [{ ...image(1), uploaded_at: uploaded }]);
+  await settle();
+  await f.tick();
+  assert.equal(f.requests[1][3], uploaded);
+  f.stop();
+});
+
 test('new photos appear automatically, remain scoped, merge without duplicates and respect the limit', async () => {
   let rows = [image(1)];
   const f = fixture(async () => rows, 2);

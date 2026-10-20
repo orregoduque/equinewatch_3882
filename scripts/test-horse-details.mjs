@@ -157,6 +157,24 @@ try {
     });
     await finish(t, mobile ? 'mobile-17-fields-and-list-entry' : 'desktop-17-fields-and-list-entry');
   }
+  for (const mobile of [false, true]) {
+    const t = await setup({ mobile });
+    await t.page.goto(`${base}/horse-list`);
+    const portrait = t.page.getByRole('link', { name: 'Ver fotos de cámara de Bacatá de prueba', exact: true });
+    await portrait.waitFor();
+    assert.equal(await portrait.locator('img').getAttribute('src'), profilePhotoUrl);
+    assert.equal(await portrait.getAttribute('href'), `/horse-timeline?horseId=${first}`);
+    const cameraRequest = t.page.waitForRequest(request =>
+      new URL(request.url()).pathname.endsWith('/rest/v1/images'));
+    await portrait.click();
+    await t.page.waitForURL(`**/horse-timeline?horseId=${first}`);
+    const query = new URL((await cameraRequest).url()).searchParams;
+    assert.equal(query.get('horse_id'), `eq.${first}`);
+    assert.equal(query.get('storage_path_enhanced'), 'not.is.null');
+    assert(query.get('order').startsWith('uploaded_at.desc'));
+    assert(query.get('select').split(',').includes('storage_path_enhanced'));
+    await finish(t, `${mobile ? 'mobile' : 'desktop'}-portrait-opens-same-horse-camera-not-profile`);
+  }
   for (const path of ['/horse-list', `/horses/${first}`]) {
     const t = await setup();
     await t.page.goto(`${base}${path}`);

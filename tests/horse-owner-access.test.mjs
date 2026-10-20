@@ -26,9 +26,9 @@ function fixture({
     horses: horseRows,
     user_profiles: [{ id: profileId, email: owner.email, full_name: 'Owner', role: 'horse_owner' }],
     images: [
-      { id: 1, horse_id: 'owned-horse', created_at: '2026-10-02T12:00:00Z' },
-      { id: 2, horse_id: 'owned-horse', created_at: '2026-10-02T11:00:00Z' },
-      { id: 3, horse_id: 'other-horse', created_at: '2026-10-02T13:00:00Z' },
+      { id: 1, horse_id: 'owned-horse', storage_path_enhanced: 'fixture/1.jpg', uploaded_at: '2026-10-02T12:00:00Z', created_at: '2026-10-02T12:00:00Z' },
+      { id: 2, horse_id: 'owned-horse', storage_path_enhanced: 'fixture/2.jpg', uploaded_at: '2026-10-02T11:00:00Z', created_at: '2026-10-02T11:00:00Z' },
+      { id: 3, horse_id: 'other-horse', storage_path_enhanced: 'fixture/3.jpg', uploaded_at: '2026-10-02T13:00:00Z', created_at: '2026-10-02T13:00:00Z' },
     ],
     temperatura: [
       { id: 1, horse_id: 'owned-horse', box_temperature: 20, created_at: '2026-10-02T12:00:00Z' },
@@ -46,12 +46,19 @@ function fixture({
       let offset = 0;
       let range;
       const dateFilters = [];
+      const nonNullColumns = [];
       let head = false;
       const query = {
         select(_columns, options) { head = options?.head ?? false; return this; },
         order() { return this; },
         limit(value) { limit = value; return this; },
         eq(column, value) { filters.push([column, [value]]); return this; },
+        not(column, operator, value) {
+          assert.equal(operator, 'is');
+          assert.equal(value, null);
+          nonNullColumns.push(column);
+          return this;
+        },
         in(column, values) { filters.push([column, [...values]]); return this; },
         range(start, end) {
           offset = start;
@@ -76,6 +83,7 @@ function fixture({
           }
           const data = (rows[table] || []).filter(row =>
             filters.every(([column, values]) => values.includes(row[column]))
+            && nonNullColumns.every(column => row[column] != null)
             && dateFilters.every(([column, value, op]) => op === 'gte'
               ? Date.parse(row[column]) >= Date.parse(value)
               : Date.parse(row[column]) < Date.parse(value)));
@@ -134,7 +142,7 @@ test('incremental photo updates remain scoped and include only the requested rec
   assert.equal(photos[0].id, 1);
   const query = executed.find(entry => entry.table === 'images');
   assert.deepEqual(query.filters, [['horse_id', ['owned-horse']]]);
-  assert.deepEqual(query.dateFilters, [['created_at', since, 'gte']]);
+  assert.deepEqual(query.dateFilters, [['uploaded_at', since, 'gte']]);
   await assert.rejects(api.fetchHorseImages(240, 'other-horse', owner, since), /access/);
 });
 

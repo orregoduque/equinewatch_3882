@@ -32,6 +32,10 @@ export interface HorseImage {
   user_id: string;
 }
 
+export type CameraImage = Pick<HorseImage,
+  'id' | 'storage_path_enhanced' | 'uploaded_at' | 'created_at' |
+  'horse_id' | 'image_number' | 'is_processed' | 'notes'>;
+
 export interface UserProfile {
   id: string;
   email: string;
@@ -110,17 +114,19 @@ export const fetchHorseImages = async (
   limit: number = 20,
   horseId?: string,
   viewer: HorseViewer | null = null,
-  createdSince?: string,
-): Promise<HorseImage[]> => {
+  uploadedSince?: string,
+): Promise<CameraImage[]> => {
   await requireHorseAccess(horseId, viewer);
   let query = supabase
     .from('images')
-    .select('*')
+    .select('id, storage_path_enhanced, uploaded_at, created_at, horse_id, image_number, is_processed, notes')
     .eq('horse_id', horseId)
+    .not('storage_path_enhanced', 'is', null)
+    .order('uploaded_at', { ascending: false, nullsFirst: false })
     .order('created_at', { ascending: false })
     .order('id', { ascending: false })
     .limit(limit);
-  if (createdSince) query = query.gte('created_at', createdSince);
+  if (uploadedSince) query = query.gte('uploaded_at', uploadedSince);
 
   const { data, error } = await query;
   if (error) throw new Error(error.message);

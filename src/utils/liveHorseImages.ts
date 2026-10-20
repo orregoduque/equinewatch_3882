@@ -1,15 +1,17 @@
-import { fetchHorseImages, HorseAccessError, HorseImage, HorseViewer } from './supabase';
+import { fetchHorseImages, HorseAccessError, CameraImage, HorseViewer } from './supabase';
 
 export const LIVE_PHOTO_REFRESH_MS = 10_000;
 const RECONCILE_MS = 60_000;
 
 export function mergeHorseImages(
-  previous: HorseImage[], incoming: HorseImage[], limit: number,
-): HorseImage[] {
+  previous: CameraImage[], incoming: CameraImage[], limit: number,
+): CameraImage[] {
   const byId = new Map(previous.map(image => [image.id, image]));
   incoming.forEach(image => byId.set(image.id, image));
   return [...byId.values()]
-    .sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at) || b.id - a.id)
+    .sort((a, b) =>
+      Date.parse(b.uploaded_at || b.created_at) - Date.parse(a.uploaded_at || a.created_at)
+      || Date.parse(b.created_at) - Date.parse(a.created_at) || b.id - a.id)
     .slice(0, limit);
 }
 
@@ -20,14 +22,14 @@ export function watchHorseImages({
   horseId: string;
   viewer: HorseViewer;
   limit: number;
-  onImages: (images: HorseImage[]) => void;
+  onImages: (images: CameraImage[]) => void;
   onError: (error: Error | null) => void;
   onSettled: () => void;
 }): () => void {
   let active = true;
   let busy = false;
   let loaded = false;
-  let images: HorseImage[] = [];
+  let images: CameraImage[] = [];
   let lastFullRefresh = 0;
   let timer: ReturnType<typeof setTimeout> | undefined;
   const hidden = () => document.visibilityState === 'hidden';
@@ -38,7 +40,8 @@ export function watchHorseImages({
     busy = true;
     const full = forceFull || !loaded || Date.now() - lastFullRefresh >= RECONCILE_MS;
     // Recheck the last few records too: their enhanced variant may finish later.
-    const since = full ? undefined : images[Math.min(5, images.length - 1)]?.created_at;
+    const boundary = images[Math.min(5, images.length - 1)];
+    const since = full ? undefined : boundary?.uploaded_at || boundary?.created_at;
     try {
       const incoming = await fetchHorseImages(limit, horseId, viewer, since);
       if (!active) return;

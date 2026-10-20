@@ -25,3 +25,13 @@ automatic updates should not override that explicit selection.
 **How to apply:** Follow incoming photos by default, keep the gallery current
 while a historical selection stays pinned, and provide an explicit return to
 the latest photo. A running video should retain its original frame sequence.
+
+Gallery freshness follows uploaded_at, including incremental refresh boundaries,
+while created_at remains the capture timestamp. Exclude rows without an enhanced
+storage path; don't treat a delayed upload as an older, ignorable arrival.
+
+**Why:** The user specified descending upload time for the restored camera gallery.
+An upload can arrive after images with newer capture times.
+
+**How to apply:** Keep query and merge ordering aligned, retain stable tie-breakers,
+and preserve the explicit historical-selection and video-sequence rules above.

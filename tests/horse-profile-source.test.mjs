@@ -45,6 +45,13 @@ for (const [name, path] of [
       const image = nodes(tree).find(node => node.type === 'ProfileImage');
       assert(image);
       assert.equal(image.props.src, profile?.trim() ? profile : '/assets/images/no_image.png');
+      if (name === 'card') {
+        const links = nodes(tree).filter(node => node.props?.to);
+        assert.deepEqual(links.map(link => link.props.to), [
+          '/horse-timeline?horseId=fixture-horse', '/horses/fixture-horse',
+        ]);
+        assert(nodes(links[0]).includes(image), 'Only the portrait links to the camera timeline');
+      }
     });
   }
 }
