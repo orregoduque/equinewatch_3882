@@ -75,8 +75,20 @@ export interface ProfileStatsRecord {
   lastObservation: string | null;
 }
 
-export const getImageUrl = (storagePath: string): string => {
-  return `${supabaseUrl}/storage/v1/object/public/images/${storagePath}`;
+export const getImageUrl = (
+  storagePath: string,
+  options?: { width: number; quality?: number },
+): string => {
+  const path = storagePath.split('/').map(segment => encodeURIComponent(segment)).join('/');
+  if (options?.width) {
+    const query = new URLSearchParams({
+      width: String(options.width),
+      quality: String(options.quality ?? 60),
+      resize: 'contain',
+    });
+    return `${supabaseUrl}/storage/v1/render/image/public/images/${path}?${query}`;
+  }
+  return `${supabaseUrl}/storage/v1/object/public/images/${path}`;
 };
 
 export interface HorseViewer {

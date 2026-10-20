@@ -1,0 +1,32 @@
+Copia esto en Replit:
+
+```text
+La lentitud al cargar fotos de Supabase no está en la consulta (traer 240 filas tarda ~2 ms). Está en la descarga. Haz solo estos cambios en el timeline en vivo. No cambies el límite de 240 fotos, ni los 2 minutos del video, ni el refresco automático, ni la autorización de caballos.
+
+Contexto medido en este proyecto:
+- Cada JPEG mejorado pesa de media ~80 KB (800×640). 240 fotos ≈ 19 MB.
+- getImageUrl() en src/utils/supabase.ts devuelve el archivo completo: /storage/v1/object/public/images/{path}
+- La tira de Recent Photos en src/pages/horse-timeline/index.tsx (miniaturas de 128–160 px) usa esa misma URL.
+- La transformación de Supabase ya funciona. La misma foto a 320 px pesa ~5 KB: /storage/v1/render/image/public/images/{path}?width=320&quality=60&resize=contain
+- Todas las fotos del bucket están en Cache-Control: no-cache y Cloudflare no las cachea. No actualices storage.objects ni el bucket. El que sube las fotos está fuera de este repo.
+
+Cambios:
+
+1. Miniaturas redimensionadas.
+   Extiende getImageUrl(storagePath, options?) para que, si recibe width, arme la URL de render con width, quality y resize=contain. Sin options, deja la URL pública actual. Codifica cada segmento del path, no las barras.
+   En el timeline, la tira usa width 320 y quality 60. La foto principal (la grande) sigue siendo el JPEG mejorado original, sin transformación. Los fotogramas del video también siguen siendo el JPEG mejorado: ya solo se montan el visible y unos pocos por delante; no lo cambies a 320 px.
+   Si la miniatura transformada falla, vuelve a la URL original antes de caer en la imagen de placeholder.
+
+2. No montar las 240 imágenes a la vez.
+   En la tira horizontal, no pongas src en las que están lejos del scroll. Usa el contenedor con overflow como root de un IntersectionObserver (rootMargin para precargar unas pocas a los lados). Hasta que entren, muestra un hueco del mismo tamaño. Las primeras visibles pueden cargar de inmediato.
+   La foto grande: loading="eager", fetchpriority="high", decoding="async". Las miniaturas: loading="lazy" y decoding="async".
+
+No hagas esto:
+- No añadas filtros, brillo, gamma, OpenCV ni otro procesado. La foto grande y el video siguen en storage_path_enhanced.
+- No bajes PHOTO_LIMIT ni la duración del video.
+- No cachees la lista de caballos entre peticiones.
+- No cambies Cache-Control en Storage.
+- No reescribas el polling de fotos nuevas.
+
+Actualiza el test que mockea getImageUrl (tests/timeline-live-photos.test.mjs) si la firma cambia, y comprueba que la tira pide la URL de 320 px y la foto grande sigue pidiendo el archivo original.
+```

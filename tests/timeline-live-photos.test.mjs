@@ -61,7 +61,11 @@ function fixture() {
       if (id.endsWith('/utils/liveHorseImages')) return {
         watchHorseImages(options) { watcher = options; return () => { stops++; }; },
       };
-      if (id.endsWith('/utils/supabase')) return { getImageUrl: path => `/images/${path}` };
+      if (id.endsWith('/utils/supabase')) return {
+        getImageUrl: (path, options) => options?.width
+          ? `/thumbnails/${path}?width=${options.width}&quality=${options.quality}&resize=contain`
+          : `/images/${path}`,
+      };
       return { __esModule: true, default: () => null, Helmet: () => null };
     },
   });
@@ -127,4 +131,20 @@ test('a completed enhanced variant remounts the image if the initial file was no
   const initialKey = f.main(f.render()).props.key;
   f.receive([photo(1)]);
   assert.notEqual(f.main(f.render()).props.key, initialKey);
+});
+
+test('the strip uses 320px enhanced thumbnails while the main photo keeps the original JPEG', () => {
+  const f = fixture();
+  f.receive([photo(2), photo(1)]);
+  const tree = f.render();
+  const main = f.main(tree);
+  assert.equal(main.props.src, '/images/2.jpg');
+  assert.equal(main.props.loading, 'eager');
+  assert.equal(main.props.fetchpriority, 'high');
+  assert.equal(main.props.decoding, 'async');
+  const thumbnails = nodes(tree).filter(node => node.props?.originalSrc);
+  assert.equal(thumbnails.length, 2);
+  assert.equal(thumbnails[0].props.src, '/thumbnails/2.jpg?width=320&quality=60&resize=contain');
+  assert.equal(thumbnails[0].props.originalSrc, '/images/2.jpg');
+  assert.equal(thumbnails[1].props.originalSrc, '/images/1.jpg');
 });

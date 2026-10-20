@@ -11,6 +11,7 @@ import { fetchHorseImages, getImageUrl, HorseImage } from '../../utils/supabase'
 import { useAccessibleHorses } from '../../hooks/useAccessibleHorses';
 import { watchHorseImages } from '../../utils/liveHorseImages';
 import TimelineLiveVideo from './components/TimelineLiveVideo';
+import TimelineThumbnail from './components/TimelineThumbnail';
 
 const VIDEO_DURATION_SECONDS = 120;
 const VIDEO_DURATION_MS = VIDEO_DURATION_SECONDS * 1000;
@@ -31,6 +32,7 @@ const mapHorseImagesToObservations = (
     horseId,
     horseName,
     imageUrl: getImageUrl(img.storage_path_enhanced),
+    thumbnailUrl: getImageUrl(img.storage_path_enhanced, { width: 320, quality: 60 }),
     imageVersion: `${img.uploaded_at}:${img.is_processed}`,
     imageAlt: `${horseName} observation ${img.image_number}`,
     timestamp: new Date(img.created_at),
@@ -46,6 +48,7 @@ const HorseTimeline: React.FC = () => {
   const [selectedHorseId, setSelectedHorseId] = useState<string>('');
   const { horses: records, viewer, viewerKey, isLoading: isLoadingHorses, error: horseError } = useAccessibleHorses();
   const videoRequestId = useRef(0);
+  const photoStripRef = useRef<HTMLDivElement>(null);
   const horses = useMemo<Horse[]>(() => records.map((horse) => {
     const profilePhoto = horse.profile_photo_url?.trim();
     return {
@@ -322,6 +325,9 @@ const HorseTimeline: React.FC = () => {
                           key={`${selectedObservation?.id || latestObservation.id}:${selectedObservation?.imageVersion || latestObservation.imageVersion}`}
                           src={selectedObservation?.imageUrl || latestObservation.imageUrl}
                           alt={selectedObservation?.imageAlt || latestObservation.imageAlt}
+                          loading="eager"
+                          {...{ fetchpriority: 'high' }}
+                          decoding="async"
                           className="w-full h-full object-contain"
                         />
                       </div>
@@ -358,7 +364,7 @@ const HorseTimeline: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="flex gap-3 overflow-x-auto pb-2">
+                  <div ref={photoStripRef} className="flex gap-3 overflow-x-auto pb-2">
                     {observations.map((obs, index) => {
                       const isSelected = (selectedObservation?.id || latestObservation.id) === obs.id;
                       return (
@@ -372,9 +378,13 @@ const HorseTimeline: React.FC = () => {
                           }`}
                           style={isSelected ? { borderColor: '#40352C' } : { borderColor: 'transparent' }}
                         >
-                          <div className="aspect-[4/3] bg-black/20">
-                            <Image key={obs.imageVersion} src={obs.imageUrl} alt={obs.imageAlt} loading="lazy" decoding="async" className="w-full h-full object-contain" />
-                          </div>
+                          <TimelineThumbnail
+                            key={obs.imageVersion}
+                            src={obs.thumbnailUrl || obs.imageUrl}
+                            originalSrc={obs.imageUrl}
+                            alt={obs.imageAlt}
+                            scrollRoot={photoStripRef}
+                          />
                           <div className="absolute bottom-0 left-0 right-0 p-2">
                             <span className="rounded bg-black/50 px-1.5 py-0.5 text-xs font-semibold text-white">
                               {format(obs.timestamp, 'HH:mm')}
