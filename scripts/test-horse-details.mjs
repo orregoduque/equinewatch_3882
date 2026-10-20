@@ -70,6 +70,10 @@ async function setup({
     const json = (data, status = 200) => route.fulfill({
       status, contentType: 'application/json', body: JSON.stringify(data),
     });
+    if (url.pathname.startsWith('/storage/')) return route.fulfill({
+      contentType: 'image/svg+xml',
+      body: '<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600"><rect width="800" height="600" fill="#c9a962"/></svg>',
+    });
     if (url.pathname.includes('/horses')) {
       const id = url.searchParams.get('id');
       if (id) {
@@ -88,7 +92,7 @@ async function setup({
         } : currentHorse]);
       }
       return json([
-        { ...horse, owner_id: uid, is_active: true, created_at: new Date().toISOString() },
+        { ...horse, profile_photo_url: 'profiles/horse photo.jpg', owner_id: uid, is_active: true, created_at: new Date().toISOString() },
         { ...horse, id: second, name: 'Caballo inactivo', owner_id: uid, is_active: false },
       ]);
     }
@@ -119,7 +123,10 @@ try {
     const card = t.page.locator('main article');
     assert.equal(await card.count(), 1);
     assert.equal((await card.innerText()).replace(/\s+/g, ' ').trim(), 'Bacatá de prueba Ver ficha');
-    assert.equal(await card.locator('img').count(), 0);
+    assert.equal(await card.locator('img').count(), 1);
+    const photo = card.getByRole('img', { name: 'Bacatá de prueba', exact: true });
+    assert((await photo.getAttribute('src')).endsWith('/storage/v1/object/public/images/profiles/horse%20photo.jpg'));
+    await photo.evaluate(image => image.decode());
     await t.page.screenshot({
       path: `generated-artifacts/horse-details/list-${mobile ? 'mobile' : 'desktop'}.png`,
       fullPage: true,

@@ -22,7 +22,7 @@ export interface HorseListProps {
 }
 
 export interface HorseCardProps {
-  horse: Pick<Horse, 'id' | 'name'>;
+  horse: Pick<Horse, 'id' | 'name'> & { profile_photo_url?: string | null };
 }
 
 export interface SearchBarProps {
