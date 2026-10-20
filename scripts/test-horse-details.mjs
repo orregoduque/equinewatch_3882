@@ -116,6 +116,14 @@ try {
     const link = t.page.getByRole('link', { name: 'Ver ficha de Bacatá de prueba', exact: true });
     await link.waitFor();
     assert.equal(await t.page.getByText('Caballo inactivo', { exact: true }).count(), 0);
+    const card = t.page.locator('main article');
+    assert.equal(await card.count(), 1);
+    assert.equal((await card.innerText()).replace(/\s+/g, ' ').trim(), 'Bacatá de prueba Ver ficha');
+    assert.equal(await card.locator('img').count(), 0);
+    await t.page.screenshot({
+      path: `generated-artifacts/horse-details/list-${mobile ? 'mobile' : 'desktop'}.png`,
+      fullPage: true,
+    });
     await link.click();
     await t.page.locator('table').waitFor();
     assert.equal(new URL(t.page.url()).pathname, `/horses/${first}`);
@@ -184,9 +192,10 @@ try {
 
   const navigation = await setup();
   await navigation.page.goto(`${base}/horse-list`);
-  await navigation.page.getByRole('heading', { name: 'Bacatá de prueba', exact: true }).click();
+  await navigation.page.getByRole('link', { name: 'Ver ficha de Bacatá de prueba', exact: true }).click();
+  await navigation.page.getByRole('link', { name: 'Ver línea de tiempo', exact: true }).click();
   await navigation.page.waitForURL(/horse-timeline\?horseId=/);
-  await finish(navigation, 'existing-card-click-still-opens-timeline');
+  await finish(navigation, 'timeline-remains-accessible-from-horse-details');
   console.log(JSON.stringify(results, null, 2));
 } finally {
   await browser.close();

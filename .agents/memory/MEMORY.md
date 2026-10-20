@@ -11,3 +11,4 @@
 - [Supabase REST diagnostics](supabase-rest-diagnostics.md) — test a table with limit=0, not the REST root; distinguish API-key failures from grants and RLS.
 - [Registro permissions](checks-permissions.md) — user-confirmed owner/staff RLS and automatic authorship; anonymous checks access is intentionally denied.
 - [Horse profile dates](horse-profile-dates.md) — display birth dates without timezone shifts; keep the database-provided age authoritative.
+- [Horse list presentation](horse-list-presentation.md) — each entry shows only the horse name and “Ver ficha”; details belong in the profile.

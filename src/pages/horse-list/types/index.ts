@@ -22,8 +22,7 @@ export interface HorseListProps {
 }
 
 export interface HorseCardProps {
-  horse: Horse;
-  onClick: (horseId: string) => void;
+  horse: Pick<Horse, 'id' | 'name'>;
 }
 
 export interface SearchBarProps {
