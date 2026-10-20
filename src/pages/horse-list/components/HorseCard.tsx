@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import HorseProfilePhoto from '../../../components/HorseProfilePhoto';
+import Image from '../../../components/AppImage';
 import { HorseCardProps } from '../types';
 
 const HorseCard: React.FC<HorseCardProps> = ({ horse }) => {
@@ -13,9 +13,8 @@ const HorseCard: React.FC<HorseCardProps> = ({ horse }) => {
       }}
     >
       <div className="relative w-full aspect-[4/3] overflow-hidden bg-stone-100">
-        <HorseProfilePhoto
-          horseId={horse.id}
-          profilePhotoUrl={horse.profile_photo_url}
+        <Image
+          src={horse.profile_photo_url?.trim() ? horse.profile_photo_url : '/assets/images/no_image.png'}
           alt={horse.name}
           className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110"
         />

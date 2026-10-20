@@ -168,17 +168,12 @@ try {
     const t = await setup({ savedPhoto: missingPhoto, cameraPhoto: true });
     await t.page.goto(`${base}/horse-list`);
     const cardPhoto = t.page.locator('main article img');
-    await t.page.waitForFunction(() => document.querySelector('main article img')?.getAttribute('src')?.endsWith('/camera/latest.jpg'));
-    assert((await cardPhoto.getAttribute('src')).endsWith('/camera/latest.jpg'));
-    const cameraRequest = t.requests.find(request => request.path.endsWith('/rest/v1/images'));
-    assert(cameraRequest);
-    const query = new URLSearchParams(cameraRequest.query);
-    assert.equal(query.get('horse_id'), `eq.${first}`);
-    assert.equal(query.get('limit'), '1');
-    assert.equal(query.get('order'), 'created_at.desc,id.desc');
+    await t.page.waitForFunction(() => document.querySelector('main article img')?.getAttribute('src') === '/assets/images/no_image.png');
+    assert.equal(await cardPhoto.getAttribute('src'), '/assets/images/no_image.png');
     await t.page.getByRole('link', { name: 'Ver ficha de Bacatá de prueba', exact: true }).click();
-    await t.page.waitForFunction(() => document.querySelector('article header img')?.getAttribute('src')?.endsWith('/camera/latest.jpg'));
-    await finish(t, `camera-fallback-only-for-empty-profile-${JSON.stringify(missingPhoto)}`);
+    await t.page.waitForFunction(() => document.querySelector('article header img')?.getAttribute('src') === '/assets/images/no_image.png');
+    assert(!t.requests.some(request => request.path.endsWith('/rest/v1/images')));
+    await finish(t, `empty-profile-shows-placeholder-and-never-queries-camera-${JSON.stringify(missingPhoto)}`);
   }
   const broken = await setup({ brokenPhoto: true, cameraPhoto: true });
   await broken.page.goto(`${base}/horse-list`);

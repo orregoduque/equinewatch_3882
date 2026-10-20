@@ -5,7 +5,7 @@ import Header from '../../components/ui/Header';
 import MobileNavigation from '../../components/ui/MobileNavigation';
 import { useHorseDetails } from '../../features/horse-details/useHorseDetails';
 import { formatDateOfBirth } from '../../features/horse-details/formatDateOfBirth';
-import HorseProfilePhoto from '../../components/HorseProfilePhoto';
+import Image from '../../components/AppImage';
 
 const detailRows = [
   { label: 'Nombre', key: 'name' },
@@ -102,9 +102,8 @@ const HorseDetailsPage: React.FC = () => {
           ) : (
             <article className="overflow-hidden rounded-2xl border border-[#E7E0D5] bg-[#FFFDF9] shadow-[0_10px_30px_rgba(64,53,44,0.05)]">
               <header className="flex flex-col gap-6 border-b border-[#EEE8DE] bg-[#F4F0E9] p-6 sm:flex-row sm:items-center sm:p-8">
-                  <HorseProfilePhoto
-                    horseId={horse.id}
-                    profilePhotoUrl={horse.profile_photo_url}
+                  <Image
+                    src={horse.profile_photo_url?.trim() ? horse.profile_photo_url : '/assets/images/no_image.png'}
                     alt={`Retrato de ${horse.name}`}
                     className="h-28 w-28 shrink-0 rounded-2xl border border-[#E5DDD0] object-cover"
                   />

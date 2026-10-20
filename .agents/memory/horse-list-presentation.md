@@ -15,15 +15,15 @@ timeline accessible from there. Preserve active-horse filtering and permissions.
 
 Use the saved horses.profile_photo_url directly in cards and profile headers.
 Do not transform it through getImageUrl or replace it with the latest camera
-image. Only an empty saved profile URL permits the latest authorized camera
-image as a fallback; a broken nonempty profile URL does not.
+image. Missing or broken profiles show the ordinary placeholder, not a capture.
 
 **Why:** The user clarified that camera captures and the horse's profile photo
-are different, and explicitly limited the camera fallback to an empty profile.
+are different, then reiterated that cards and headers must use the profile
+field directly and that the camera image belongs to the live monitor.
 
-**How to apply:** Keep camera reads conditional and scoped to the same horse,
-with existing authorization. Never upload or overwrite a profile photo to fix
-its presentation.
+**How to apply:** Do not query camera images from the cards or profile headers.
+Never upload or overwrite a profile photo to fix its presentation. Preserve
+the monitor's images and paths unchanged.
 
 When the reported image still looks like a camera capture, inspect the actual
 bytes returned by the saved profile URL before changing the UI again. A
