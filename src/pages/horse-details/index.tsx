@@ -5,7 +5,7 @@ import Header from '../../components/ui/Header';
 import MobileNavigation from '../../components/ui/MobileNavigation';
 import { useHorseDetails } from '../../features/horse-details/useHorseDetails';
 import { formatDateOfBirth } from '../../features/horse-details/formatDateOfBirth';
-import { getImageUrl } from '../../utils/supabase';
+import HorseProfilePhoto from '../../components/HorseProfilePhoto';
 
 const detailRows = [
   { label: 'Nombre', key: 'name' },
@@ -34,11 +34,6 @@ const displayValue = (value: unknown) => {
 
 const HorseDetailsPage: React.FC = () => {
   const { horse, isLoading, error, retry, needsLogin } = useHorseDetails();
-
-  const photoPath = horse?.profile_photo_url?.trim();
-  const photoUrl = photoPath
-    ? (/^https?:\/\//i.test(photoPath) ? photoPath : getImageUrl(photoPath))
-    : '';
 
   return (
     <div className="min-h-[100dvh] bg-[#F8F6F2] text-[#40352C]">
@@ -107,13 +102,12 @@ const HorseDetailsPage: React.FC = () => {
           ) : (
             <article className="overflow-hidden rounded-2xl border border-[#E7E0D5] bg-[#FFFDF9] shadow-[0_10px_30px_rgba(64,53,44,0.05)]">
               <header className="flex flex-col gap-6 border-b border-[#EEE8DE] bg-[#F4F0E9] p-6 sm:flex-row sm:items-center sm:p-8">
-                {photoUrl && (
-                  <img
-                    src={photoUrl}
+                  <HorseProfilePhoto
+                    horseId={horse.id}
+                    profilePhotoUrl={horse.profile_photo_url}
                     alt={`Retrato de ${horse.name}`}
                     className="h-28 w-28 shrink-0 rounded-2xl border border-[#E5DDD0] object-cover"
                   />
-                )}
                 <div className="min-w-0">
                   <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#9A8668]">Ficha del caballo</p>
                   <h1 className="mt-2 break-words font-['Syne',sans-serif] text-3xl font-bold tracking-tight sm:text-4xl">{horse.name || '—'}</h1>

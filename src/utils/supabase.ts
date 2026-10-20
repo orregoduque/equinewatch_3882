@@ -44,6 +44,7 @@ export interface SupabaseHorse {
   name: string;
   breed: string | null;
   profile_photo_url: string | null;
+  stall_number: string | null;
   owner_id: string | null;
   age: number | null;
   gender: string | null;
@@ -142,7 +143,7 @@ export const fetchHorses = (viewer: HorseViewer | null = null): Promise<Supabase
 const loadHorses = async (viewer: HorseViewer): Promise<SupabaseHorse[]> => {
   let query = supabase
     .from('horses')
-    .select('id, name, breed, profile_photo_url, owner_id, age, gender, color, is_active, created_at, updated_at')
+    .select('id, name, profile_photo_url, stall_number, breed, age, owner_id, gender, color, is_active, created_at, updated_at')
     .order('created_at', { ascending: true });
 
   if (isHorseOwner(viewer)) {

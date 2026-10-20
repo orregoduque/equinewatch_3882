@@ -11,6 +11,7 @@ const uid = '00000000-0000-4000-8000-000000000001';
 const first = '00000000-0000-4000-8000-000000000010';
 const second = '00000000-0000-4000-8000-000000000020';
 const foreign = '00000000-0000-4000-8000-000000000030';
+const profilePhotoUrl = 'https://zmxppbpywizdjlhstfkf.supabase.co/storage/v1/object/public/images/profiles/fixture-horse.png';
 const labels = [
   'Nombre', 'Raza', 'Fecha de nacimiento', 'Edad', 'Sexo', 'Color', 'Box', 'Peso (kg)', 'Alzada (manos)',
   'Notas médicas', 'Número registro', 'Dieta', 'Contacto emergencia', 'Número emergencia',
@@ -36,6 +37,7 @@ async function setup({
   mobile = false, missingSession = false, loggedOut = false, mismatch = false,
   role = 'horse_owner', failOnce = false, nullValues = false, populated = false,
   timezoneId = 'America/Bogota', dateOfBirth = horse.date_of_birth,
+  savedPhoto = profilePhotoUrl, brokenPhoto = false, cameraPhoto = false,
 } = {}) {
   const context = await browser.newContext({
     viewport: mobile ? { width: 390, height: 844 } : { width: 1440, height: 1000 },
@@ -70,6 +72,8 @@ async function setup({
     const json = (data, status = 200) => route.fulfill({
       status, contentType: 'application/json', body: JSON.stringify(data),
     });
+    if (brokenPhoto && url.pathname.startsWith('/storage/') && url.pathname.includes('/profiles/'))
+      return route.fulfill({ status: 404, contentType: 'text/plain', body: 'Profile photo missing' });
     if (url.pathname.startsWith('/storage/')) return route.fulfill({
       contentType: 'image/svg+xml',
       body: '<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600"><rect width="800" height="600" fill="#c9a962"/></svg>',
@@ -83,21 +87,22 @@ async function setup({
         if (failOnce && detailReads === 1) return json({ message: 'Fixture failure' }, 503);
         if (id !== `eq.${first}`) return json([]); // Simulate missing/foreign horse hidden by RLS.
         if (nullValues) return json([{ ...blankHorse, id: first, age: 0, weight: 0, height: 0 }]);
-        const currentHorse = { ...horse, date_of_birth: dateOfBirth };
+        const currentHorse = { ...horse, date_of_birth: dateOfBirth, profile_photo_url: savedPhoto };
         return json([populated ? {
           ...currentHorse, registration_number: 'REG-TEST', dietary_requirements: 'Dieta de prueba',
           emergency_contact: 'Contacto de prueba', emergency_phone: '000-TEST',
           veterinarian: 'Clínica veterinaria de prueba', veterinarian_phone: '111-TEST',
-          insurance_details: 'Póliza de prueba', profile_photo_url: null,
+          insurance_details: 'Póliza de prueba',
         } : currentHorse]);
       }
       return json([
-        { ...horse, profile_photo_url: 'profiles/horse photo.jpg', owner_id: uid, is_active: true, created_at: new Date().toISOString() },
+        { ...horse, profile_photo_url: savedPhoto, owner_id: uid, is_active: true, created_at: new Date().toISOString() },
         { ...horse, id: second, name: 'Caballo inactivo', owner_id: uid, is_active: false },
       ]);
     }
     if (url.pathname.includes('/user_profiles'))
       return json([{ id: uid, email: 'fixture@example.test', full_name: 'Fixture', role }]);
+    if (url.pathname.endsWith('/images')) return json(cameraPhoto ? [{ storage_path_enhanced: 'camera/latest.jpg' }] : []);
     if (url.pathname.includes('/auth/v1/user')) return json({ id: uid, email: 'fixture@example.test' });
     return json([]);
   });
@@ -125,7 +130,7 @@ try {
     assert.equal((await card.innerText()).replace(/\s+/g, ' ').trim(), 'Bacatá de prueba Ver ficha');
     assert.equal(await card.locator('img').count(), 1);
     const photo = card.getByRole('img', { name: 'Bacatá de prueba', exact: true });
-    assert((await photo.getAttribute('src')).endsWith('/storage/v1/object/public/images/profiles/horse%20photo.jpg'));
+    assert.equal(await photo.getAttribute('src'), profilePhotoUrl);
     await photo.evaluate(image => image.decode());
     await t.page.screenshot({
       path: `generated-artifacts/horse-details/list-${mobile ? 'mobile' : 'desktop'}.png`,
@@ -133,6 +138,10 @@ try {
     });
     await link.click();
     await t.page.locator('table').waitFor();
+    const headerPhoto = t.page.locator('article header img');
+    assert.equal(await headerPhoto.getAttribute('src'), profilePhotoUrl);
+    await headerPhoto.evaluate(image => image.decode());
+    assert(!t.requests.some(request => request.path.endsWith('/rest/v1/images')));
     assert.equal(new URL(t.page.url()).pathname, `/horses/${first}`);
     assert.deepEqual(await t.page.locator('table th').allTextContents(), labels);
     const values = await t.page.locator('table td').allTextContents();
@@ -155,6 +164,29 @@ try {
     assert.equal(await t.page.locator('tr').filter({ has: t.page.getByRole('rowheader', { name: 'Edad', exact: true }) }).locator('td').textContent(), '8');
     await finish(t, `birth-date-preserves-calendar-day-and-db-age-${timezoneId}`);
   }
+  for (const missingPhoto of [null, '  ']) {
+    const t = await setup({ savedPhoto: missingPhoto, cameraPhoto: true });
+    await t.page.goto(`${base}/horse-list`);
+    const cardPhoto = t.page.locator('main article img');
+    await t.page.waitForFunction(() => document.querySelector('main article img')?.getAttribute('src')?.endsWith('/camera/latest.jpg'));
+    assert((await cardPhoto.getAttribute('src')).endsWith('/camera/latest.jpg'));
+    const cameraRequest = t.requests.find(request => request.path.endsWith('/rest/v1/images'));
+    assert(cameraRequest);
+    const query = new URLSearchParams(cameraRequest.query);
+    assert.equal(query.get('horse_id'), `eq.${first}`);
+    assert.equal(query.get('limit'), '1');
+    assert.equal(query.get('order'), 'created_at.desc,id.desc');
+    await t.page.getByRole('link', { name: 'Ver ficha de Bacatá de prueba', exact: true }).click();
+    await t.page.waitForFunction(() => document.querySelector('article header img')?.getAttribute('src')?.endsWith('/camera/latest.jpg'));
+    await finish(t, `camera-fallback-only-for-empty-profile-${JSON.stringify(missingPhoto)}`);
+  }
+  const broken = await setup({ brokenPhoto: true, cameraPhoto: true });
+  await broken.page.goto(`${base}/horse-list`);
+  await broken.page.waitForFunction(() => document.querySelector('main article img')?.getAttribute('src') === '/assets/images/no_image.png');
+  await broken.page.getByRole('link', { name: 'Ver ficha de Bacatá de prueba', exact: true }).click();
+  await broken.page.waitForFunction(() => document.querySelector('article header img')?.getAttribute('src') === '/assets/images/no_image.png');
+  assert(!broken.requests.some(request => request.path.endsWith('/rest/v1/images')));
+  await finish(broken, 'broken-saved-profile-does-not-query-camera');
   const populated = await setup({ populated: true, role: 'admin' });
   await open(populated);
   await populated.page.getByRole('cell', { name: 'Clínica veterinaria de prueba', exact: true }).waitFor();

@@ -1,14 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import Image from '../../../components/AppImage';
-import { getImageUrl } from '../../../utils/supabase';
+import HorseProfilePhoto from '../../../components/HorseProfilePhoto';
 import { HorseCardProps } from '../types';
 
 const HorseCard: React.FC<HorseCardProps> = ({ horse }) => {
-  const profilePhoto = horse.profile_photo_url?.trim();
-  const imageUrl = profilePhoto
-    ? (/^https?:\/\//i.test(profilePhoto) ? profilePhoto : getImageUrl(profilePhoto))
-    : '';
   return (
     <article
       className="group min-w-0 overflow-hidden rounded-2xl bg-white animate-slide-up"
@@ -18,8 +13,9 @@ const HorseCard: React.FC<HorseCardProps> = ({ horse }) => {
       }}
     >
       <div className="relative w-full aspect-[4/3] overflow-hidden bg-stone-100">
-        <Image
-          src={imageUrl}
+        <HorseProfilePhoto
+          horseId={horse.id}
+          profilePhotoUrl={horse.profile_photo_url}
           alt={horse.name}
           className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110"
         />
