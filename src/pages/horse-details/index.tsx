@@ -4,11 +4,13 @@ import { ArrowLeft, ArrowUpRight, RefreshCw } from 'lucide-react';
 import Header from '../../components/ui/Header';
 import MobileNavigation from '../../components/ui/MobileNavigation';
 import { useHorseDetails } from '../../features/horse-details/useHorseDetails';
+import { formatDateOfBirth } from '../../features/horse-details/formatDateOfBirth';
 import { getImageUrl } from '../../utils/supabase';
 
 const detailRows = [
   { label: 'Nombre', key: 'name' },
   { label: 'Raza', key: 'breed' },
+  { label: 'Fecha de nacimiento', key: 'date_of_birth' },
   { label: 'Edad', key: 'age' },
   { label: 'Sexo', key: 'gender' },
   { label: 'Color', key: 'color' },
@@ -135,7 +137,7 @@ const HorseDetailsPage: React.FC = () => {
                           {label}
                         </th>
                         <td className="whitespace-pre-wrap break-words px-6 py-4 text-sm leading-6 text-[#40352C] sm:px-8">
-                          {displayValue(horse[key])}
+                          {key === 'date_of_birth' ? formatDateOfBirth(horse.date_of_birth) : displayValue(horse[key])}
                         </td>
                       </tr>
                     ))}

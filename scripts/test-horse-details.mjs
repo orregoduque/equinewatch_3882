@@ -12,12 +12,12 @@ const first = '00000000-0000-4000-8000-000000000010';
 const second = '00000000-0000-4000-8000-000000000020';
 const foreign = '00000000-0000-4000-8000-000000000030';
 const labels = [
-  'Nombre', 'Raza', 'Edad', 'Sexo', 'Color', 'Box', 'Peso (kg)', 'Alzada (manos)',
+  'Nombre', 'Raza', 'Fecha de nacimiento', 'Edad', 'Sexo', 'Color', 'Box', 'Peso (kg)', 'Alzada (manos)',
   'Notas médicas', 'Número registro', 'Dieta', 'Contacto emergencia', 'Número emergencia',
   'Veterinario', 'Teléfono veterinario', 'Aseguradora',
 ];
 const expectedColumns = [
-  'id', 'name', 'breed', 'age', 'gender', 'color', 'stall_number', 'weight',
+  'id', 'name', 'breed', 'age', 'date_of_birth', 'gender', 'color', 'stall_number', 'weight',
   'height', 'medical_notes', 'registration_number', 'dietary_requirements',
   'emergency_contact', 'emergency_phone', 'veterinarian', 'veterinarian_phone',
   'insurance_details', 'profile_photo_url',
@@ -25,6 +25,7 @@ const expectedColumns = [
 const blankHorse = Object.fromEntries(expectedColumns.map(key => [key, null]));
 const horse = {
   ...blankHorse, id: first, name: 'Bacatá de prueba', breed: 'Criollo', age: 8,
+  date_of_birth: '2015-07-12',
   gender: 'Macho', color: 'Castaño', stall_number: 'B-04', weight: 480, height: 15.2,
   medical_notes: 'Notas de prueba\n<script>no ejecutar</script>',
 };
@@ -34,9 +35,11 @@ await mkdir('generated-artifacts/horse-details', { recursive: true });
 async function setup({
   mobile = false, missingSession = false, loggedOut = false, mismatch = false,
   role = 'horse_owner', failOnce = false, nullValues = false, populated = false,
+  timezoneId = 'America/Bogota', dateOfBirth = horse.date_of_birth,
 } = {}) {
   const context = await browser.newContext({
     viewport: mobile ? { width: 390, height: 844 } : { width: 1440, height: 1000 },
+    timezoneId,
   });
   const page = await context.newPage(), requests = [], errors = [], writes = [];
   let detailReads = 0;
@@ -76,12 +79,13 @@ async function setup({
         if (failOnce && detailReads === 1) return json({ message: 'Fixture failure' }, 503);
         if (id !== `eq.${first}`) return json([]); // Simulate missing/foreign horse hidden by RLS.
         if (nullValues) return json([{ ...blankHorse, id: first, age: 0, weight: 0, height: 0 }]);
+        const currentHorse = { ...horse, date_of_birth: dateOfBirth };
         return json([populated ? {
-          ...horse, registration_number: 'REG-TEST', dietary_requirements: 'Dieta de prueba',
+          ...currentHorse, registration_number: 'REG-TEST', dietary_requirements: 'Dieta de prueba',
           emergency_contact: 'Contacto de prueba', emergency_phone: '000-TEST',
           veterinarian: 'Clínica veterinaria de prueba', veterinarian_phone: '111-TEST',
           insurance_details: 'Póliza de prueba', profile_photo_url: null,
-        } : horse]);
+        } : currentHorse]);
       }
       return json([
         { ...horse, owner_id: uid, is_active: true, created_at: new Date().toISOString() },
@@ -117,17 +121,24 @@ try {
     assert.equal(new URL(t.page.url()).pathname, `/horses/${first}`);
     assert.deepEqual(await t.page.locator('table th').allTextContents(), labels);
     const values = await t.page.locator('table td').allTextContents();
-    assert.deepEqual(values.slice(0, 8), [
-      'Bacatá de prueba', 'Criollo', '8', 'Macho', 'Castaño', 'B-04', '480', '15.2',
+    assert.deepEqual(values.slice(0, 9), [
+      'Bacatá de prueba', 'Criollo', '12/07/2015', '8', 'Macho', 'Castaño', 'B-04', '480', '15.2',
     ]);
-    assert.equal(values[8], horse.medical_notes);
-    assert(values.slice(9).every(value => value === '—'));
+    assert.equal(values[9], horse.medical_notes);
+    assert(values.slice(10).every(value => value === '—'));
     assert.equal(await t.page.locator('form,input,textarea,select').count(), 0);
     assert.equal(await t.page.getByRole('button', { name: /guardar|editar|crear/i }).count(), 0);
     await t.page.screenshot({
       path: `generated-artifacts/horse-details/${mobile ? 'mobile' : 'desktop'}.png`, fullPage: true,
     });
-    await finish(t, mobile ? 'mobile-16-fields-and-list-entry' : 'desktop-16-fields-and-list-entry');
+    await finish(t, mobile ? 'mobile-17-fields-and-list-entry' : 'desktop-17-fields-and-list-entry');
+  }
+  for (const timezoneId of ['America/Los_Angeles', 'Pacific/Auckland']) {
+    const t = await setup({ timezoneId, dateOfBirth: '2022-12-09' });
+    await open(t);
+    await t.page.getByRole('cell', { name: '09/12/2022', exact: true }).waitFor();
+    assert.equal(await t.page.locator('tr').filter({ has: t.page.getByRole('rowheader', { name: 'Edad', exact: true }) }).locator('td').textContent(), '8');
+    await finish(t, `birth-date-preserves-calendar-day-and-db-age-${timezoneId}`);
   }
   const populated = await setup({ populated: true, role: 'admin' });
   await open(populated);
@@ -140,7 +151,7 @@ try {
   await open(empty);
   await empty.page.locator('table').waitFor();
   const emptyValues = await empty.page.locator('table td').allTextContents();
-  assert.equal(emptyValues.filter(v => v === '—').length, 13);
+  assert.equal(emptyValues.filter(v => v === '—').length, 14);
   assert.equal(emptyValues.filter(v => v === '0').length, 3);
   await finish(empty, 'all-rows-null-with-numeric-zero-preserved');
 

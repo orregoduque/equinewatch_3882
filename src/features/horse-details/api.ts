@@ -1,7 +1,7 @@
 import { supabase, type HorseViewer } from '../../utils/supabase';
 
 export const HORSE_DETAIL_COLUMNS = [
-  'id', 'name', 'breed', 'age', 'gender', 'color', 'stall_number', 'weight',
+  'id', 'name', 'breed', 'age', 'date_of_birth', 'gender', 'color', 'stall_number', 'weight',
   'height', 'medical_notes', 'registration_number', 'dietary_requirements',
   'emergency_contact', 'emergency_phone', 'veterinarian', 'veterinarian_phone',
   'insurance_details', 'profile_photo_url',
@@ -12,6 +12,7 @@ export interface HorseDetails {
   name: string | null;
   breed: string | null;
   age: number | string | null;
+  date_of_birth: string | null;
   gender: string | null;
   color: string | null;
   stall_number: string | null;

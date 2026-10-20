@@ -8,7 +8,7 @@ const uid = '00000000-0000-4000-8000-000000000001';
 const horseId = '00000000-0000-4000-8000-000000000010';
 const viewer = { id: uid, email: 'fixture@example.test', role: 'horse_owner' };
 const columns = [
-  'id', 'name', 'breed', 'age', 'gender', 'color', 'stall_number', 'weight',
+  'id', 'name', 'breed', 'age', 'date_of_birth', 'gender', 'color', 'stall_number', 'weight',
   'height', 'medical_notes', 'registration_number', 'dietary_requirements',
   'emergency_contact', 'emergency_phone', 'veterinarian', 'veterinarian_phone',
   'insurance_details', 'profile_photo_url',
@@ -66,6 +66,15 @@ test('null fields and numeric zero are returned without invented defaults', asyn
   Object.assign(row, { id: horseId, age: 0, weight: 0, height: 0 });
   const f = fixture({ row });
   assert.deepEqual(await f.api.fetchHorseDetails(horseId, viewer), row);
+});
+test('date of birth and database age are returned as stored, without recalculating age', async () => {
+  for (const row of [
+    { id: horseId, breed: 'Warmblood', date_of_birth: '2015-07-12', age: 11 },
+    { id: horseId, breed: 'Warmblood', date_of_birth: '2022-12-09', age: 3 },
+  ]) {
+    const f = fixture({ row });
+    assert.deepEqual(await f.api.fetchHorseDetails(horseId, viewer), row);
+  }
 });
 for (const sessionId of [null, 'another-user']) {
   test(`missing or mismatched real session (${sessionId}) cannot query horses`, async () => {

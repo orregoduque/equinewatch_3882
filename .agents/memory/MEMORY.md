@@ -10,3 +10,4 @@
 - [Camera pilot authorization](camera-pilot-authorization.md) — camera access must not inherit demo identities or force an unapproved customer-login migration.
 - [Supabase REST diagnostics](supabase-rest-diagnostics.md) — test a table with limit=0, not the REST root; distinguish API-key failures from grants and RLS.
 - [Registro permissions](checks-permissions.md) — user-confirmed owner/staff RLS and automatic authorship; anonymous checks access is intentionally denied.
+- [Horse profile dates](horse-profile-dates.md) — display birth dates without timezone shifts; keep the database-provided age authoritative.
