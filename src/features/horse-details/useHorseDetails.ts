@@ -2,10 +2,12 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { fetchHorseDetails, HorseDetailsSessionError, type HorseDetails } from './api';
+import { useVisibleRefresh } from '../../hooks/useVisibleRefresh';
 
 export function useHorseDetails() {
   const { id = '' } = useParams();
   const { user } = useAuth();
+  const revision = useVisibleRefresh(!!user);
   const scope = JSON.stringify([id, user?.id, user?.email, user?.role]);
   const [attempt, setAttempt] = useState(0);
   const [state, setState] = useState<{
@@ -33,7 +35,7 @@ export function useHorseDetails() {
       },
     );
     return () => controller.abort();
-  }, [scope, attempt]);
+  }, [scope, attempt, revision]);
 
   // Never expose the previous account's/horse's data, even before effects run.
   const current = state.scope === scope;

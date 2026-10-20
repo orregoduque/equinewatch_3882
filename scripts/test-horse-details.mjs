@@ -106,7 +106,7 @@ async function setup({
     if (url.pathname.includes('/auth/v1/user')) return json({ id: uid, email: 'fixture@example.test' });
     return json([]);
   });
-  return { page, context, requests, errors, writes };
+  return { page, context, requests, errors, writes, setPhotoUrl(url) { savedPhoto = url; } };
 }
 async function finish(t, name) {
   assert.deepEqual(t.errors, []);
@@ -156,6 +156,19 @@ try {
       path: `generated-artifacts/horse-details/${mobile ? 'mobile' : 'desktop'}.png`, fullPage: true,
     });
     await finish(t, mobile ? 'mobile-17-fields-and-list-entry' : 'desktop-17-fields-and-list-entry');
+  }
+  for (const path of ['/horse-list', `/horses/${first}`]) {
+    const t = await setup();
+    await t.page.goto(`${base}${path}`);
+    const selector = path === '/horse-list' ? 'main article img' : 'article header img';
+    await t.page.locator(selector).waitFor();
+    const updatedPhoto = new URL('updated-portrait.jpg', profilePhotoUrl).href;
+    t.setPhotoUrl(updatedPhoto);
+    await t.page.evaluate(() => window.dispatchEvent(new Event('focus')));
+    await t.page.waitForFunction(({ selector, src }) =>
+      document.querySelector(selector)?.getAttribute('src') === src, { selector, src: updatedPhoto });
+    assert(!t.requests.some(request => request.path.endsWith('/rest/v1/images')));
+    await finish(t, `profile-field-revalidated-on-focus-${path}`);
   }
   for (const timezoneId of ['America/Los_Angeles', 'Pacific/Auckland']) {
     const t = await setup({ timezoneId, dateOfBirth: '2022-12-09' });

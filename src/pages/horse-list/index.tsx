@@ -7,7 +7,7 @@ import EmptyState from './components/EmptyState';
 import { useAccessibleHorses } from '../../hooks/useAccessibleHorses';
 
 const HorseList: React.FC = () => {
-  const { horses: records, isLoading, error: loadError } = useAccessibleHorses();
+  const { horses: records, isLoading, error: loadError } = useAccessibleHorses({ refreshOnFocus: true });
   const horses = records.filter((horse) => horse.is_active === true);
 
   return (

@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { freshHorseFetch } from './freshHorseFetch';
 
 declare global {
   interface ImportMetaEnv {
@@ -10,7 +11,9 @@ declare global {
 const supabaseUrl = 'https://zmxppbpywizdjlhstfkf.supabase.co';
 const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpteHBwYnB5d2l6ZGpsaHN0ZmtmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMzNzY4MTksImV4cCI6MjA3ODk1MjgxOX0.AR2B4sNbkf0A_Sm_M-YFtR25ySZMP1FsM93acnuVYWc';
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  global: { fetch: freshHorseFetch },
+});
 
 export interface HorseImage {
   id: number;
