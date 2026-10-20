@@ -12,7 +12,8 @@ import { useAccessibleHorses } from '../../hooks/useAccessibleHorses';
 const HorseList: React.FC = () => {
   const navigate = useNavigate();
   const { horses: records, isLoading, error: loadError } = useAccessibleHorses();
-  const horses: Horse[] = records.map((horse) => {
+  const activeRecords = records.filter((horse) => horse.is_active === true);
+  const horses: Horse[] = activeRecords.map((horse) => {
           const details = [
             horse.breed,
             horse.color,

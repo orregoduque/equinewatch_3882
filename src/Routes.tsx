@@ -11,6 +11,7 @@ const DailySummary = lazy(() => import('./pages/daily-summary'));
 const Registro = lazy(() => import('./pages/registro'));
 const HorseTimeline = lazy(() => import('./pages/horse-timeline'));
 const HorseList = lazy(() => import('./pages/horse-list'));
+const HorseDetails = lazy(() => import('./pages/horse-details'));
 const WorldMap = lazy(() => import('./pages/world-map'));
 const Profile = lazy(() => import('./pages/profile'));
 const Devices = lazy(() => import('./pages/devices'));
@@ -39,6 +40,7 @@ const Routes: React.FC = () => {
             <Route path="/daily-summary" element={<DailySummary />} />
             <Route path="/registro" element={<Registro />} />
             <Route path="/horse-timeline" element={<HorseTimeline />} />
+            <Route path="/horses/:id" element={<HorseDetails />} />
             <Route path="/hls-pilot" element={<HlsPilot />} />
             <Route path="/horse-list" element={<HorseList />} />
             <Route path="/world-map" element={<WorldMap />} />

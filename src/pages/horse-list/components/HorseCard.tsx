@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import Image from '../../../components/AppImage';
 import StatusBadge from './StatusBadge';
 import { HorseCardProps } from '../types';
@@ -56,6 +57,20 @@ const HorseCard: React.FC<HorseCardProps> = ({ horse, onClick }) => {
               </p>
             </div>
           )}
+
+          <div className="pt-1">
+            <Link
+              to={`/horses/${encodeURIComponent(horse.id)}`}
+              onClick={(event) => event.stopPropagation()}
+              className="inline-flex min-h-10 items-center gap-2 rounded-lg px-3 text-sm font-semibold text-[#756044] transition-colors hover:bg-[#F4F0E9] focus:outline-none focus:ring-2 focus:ring-[#8C7350] focus:ring-offset-2"
+              aria-label={`Ver ficha de ${horse.name}`}
+            >
+              Ver ficha
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </Link>
+          </div>
 
           {typeof horse.temperatureC === 'number' && (
           <div className="flex items-center gap-2 pt-2">

@@ -22,3 +22,14 @@ must still see all horses.
 app, not merely by hiding cards. Preserve other roles' existing access unless
 the user changes their scope. Client filtering and request guards do not
 replace Supabase RLS; do not claim database isolation without verifying it.
+
+Horse detail access must use the real authenticated Supabase session and let
+the existing RLS decide owner/staff visibility, rather than granting access
+from a locally stored role or demo identity.
+
+**Why:** The user explicitly confirmed that RLS already limits horse details
+to the owner/staff and prohibited changing policies, credentials or data.
+
+**How to apply:** Keep detail reads session-bound, fail closed without a valid
+matching session, and use a generic unavailable state for missing or hidden
+horses. Do not introduce service-role reads to make the UI work.
