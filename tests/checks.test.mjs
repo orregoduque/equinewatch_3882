@@ -82,20 +82,29 @@ test('creation sends only four editable columns; Supabase owns author, ID and ti
   assert.equal(f.calls[0].insert.comments, 'Cambio completo');
 });
 
-test('empty comments are optional and stored as null', async () => {
-  const f = fixture();
-  await f.api.createHorseCheck({ ...input, comments: ' ' }, owner);
-  assert.equal(f.calls[0].insert.comments, null);
+test('empty, null and missing comments are omitted from the insert', async () => {
+  for (const comments of [' ', null, undefined]) {
+    const f = fixture();
+    await f.api.createHorseCheck({ ...input, comments }, owner);
+    assert.deepEqual(Object.keys(f.calls[0].insert).sort(), ['horse_id', 'performed_on', 'task']);
+  }
 });
 
-for (const task of ['herraduras', 'vacuna', 'concurso', 'dientes']) {
+for (const task of [
+  'herraduras', 'vacuna', 'concurso', 'dientes',
+  'Terapias', 'Odontologia', 'Purga', 'Medicamento',
+  'Chequeo veterinario', 'Cambio de comida', 'Ajuste silla', 'Cambio bocado',
+]) {
   test(`accepts the exact ${task} enum value`, async () => {
-    await fixture().api.createHorseCheck({ ...input, task }, owner);
+    const f = fixture();
+    await f.api.createHorseCheck({ ...input, task }, owner);
+    assert.equal(f.calls[0].insert.task, task);
   });
 }
 
 for (const invalid of [
   { task: 'otro' }, { task: 'Herraduras' }, { performed_on: '2026-02-30' },
+  { task: 'terapias' }, { task: 'Odontología' }, { task: 'Cambio de comida ' },
   { performed_on: '2026-13-01' }, { performed_on: '2026-10-1' },
   { performed_on: '' }, { horse_id: '' }, { comments: 22 },
 ]) {

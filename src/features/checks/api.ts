@@ -1,6 +1,10 @@
 import { supabase, requireHorseAccess, type HorseViewer } from '../../utils/supabase';
 
-export const CHECK_TASKS = ['herraduras', 'vacuna', 'concurso', 'dientes'] as const;
+export const CHECK_TASKS = [
+  'herraduras', 'vacuna', 'concurso', 'dientes',
+  'Terapias', 'Odontologia', 'Purga', 'Medicamento',
+  'Chequeo veterinario', 'Cambio de comida', 'Ajuste silla', 'Cambio bocado',
+] as const;
 export type CheckTask = typeof CHECK_TASKS[number];
 
 export interface HorseCheck {
@@ -84,7 +88,7 @@ export async function createHorseCheck(
     horse_id: input.horse_id,
     task: input.task,
     performed_on: input.performed_on,
-    comments: input.comments?.trim() || null,
+    ...(input.comments?.trim() ? { comments: input.comments.trim() } : {}),
   }).select(COLUMNS);
   if (signal) query = query.abortSignal(signal);
   const { data, error } = await query.single();

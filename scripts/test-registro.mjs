@@ -14,6 +14,11 @@ const first = '00000000-0000-4000-8000-000000000010';
 const second = '00000000-0000-4000-8000-000000000020';
 const foreign = '00000000-0000-4000-8000-000000000030';
 const results = [];
+const expectedTasks = [
+  'herraduras', 'vacuna', 'concurso', 'dientes',
+  'Terapias', 'Odontologia', 'Purga', 'Medicamento',
+  'Chequeo veterinario', 'Cambio de comida', 'Ajuste silla', 'Cambio bocado',
+];
 
 async function setup({
   mobile = false, role = 'horse_owner', readFailure = false, saveFailure = false,
@@ -103,8 +108,8 @@ async function setup({
 async function assertNoOverflow(page) {
   assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
 }
-async function submit(page, comments = 'Revisión registrada en prueba') {
-  await page.getByLabel('Tipo de cuidado').selectOption('dientes');
+async function submit(page, comments = 'Revisión registrada en prueba', task = 'dientes') {
+  await page.getByLabel('Tipo de cuidado').selectOption(task);
   await page.getByLabel('Fecha (de la tarea)').fill('2026-10-28');
   await page.getByLabel(/^Comentarios/).fill(comments);
   await page.getByRole('button', { name: 'Guardar registro' }).click();
@@ -120,7 +125,7 @@ try {
     const t = await setup({ mobile });
     await t.page.getByText('Cuidado de Bacatá 1', { exact: true }).waitFor();
     const options = await t.page.getByLabel('Tipo de cuidado').locator('option').evaluateAll(nodes => nodes.map(node => node.value));
-    assert.deepEqual(options, ['herraduras', 'vacuna', 'concurso', 'dientes']);
+    assert.deepEqual(options, expectedTasks);
     assert.equal(await t.page.getByRole('combobox', { name: 'Selecciona un caballo' }).locator('option').count(), 2);
     const navigation = mobile ? t.page.locator('nav.md\\:hidden') : t.page.locator('header nav');
     const links = await navigation.locator('a').allTextContents();
@@ -143,6 +148,18 @@ try {
     assert.equal(await t.page.getByText('Registro guardado.', { exact: false }).count(), 0);
     await finish(t, mobile ? 'mobile-create-list-pagination-switch' : 'desktop-create-list-pagination-switch');
   }
+  const expanded = await setup();
+  await expanded.page.getByText('Cuidado de Bacatá 1', { exact: true }).waitFor();
+  for (const task of expectedTasks) {
+    const comment = `Prueba de tarea: ${task}`;
+    await submit(expanded.page, comment, task);
+    await expanded.page.locator('article').getByText(comment, { exact: true }).waitFor();
+    assert.equal(expanded.inserted.at(-1).task, task);
+    assert.deepEqual(Object.keys(expanded.inserted.at(-1)).sort(), ['comments', 'horse_id', 'performed_on', 'task']);
+    await expanded.page.locator('article').filter({ hasText: comment })
+      .getByRole('heading').waitFor();
+  }
+  await finish(expanded, 'all-twelve-exact-task-values-create-and-render');
   const denied = await setup({ requested: foreign });
   await denied.page.getByText('Cuidado de Bacatá 1', { exact: true }).waitFor();
   assert(!denied.requests.some(request => request.query.includes(foreign)));

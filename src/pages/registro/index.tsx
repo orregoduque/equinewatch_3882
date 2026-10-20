@@ -16,6 +16,14 @@ const TASK_LABELS: Record<CheckTask, string> = {
   vacuna: 'Vacuna',
   concurso: 'Concurso',
   dientes: 'Dientes',
+  Terapias: 'Terapias',
+  Odontologia: 'Odontologia',
+  Purga: 'Purga',
+  Medicamento: 'Medicamento',
+  'Chequeo veterinario': 'Chequeo veterinario',
+  'Cambio de comida': 'Cambio de comida',
+  'Ajuste silla': 'Ajuste silla',
+  'Cambio bocado': 'Cambio bocado',
 };
 
 const formatDate = (value: string) => {
