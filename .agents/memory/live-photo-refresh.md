@@ -44,6 +44,18 @@ fails. Keep same-account horse cards visible during background revalidation.
 thumbnail requests compete with the main photo. Uploads come from an external
 process, so changing old objects or bucket settings cannot fix new uploads.
 
-**How to apply:** Preserve 240 in-memory photos, the two-minute video, polling,
+**How to apply:** Preserve the 240-photo live window, the two-minute video, polling,
 authorization, original main/video URLs and Storage Cache-Control. Never retain
 horse lists across account changes or skip fresh reads on later revisions.
+
+The user says most Stable Eye users open it on a phone and need to inspect
+earlier feeding, water and handling without having been connected then.
+
+**Why:** A live-only window prevents those users from reviewing care earlier
+in the day, even though the photos already exist.
+
+**How to apply:** Treat 390px mobile use as the primary monitoring experience,
+with finger-sized controls rather than hover-only actions. Keep retrospective
+review separate from live following and bounded to the selected local hour;
+do not download a full day or change the camera, JPEG, processing, profile photos
+or Storage settings to implement browsing.

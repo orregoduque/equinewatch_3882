@@ -1,0 +1,17 @@
+La mayoría de los usuarios abre Stable Eye desde el celular. Hoy el monitoreo en vivo solo muestra las últimas 240 fotos, unos 40 minutos, aunque en Supabase hay días enteros guardados. Quien quiere ver la comida, el agua o el manejo de más temprano tiene que estar conectado en ese momento. Mejora el uso de la app. No cambies la cámara, el JPEG ni el procesado de la imagen.
+Hazlo primero para una pantalla de unos 390 px de ancho. El escritorio hereda esa misma pantalla, más ancha. Los controles se tocan con el dedo: alto mínimo de 44 px, sin depender del hover.
+1. Poder revisar el día sin quedarse conectado.
+   El modo en vivo sigue igual: últimas 240 fotos, refresco cada 10 segundos, miniaturas de 320 px que se quedan montadas si ya se vieron, y la foto grande aparece antes que la tira.
+   Añade "Revisar el día", fácil de alcanzar con el pulgar. El usuario elige el día y una hora, de 0 a 23, en su hora local. Cada hora es un botón grande en una fila con scroll horizontal, no un selector diminuto.
+   Al elegir una hora, pide solo ese intervalo: created_at desde el inicio de la hora hasta la hora siguiente, de ese caballo, con storage_path_enhanced presente, ordenadas por created_at ascendente, límite 400. No bajes el día completo ni las miles de fotos antiguas.
+   Esa hora sustituye la tira de en vivo. La foto grande muestra la primera y se puede tocar otra miniatura. "Volver a en vivo" queda visible, limpia la hora y restaura las últimas 240 y el refresco. Mientras se revisa una hora, una foto nueva no cambia la tira ni la foto elegida. Si esa hora no tiene fotos, dilo en la pantalla.
+2. Ver la pesebrera en grande desde el celular.
+   La foto principal usa el ancho de la pantalla y el alto que quede entre la cabecera y la tira, sin quedar en una franja baja ni en media columna.
+   "Ampliar" abre la misma foto a pantalla completa (100dvh), por encima de la navegación inferior. Pellizcar y la rueda amplían de 1x a 4x, arrastrar mueve la imagen, un doble toque vuelve a 1x. Cerrar y Escape salen. El zoom es un transform de esa misma imagen, no otra URL.
+   La tira de miniaturas sigue debajo, con scroll horizontal, para saltar dentro de la hora o de los últimos 40 minutos.
+No hagas esto:
+- No subas el límite de 240 del modo en vivo ni alargues el video de 2 minutos.
+- No cambies el polling, la autorización, el Cache-Control ni la URL de la foto grande.
+- No cargues el historial completo en memoria.
+- No modifiques la foto de perfil ni el tamaño de las miniaturas de 320 px.
+Actualiza los tests para que el modo en vivo siga en 240 y la revisión de una hora use el rango de created_at con límite 400. Prueba el flujo en un viewport de 390×844: elegir una hora, ver la foto grande, ampliar con el dedo y volver a en vivo.

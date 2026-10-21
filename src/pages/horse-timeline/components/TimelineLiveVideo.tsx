@@ -294,7 +294,7 @@ export default function TimelineLiveVideo({ horseId, horseName }: TimelineLiveVi
         type="button"
         aria-label="Live video"
         onClick={() => beginAttempt(true)}
-        className="inline-flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold transition-colors hover:opacity-85 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+        className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold transition-colors hover:opacity-85 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
         style={{ color: ink, background: '#fff', borderColor: border, fontFamily: 'Montserrat, sans-serif' }}
       >
         <span aria-hidden="true" className="h-2 w-2 rounded-full" style={{ background: '#9b7652' }} />

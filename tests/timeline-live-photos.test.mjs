@@ -58,6 +58,9 @@ function fixture() {
         useSearchParams: () => [new URLSearchParams('horseId=owned-horse'), () => {}],
       };
       if (id.endsWith('/useAccessibleHorses')) return { useAccessibleHorses: () => scope };
+      if (id.endsWith('/useHourlyHorseImages')) return {
+        useHourlyHorseImages: () => ({ images: [], loading: false, error: '' }),
+      };
       if (id.endsWith('/utils/liveHorseImages')) return {
         watchHorseImages(options) { watcher = options; return () => { stops++; }; },
       };

@@ -12,6 +12,9 @@ import { useAccessibleHorses } from '../../hooks/useAccessibleHorses';
 import { watchHorseImages } from '../../utils/liveHorseImages';
 import TimelineLiveVideo from './components/TimelineLiveVideo';
 import TimelineThumbnail from './components/TimelineThumbnail';
+import FullscreenPhoto from './components/FullscreenPhoto';
+import { useHourlyHorseImages } from '../../hooks/useHourlyHorseImages';
+import { localToday } from '../../utils/hourlyHorseImages';
 
 const VIDEO_DURATION_SECONDS = 120;
 const VIDEO_DURATION_MS = VIDEO_DURATION_SECONDS * 1000;
@@ -74,6 +77,9 @@ const HorseTimeline: React.FC = () => {
   const [currentVideoFrame, setCurrentVideoFrame] = useState(0);
   const [videoProgress, setVideoProgress] = useState(0);
   const [refreshError, setRefreshError] = useState('');
+  const [reviewSelection, setReviewSelection] = useState<{ day: string; hour: number } | null>(null);
+  const [reviewDay, setReviewDay] = useState(localToday);
+  const [expandedPhoto, setExpandedPhoto] = useState<Observation | null>(null);
 
   useEffect(() => {
     if (isLoadingHorses) {
@@ -89,6 +95,7 @@ const HorseTimeline: React.FC = () => {
   }, [horses, isLoadingHorses, requestedHorseId, setSearchParams]);
 
   useEffect(() => {
+    if (reviewSelection) return;
     const selectedHorse = horses.find((horse) => horse.id === selectedHorseId);
     setObservations([]);
     setSelectedObservation(null);
@@ -115,7 +122,7 @@ const HorseTimeline: React.FC = () => {
         ? 'No se pudieron actualizar las fotos. Se reintentará automáticamente.' : ''),
       onSettled: () => setIsLoading(false),
     });
-  }, [selectedHorseId, horses, viewerKey]);
+  }, [selectedHorseId, horses, viewerKey, reviewSelection !== null]);
 
   useEffect(() => {
     videoRequestId.current += 1;
@@ -125,6 +132,8 @@ const HorseTimeline: React.FC = () => {
     setVideoObservations([]);
     setCurrentVideoFrame(0);
     setVideoProgress(0);
+    setReviewSelection(null);
+    setExpandedPhoto(null);
   }, [selectedHorseId, viewerKey]);
 
   // Video playback effect - 2 minutes total, divided by number of photos
@@ -218,10 +227,27 @@ const HorseTimeline: React.FC = () => {
   };
 
   const selectedHorse = horses.find(h => h.id === selectedHorseId);
-  const latestObservation = selectedHorse ? observations.find((observation) => observation.horseId === selectedHorse.id) : undefined;
-  const activePhoto = selectedObservation || latestObservation;
-  const mainPhotoKey = JSON.stringify([viewerKey, selectedHorseId, activePhoto?.id, activePhoto?.imageVersion, activePhoto?.imageUrl]);
+  const hourly = useHourlyHorseImages(selectedHorseId, viewer, viewerKey, reviewSelection);
+  const displayedObservations = reviewSelection
+    ? mapHorseImagesToObservations(hourly.images, selectedHorseId, selectedHorse?.name || '')
+    : observations;
+  const latestObservation = selectedHorse ? displayedObservations.find((observation) => observation.horseId === selectedHorse.id) : undefined;
+  const activePhoto = (selectedObservation?.horseId === selectedHorseId ? selectedObservation : null) || latestObservation;
+  const mainPhotoKey = JSON.stringify([viewerKey, selectedHorseId, reviewSelection, activePhoto?.id, activePhoto?.imageVersion, activePhoto?.imageUrl]);
   const [settledMainPhotoKey, setSettledMainPhotoKey] = useState('');
+  const chooseHour = (hour: number, day = reviewDay) => {
+    if (!day) return;
+    setSelectedObservation(null);
+    setExpandedPhoto(null);
+    setReviewSelection({ day, hour });
+    if (photoStripRef.current) photoStripRef.current.scrollLeft = 0;
+  };
+  const returnToLive = () => {
+    setSelectedObservation(null);
+    setExpandedPhoto(null);
+    setReviewSelection(null);
+    if (photoStripRef.current) photoStripRef.current.scrollLeft = 0;
+  };
 
   return (
     <>
@@ -233,17 +259,17 @@ const HorseTimeline: React.FC = () => {
       <div className="min-h-screen" style={{ backgroundColor: '#F8F6F2' }}>
         <Header />
 
-        <main className="pt-24 pb-24 md:pb-12 px-4 sm:px-6 lg:px-8">
+        <main className="pt-20 pb-24 md:pb-12 px-4 sm:px-6 lg:px-8">
           <div className="max-w-6xl mx-auto">
             {/* Header */}
-            <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-center gap-3 mb-4">
+            <div className="mb-3 flex flex-wrap gap-3 items-center justify-between">
+              <div className="flex items-center gap-3">
                 <div className="w-1 h-12 rounded-full" style={{ backgroundColor: '#40352C' }} />
                 <div>
-                  <h1 className="text-2xl md:text-3xl font-bold" style={{ color: '#40352C', fontFamily: 'Syne, sans-serif' }}>
+                  <h1 className="text-xl md:text-3xl font-bold" style={{ color: '#40352C', fontFamily: 'Syne, sans-serif' }}>
                     Live Monitoring
                   </h1>
-                  <p className="text-base mt-2" style={{ color: 'rgba(64,53,44,0.55)', fontFamily: 'Montserrat, sans-serif' }}>
+                  <p className="text-xs mt-1" style={{ color: 'rgba(64,53,44,0.55)', fontFamily: 'Montserrat, sans-serif' }}>
                     Photos captured every 10 seconds
                   </p>
                 </div>
@@ -256,7 +282,7 @@ const HorseTimeline: React.FC = () => {
             </div>
 
             {/* Horse Selector Tabs */}
-            <div className="flex gap-3 mb-8 overflow-x-auto pb-2">
+            <div className="flex gap-3 mb-3 overflow-x-auto pb-2">
               {horses.map((horse) => (
                 <button
                   key={horse.id}
@@ -283,10 +309,50 @@ const HorseTimeline: React.FC = () => {
               ))}
             </div>
 
-            {refreshError && (
+            {selectedHorse && (
+              <section aria-label="Revisar fotos por hora" className="mb-3 space-y-2">
+                <div className="flex gap-2">
+                  <button type="button" aria-pressed={!reviewSelection} onClick={returnToLive}
+                    className="min-h-[44px] flex-1 rounded-xl border px-3 text-sm font-semibold bg-white">
+                    {reviewSelection ? 'Volver a en vivo' : 'En vivo'}
+                  </button>
+                  <button type="button" aria-pressed={!!reviewSelection}
+                    onClick={() => chooseHour(new Date().getHours())}
+                    className="min-h-[44px] flex-1 rounded-xl px-3 text-sm font-semibold bg-[#40352C] text-white">
+                    Revisar el día
+                  </button>
+                </div>
+                {reviewSelection && (
+                  <>
+                    <label className="flex items-center justify-between gap-3 text-sm text-[#40352C]">
+                      Día · hora local
+                      <input type="date" aria-label="Día a revisar" value={reviewDay}
+                        className="min-h-[44px] min-w-0 rounded-lg border px-3 bg-white"
+                        onChange={event => {
+                          const day = event.target.value;
+                          setReviewDay(day);
+                          if (day) chooseHour(reviewSelection.hour, day);
+                        }} />
+                    </label>
+                    <div className="flex gap-2 overflow-x-auto pb-1" aria-label="Horas del día">
+                      {Array.from({ length: 24 }, (_, hour) => (
+                        <button type="button" key={hour} aria-pressed={reviewSelection.hour === hour}
+                          aria-label={`Revisar ${String(hour).padStart(2, '0')}:00`}
+                          onClick={() => chooseHour(hour)}
+                          className={`min-h-[44px] min-w-[64px] shrink-0 rounded-xl border text-sm font-semibold ${reviewSelection.hour === hour ? 'bg-[#40352C] text-white' : 'bg-white text-[#40352C]'}`}>
+                          {String(hour).padStart(2, '0')}:00
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </section>
+            )}
+
+            {!reviewSelection && refreshError && (
               <p role="status" className="mb-4 text-sm text-amber-800">{refreshError}</p>
             )}
-            {isLoadingHorses || isLoading ? (
+            {isLoadingHorses || (reviewSelection ? hourly.loading : isLoading) ? (
               <div className="rounded-xl p-8 animate-pulse" style={{ backgroundColor: '#ffffff', border: '1px solid rgba(64,53,44,0.1)' }}>
                 <div className="aspect-video rounded-xl mb-6" style={{ backgroundColor: 'rgba(64,53,44,0.05)' }} />
                 <div className="h-6 rounded w-1/3 mb-4" style={{ backgroundColor: 'rgba(64,53,44,0.05)' }} />
@@ -297,37 +363,37 @@ const HorseTimeline: React.FC = () => {
                 {/* Latest Photo - Featured */}
                 <div className="rounded-xl overflow-hidden" style={{ backgroundColor: '#ffffff', border: '1px solid rgba(64,53,44,0.1)', boxShadow: '0 2px 8px rgba(64,53,44,0.05)' }}>
                   {/* Last Updated Banner */}
-                  <div className="flex items-center justify-between px-6 py-3" style={{ backgroundColor: 'rgba(64,53,44,0.04)', borderBottom: '1px solid rgba(64,53,44,0.08)' }}>
+                  <div className="flex flex-wrap gap-2 items-center justify-between px-3 py-2" style={{ backgroundColor: 'rgba(64,53,44,0.04)', borderBottom: '1px solid rgba(64,53,44,0.08)' }}>
                     <div className="flex items-center gap-3">
                       <div className={`w-2 h-2 rounded-full ${refreshError ? 'bg-amber-500' : 'bg-green-500 animate-pulse'}`} />
                       <span className="text-sm font-medium" style={{ color: '#40352C' }}>
-                        {selectedObservation ? 'Foto anterior' : 'Última foto · actualización cada 10 s'}
+                        {reviewSelection ? `${reviewSelection.day} · ${String(reviewSelection.hour).padStart(2, '0')}:00 · hora local` : selectedObservation ? 'Foto anterior' : 'Última foto · actualización cada 10 s'}
                       </span>
                     </div>
-                    <div className="flex items-center gap-2" style={{ color: 'rgba(64,53,44,0.6)' }}>
+                    <div className="hidden sm:flex items-center gap-2" style={{ color: 'rgba(64,53,44,0.6)' }}>
                       <Icon name="Clock" size={14} />
                       <span className="text-sm font-medium">
-                        {formatDistanceToNow(selectedObservation?.timestamp || latestObservation.timestamp, { addSuffix: true })}
+                        {formatDistanceToNow(activePhoto!.timestamp, { addSuffix: true })}
                       </span>
                     </div>
                   </div>
 
-                  {selectedObservation && (
+                  {selectedObservation && !reviewSelection && (
                     <button type="button" onClick={() => setSelectedObservation(null)}
-                      className="m-3 px-4 py-2 rounded-lg text-sm font-medium border"
+                      className="m-3 min-h-[44px] px-4 py-2 rounded-lg text-sm font-medium border"
                       style={{ color: '#40352C', borderColor: 'rgba(64,53,44,0.2)' }}>
                       Volver a la última foto
                     </button>
                   )}
 
-                  {/* Main Photo — centered, half width on desktop */}
+                  {/* Original camera image, full available width on phones and desktop. */}
                   <div className="flex justify-center">
-                    <div className="relative w-full md:w-1/2">
-                      <div className="aspect-video overflow-hidden bg-black/20">
+                    <div className="relative w-full">
+                      <div className="h-[max(240px,calc(100dvh-600px))] md:h-[max(320px,calc(100dvh-420px))] max-h-[70dvh] overflow-hidden bg-black/90">
                         <Image
-                          key={`${selectedObservation?.id || latestObservation.id}:${selectedObservation?.imageVersion || latestObservation.imageVersion}`}
-                          src={selectedObservation?.imageUrl || latestObservation.imageUrl}
-                          alt={selectedObservation?.imageAlt || latestObservation.imageAlt}
+                          key={`${activePhoto!.id}:${activePhoto!.imageVersion}`}
+                          src={activePhoto!.imageUrl}
+                          alt={activePhoto!.imageAlt}
                           loading="eager"
                           {...{ fetchpriority: 'high' }}
                           decoding="async"
@@ -340,15 +406,19 @@ const HorseTimeline: React.FC = () => {
                           className="w-full h-full object-contain"
                         />
                       </div>
+                      <button type="button" onClick={() => setExpandedPhoto(activePhoto!)}
+                        className="absolute top-3 right-3 min-h-[44px] px-4 rounded-xl bg-black/65 text-white text-sm font-semibold border border-white/30">
+                        Ampliar
+                      </button>
 
                       {/* Timestamp */}
                       <div className="absolute bottom-4 left-4">
                         <div className="px-3 py-1.5 rounded-xl bg-black/50 border border-white/10 backdrop-blur-xl">
                           <p className="text-xs font-medium text-[#faf9f6]">
-                            {format(selectedObservation?.timestamp || latestObservation.timestamp, 'EEEE, MMMM d, yyyy')}
+                            {format(activePhoto!.timestamp, 'dd/MM/yyyy')}
                           </p>
                           <p className="text-sm font-semibold text-[#c9a962]">
-                            {format(selectedObservation?.timestamp || latestObservation.timestamp, 'HH:mm:ss')}
+                            {format(activePhoto!.timestamp, 'HH:mm:ss')}
                           </p>
                         </div>
                       </div>
@@ -357,28 +427,32 @@ const HorseTimeline: React.FC = () => {
                 </div>
 
                 {/* Recent Photos Strip */}
-                <div className="rounded-xl p-6" style={{ backgroundColor: '#ffffff', border: '1px solid rgba(64,53,44,0.1)', boxShadow: '0 2px 8px rgba(64,53,44,0.05)' }}>
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-xl font-bold" style={{ color: '#40352C', fontFamily: 'Syne, sans-serif' }}>Recent Photos</h3>
-                    <div className="flex items-center gap-3">
-                      <span className="text-sm" style={{ color: 'rgba(64,53,44,0.5)' }}>{observations.length} recent photos</span>
+                <div className="rounded-xl p-3" style={{ backgroundColor: '#ffffff', border: '1px solid rgba(64,53,44,0.1)', boxShadow: '0 2px 8px rgba(64,53,44,0.05)' }}>
+                  <div className="flex flex-wrap gap-2 items-center justify-between mb-3">
+                    <h3 className="text-base font-bold" style={{ color: '#40352C', fontFamily: 'Syne, sans-serif' }}>{reviewSelection ? 'Fotos de esta hora' : 'Recent Photos'}</h3>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs" style={{ color: 'rgba(64,53,44,0.5)' }}>{displayedObservations.length} fotos</span>
+                      {!reviewSelection && (
                       <button
                         onClick={handleGenerateVideo}
-                        className="flex items-center gap-2 px-4 py-2 rounded-xl text-white font-semibold text-sm transition-all duration-300 hover:opacity-80"
+                        className="min-h-[44px] flex items-center gap-2 px-3 py-2 rounded-xl text-white font-semibold text-sm transition-all duration-300 hover:opacity-80"
                         style={{ backgroundColor: '#40352C' }}
                       >
                         <Icon name="Video" size={16} />
                         Generate Video
                       </button>
+                      )}
                     </div>
                   </div>
 
-                  <div ref={photoStripRef} className="flex gap-3 overflow-x-auto pb-2">
-                    {observations.map((obs, index) => {
-                      const isSelected = (selectedObservation?.id || latestObservation.id) === obs.id;
+                  <div ref={photoStripRef} key={reviewSelection ? `${viewerKey}:${selectedHorseId}:${reviewSelection.day}:${reviewSelection.hour}` : `${viewerKey}:${selectedHorseId}:live`} className="flex gap-3 overflow-x-auto pb-2">
+                    {displayedObservations.map((obs, index) => {
+                      const isSelected = activePhoto!.id === obs.id;
                       return (
                         <button
                           key={obs.id}
+                          aria-label={`Ver foto ${format(obs.timestamp, 'HH:mm:ss')}`}
+                          aria-pressed={isSelected}
                           onClick={() => setSelectedObservation(index === 0 ? null : obs)}
                           className={`relative flex-shrink-0 w-32 md:w-40 rounded-xl overflow-hidden border-2 transition-all duration-300 ${
                             isSelected
@@ -400,7 +474,7 @@ const HorseTimeline: React.FC = () => {
                               {format(obs.timestamp, 'HH:mm')}
                             </span>
                           </div>
-                          {index === 0 && (
+                          {index === 0 && !reviewSelection && (
                             <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-[#c9a962] text-[10px] font-bold text-black uppercase">
                               Latest
                             </div>
@@ -412,7 +486,7 @@ const HorseTimeline: React.FC = () => {
                 </div>
 
                 {/* Quick Stats */}
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {!reviewSelection && <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   <div className="rounded-xl p-4 text-center" style={{ backgroundColor: '#ffffff', border: '1px solid rgba(64,53,44,0.1)' }}>
                     <Icon name="Camera" size={24} style={{ color: '#40352C' }} className="mx-auto mb-2" />
                     <p className="text-2xl font-bold" style={{ color: '#40352C', fontFamily: 'Syne, sans-serif' }}>{observations.length}</p>
@@ -430,19 +504,23 @@ const HorseTimeline: React.FC = () => {
                     </p>
                     <p className="text-xs" style={{ color: 'rgba(64,53,44,0.5)' }}>Normal Status</p>
                   </div>
-                </div>
+                </div>}
               </div>
             ) : (
               <div className="rounded-xl p-12 text-center" style={{ backgroundColor: '#ffffff', border: '1px solid rgba(64,53,44,0.1)' }}>
                 <Icon name="Camera" size={48} style={{ color: 'rgba(64,53,44,0.3)' }} className="mx-auto mb-4" />
-                <h3 className="text-xl font-bold mb-2" style={{ color: '#40352C', fontFamily: 'Syne, sans-serif' }}>{horseError ? 'Unable to load horses' : horses.length ? 'No Photos Yet' : 'No Horses Available'}</h3>
-                <p style={{ color: 'rgba(64,53,44,0.5)' }}>{horseError || (horses.length ? 'Photos will appear here once monitoring begins' : 'No horses are assigned to your account')}</p>
+                <h3 className="text-xl font-bold mb-2" style={{ color: '#40352C', fontFamily: 'Syne, sans-serif' }}>{reviewSelection ? hourly.error ? 'No se pudo revisar esta hora' : 'No hay fotos en esta hora' : horseError ? 'Unable to load horses' : horses.length ? 'No Photos Yet' : 'No Horses Available'}</h3>
+                <p role="status" style={{ color: 'rgba(64,53,44,0.5)' }}>{reviewSelection ? hourly.error || 'Elige otra hora o vuelve a en vivo.' : horseError || (horses.length ? 'Photos will appear here once monitoring begins' : 'No horses are assigned to your account')}</p>
+                {reviewSelection && hourly.error && <button type="button" className="min-h-[44px] mt-3 rounded-xl border px-4" onClick={hourly.retry}>Reintentar</button>}
               </div>
             )}
           </div>
         </main>
 
         <MobileNavigation />
+        {expandedPhoto && expandedPhoto.horseId === selectedHorseId && selectedHorse && !isLoadingHorses && (
+          <FullscreenPhoto src={expandedPhoto.imageUrl} alt={expandedPhoto.imageAlt} onClose={() => setExpandedPhoto(null)} />
+        )}
 
         {/* Video Modal */}
         {isVideoModalOpen && selectedHorse && !isLoadingHorses && (
@@ -451,7 +529,7 @@ const HorseTimeline: React.FC = () => {
               {/* Close Button */}
               <button
                 onClick={handleCloseVideo}
-                className="absolute -top-12 right-0 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+                className="absolute -top-12 right-0 min-h-[44px] min-w-[44px] p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
               >
                 <Icon name="X" size={24} className="text-white" />
               </button>
@@ -570,7 +648,7 @@ const HorseTimeline: React.FC = () => {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={handlePlayVideo}
-                        className="flex items-center gap-2 px-4 py-2 rounded-xl transition-colors hover:bg-stone-100"
+                        className="min-h-[44px] flex items-center gap-2 px-4 py-2 rounded-xl transition-colors hover:bg-stone-100"
                         style={{ backgroundColor: 'rgba(64,53,44,0.06)', border: '1px solid rgba(64,53,44,0.1)' }}
                       >
                         <Icon name="RotateCcw" size={16} style={{ color: 'rgba(64,53,44,0.55)' }} />

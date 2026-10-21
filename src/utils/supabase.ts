@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { freshHorseFetch } from './freshHorseFetch';
+import { localHourRange } from './hourlyHorseImages';
 
 declare global {
   interface ImportMetaEnv {
@@ -134,6 +135,31 @@ export const fetchHorseImages = async (
 };
 
 const pendingHorseRequests = new Map<string, Promise<SupabaseHorse[]>>();
+
+export const fetchHorseImagesForHour = async (
+  horseId: string,
+  viewer: HorseViewer,
+  day: string,
+  hour: number,
+  signal?: AbortSignal,
+): Promise<CameraImage[]> => {
+  const { start, end } = localHourRange(day, hour);
+  await requireHorseAccess(horseId, viewer);
+  if (signal?.aborted) throw new DOMException('Aborted', 'AbortError');
+  let query = supabase.from('images')
+    .select('id, storage_path_enhanced, uploaded_at, created_at, horse_id, image_number, is_processed, notes')
+    .eq('horse_id', horseId)
+    .not('storage_path_enhanced', 'is', null)
+    .gte('created_at', start)
+    .lt('created_at', end)
+    .order('created_at', { ascending: true })
+    .order('id', { ascending: true })
+    .limit(400);
+  if (signal) query = query.abortSignal(signal);
+  const { data, error } = await query;
+  if (error) throw new Error(error.message);
+  return data || [];
+};
 
 export const fetchHorses = (viewer: HorseViewer | null = null): Promise<SupabaseHorse[]> => {
   if (!viewer) return Promise.resolve([]);
