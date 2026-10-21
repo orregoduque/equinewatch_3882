@@ -1,0 +1,23 @@
+Copia esto en Replit:
+
+```text
+La tira ya no descarga las 240 fotos completas. Lo que sigue lento es volver a bajar las mismas imágenes y dejar que las miniaturas compitan con la foto grande. Sube la velocidad solo con estos cambios. No cambies PHOTO_LIMIT (240), los 2 minutos del video, el polling, la autorización de caballos ni el Cache-Control de Storage.
+
+1. No desmontar una miniatura que ya se vio.
+   En src/pages/horse-timeline/components/TimelineThumbnail.tsx, el observer hace setNearViewport(entry.isIntersecting). Al salir del scroll la imagen se destruye y, como Storage responde Cache-Control: no-cache, al volver se descarga otra vez desde el origen.
+   Cuando entry.isIntersecting sea true, deja nearViewport en true y no lo pongas otra vez en false. Desconecta el observer en ese momento. Las que nunca se acercaron siguen sin src.
+   Actualiza scripts/test-timeline-thumbnails.mjs: hoy, al ir al final, exige que la primera miniatura desaparezca y que haya menos de 20 img. Cámbialo para comprobar que las ya vistas siguen montadas y que una foto que no estuvo cerca (por ejemplo /fixture/1.jpg antes de hacer scroll) no se pide.
+
+2. Que la foto grande salga antes que la tira.
+   La foto principal y las miniaturas comparten las pocas conexiones hacia Supabase. La grande es el JPEG mejorado (~80 KB, URL /object/public/); cada miniatura nueva pasa por /render/image/ y también sale del origen.
+   No pongas src en las miniaturas hasta que la foto grande haya disparado onLoad o onError. Mantén el hueco del mismo tamaño mientras tanto. La grande sigue en la URL original, con loading="eager", fetchpriority="high" y decoding="async". No la pases por el render de 320 px.
+
+3. No vaciar la lista de caballos al volver a la pestaña.
+   useAccessibleHorses, al cambiar revision, hace setState con horses: [] e isLoading: true. Eso sustituye las tarjetas por skeletons en cada focus.
+   Si ya hay caballos de ese mismo viewer, vuelve a pedirlos sin borrar la lista y sin poner el estado de carga inicial. La primera visita, sin datos, sí muestra los skeletons. No cachees el resultado entre cuentas ni entre revisiones: la petición nueva tiene que hacerse igual.
+
+No hagas esto:
+- No añadas filtros ni cambies la foto grande o los fotogramas del video a una URL con width.
+- No actualices storage.objects ni el bucket. Las fotos nuevas las sube un proceso que no está en este repo y siguen llegando con no-cache; un backfill de las viejas no acelera las últimas 240.
+- No retrases el polling ni bajes el número de fotos guardadas en memoria. Solo retrasa el src de las miniaturas.
+```

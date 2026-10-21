@@ -45,6 +45,7 @@ async function setup({
   });
   const page = await context.newPage(), requests = [], errors = [], writes = [];
   let detailReads = 0;
+  let horseReadGate;
   page.on('pageerror', error => errors.push(error.message));
   await page.addInitScript(({ uid, role, missingSession, loggedOut, mismatch }) => {
     if (!loggedOut) localStorage.setItem('stableEyeUser', JSON.stringify({
@@ -79,6 +80,11 @@ async function setup({
       body: '<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600"><rect width="800" height="600" fill="#c9a962"/></svg>',
     });
     if (url.pathname.includes('/horses')) {
+      if (horseReadGate) {
+        const pending = horseReadGate;
+        horseReadGate = null;
+        await pending;
+      }
       const id = url.searchParams.get('id');
       if (id) {
         detailReads++;
@@ -106,7 +112,14 @@ async function setup({
     if (url.pathname.includes('/auth/v1/user')) return json({ id: uid, email: 'fixture@example.test' });
     return json([]);
   });
-  return { page, context, requests, errors, writes, setPhotoUrl(url) { savedPhoto = url; } };
+  return {
+    page, context, requests, errors, writes, setPhotoUrl(url) { savedPhoto = url; },
+    holdNextHorseRead() {
+      let release;
+      horseReadGate = new Promise(resolve => { release = resolve; });
+      return release;
+    },
+  };
 }
 async function finish(t, name) {
   assert.deepEqual(t.errors, []);
@@ -182,7 +195,18 @@ try {
     await t.page.locator(selector).waitFor();
     const updatedPhoto = new URL('updated-portrait.jpg', profilePhotoUrl).href;
     t.setPhotoUrl(updatedPhoto);
+    const originalNode = await t.page.locator(selector).elementHandle();
+    const release = path === '/horse-list' ? t.holdNextHorseRead() : null;
+    const refreshRequest = t.page.waitForRequest(request =>
+      new URL(request.url()).pathname.endsWith('/rest/v1/horses'));
     await t.page.evaluate(() => window.dispatchEvent(new Event('focus')));
+    await refreshRequest;
+    if (release) {
+      await t.page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+      assert(await originalNode.evaluate(node => node.isConnected), 'refresh must not replace cards with skeletons');
+      assert.equal(await t.page.locator(selector).getAttribute('src'), profilePhotoUrl);
+      release();
+    }
     await t.page.waitForFunction(({ selector, src }) =>
       document.querySelector(selector)?.getAttribute('src') === src, { selector, src: updatedPhoto });
     assert(!t.requests.some(request => request.path.endsWith('/rest/v1/images')));

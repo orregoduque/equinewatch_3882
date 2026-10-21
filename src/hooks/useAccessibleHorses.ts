@@ -17,17 +17,19 @@ export function useAccessibleHorses({ refreshOnFocus = false } = {}) {
 
   useEffect(() => {
     let active = true;
-    setState({ viewerKey, horses: [], isLoading: !!user, error: '' });
+    setState(previous => previous.viewerKey === viewerKey && previous.horses.length > 0
+      ? { ...previous, error: '' }
+      : { viewerKey, horses: [], isLoading: !!user, error: '' });
     if (user) {
       fetchHorses(user).then(
         (horses) => {
           if (active) setState({ viewerKey, horses, isLoading: false, error: '' });
         },
         (error) => {
-          if (active) setState({
-            viewerKey, horses: [], isLoading: false,
+          if (active) setState(previous => ({
+            viewerKey, horses: previous.viewerKey === viewerKey ? previous.horses : [], isLoading: false,
             error: error instanceof Error ? error.message : 'Unable to load horses',
-          });
+          }));
         },
       );
     }

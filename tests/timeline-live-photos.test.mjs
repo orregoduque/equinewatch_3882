@@ -86,6 +86,37 @@ function fixture() {
   };
 }
 
+test('thumbnail sources wait for the displayed main photo, including a new arrival', () => {
+  const f = fixture();
+  const thumbnails = tree => nodes(tree).filter(node => node.props?.originalSrc && 'enabled' in node.props);
+  f.receive([photo(1)]);
+  let tree = f.render();
+  assert(thumbnails(tree).every(node => node.props.enabled === false));
+  const oldLoad = f.main(tree).props.onLoad;
+  oldLoad();
+  tree = f.render();
+  assert(thumbnails(tree).every(node => node.props.enabled === true));
+  f.receive([photo(2), photo(1)]);
+  oldLoad(); // A late event from a different photo must not open the new gate.
+  tree = f.render();
+  assert(thumbnails(tree).every(node => node.props.enabled === false));
+  f.main(tree).props.onLoad();
+  assert(thumbnails(f.render()).every(node => node.props.enabled === true));
+  f.stop();
+});
+
+test('a main photo error releases deferred thumbnails and preserves its placeholder fallback', () => {
+  const f = fixture();
+  f.receive([photo(1)]);
+  const target = { getAttribute: () => '/images/1.jpg', src: '/images/1.jpg' };
+  f.main(f.render()).props.onError({ currentTarget: target });
+  assert.equal(target.src, '/assets/images/no_image.png');
+  const thumbnails = nodes(f.render()).filter(node => node.props?.originalSrc && 'enabled' in node.props);
+  assert(thumbnails.length > 0);
+  assert(thumbnails.every(node => node.props.enabled === true));
+  f.stop();
+});
+
 test('the main Timeline photo follows new arrivals without manual reload or a loading-screen reset', () => {
   const f = fixture();
   assert.equal(f.watcher.limit, 240);

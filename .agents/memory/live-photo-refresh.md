@@ -35,3 +35,15 @@ An upload can arrive after images with newer capture times.
 
 **How to apply:** Keep query and merge ordering aligned, retain stable tie-breakers,
 and preserve the explicit historical-selection and video-sequence rules above.
+
+For strip performance, retain thumbnails after their first near-viewport visit
+and defer first-time thumbnail sources until the displayed main photo loads or
+fails. Keep same-account horse cards visible during background revalidation.
+
+**Why:** Storage's no-cache responses make destroying visited images expensive;
+thumbnail requests compete with the main photo. Uploads come from an external
+process, so changing old objects or bucket settings cannot fix new uploads.
+
+**How to apply:** Preserve 240 in-memory photos, the two-minute video, polling,
+authorization, original main/video URLs and Storage Cache-Control. Never retain
+horse lists across account changes or skip fresh reads on later revisions.

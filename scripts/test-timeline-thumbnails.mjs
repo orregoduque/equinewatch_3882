@@ -10,12 +10,18 @@ const uid = '00000000-0000-4000-8000-000000000001';
 const horseId = '00000000-0000-4000-8000-000000000010';
 const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="800" height="640"><rect width="800" height="640" fill="#c9a962"/></svg>';
 try {
-  for (const mobile of [false, true]) {
+  for (const { mobile, failMain } of [
+    { mobile: false, failMain: false }, { mobile: true, failMain: false },
+    { mobile: false, failMain: true },
+  ]) {
     const context = await browser.newContext({
       viewport: mobile ? { width: 390, height: 844 } : { width: 1440, height: 1000 },
     });
     const page = await context.newPage();
     const requests = [], queries = [], errors = [];
+    let releaseMain, mainRequested, heldMain = false;
+    const mainGate = new Promise(resolve => { releaseMain = resolve; });
+    const mainStarted = new Promise(resolve => { mainRequested = resolve; });
     page.on('pageerror', error => errors.push(error.message));
     await page.addInitScript(({ uid }) => {
       localStorage.setItem('stableEyeUser', JSON.stringify({
@@ -27,6 +33,12 @@ try {
       const json = data => route.fulfill({ contentType: 'application/json', body: JSON.stringify(data) });
       if (url.pathname.startsWith('/storage/')) {
         requests.push(url.pathname + url.search);
+        if (!heldMain && url.pathname.endsWith('/object/public/images/fixture/240.jpg')) {
+          heldMain = true;
+          mainRequested();
+          await mainGate;
+          if (failMain) return route.fulfill({ status: 404, body: 'main photo unavailable' });
+        }
         // First thumbnail fails; original succeeds. Second fails both ways.
         if ((url.pathname.includes('/render/') && /\/(239|238)\.jpg$/.test(url.pathname)) ||
             (url.pathname.includes('/object/') && url.pathname.endsWith('/238.jpg')))
@@ -48,28 +60,46 @@ try {
       }
       return json([]);
     });
-    await page.goto(`${base}/horse-timeline?horseId=${horseId}`);
+    await page.goto(`${base}/horse-timeline?horseId=${horseId}`, { waitUntil: 'domcontentloaded' });
     const heading = page.getByRole('heading', { name: 'Recent Photos', exact: true });
     await heading.waitFor();
     const strip = heading.locator('../..').locator('div.overflow-x-auto');
     await strip.scrollIntoViewIfNeeded();
-    await page.waitForFunction(() => document.querySelector('img[src*="/render/image/"]')?.complete);
+    await mainStarted;
     const bigPhoto = page.locator('img[fetchpriority="high"]');
     assert((await bigPhoto.getAttribute('src')).includes('/object/public/images/fixture/240.jpg'));
     assert.equal(await bigPhoto.getAttribute('loading'), 'eager');
     assert.equal(await bigPhoto.getAttribute('decoding'), 'async');
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    assert.equal(await strip.locator('button').count(), 240);
+    assert.equal(await strip.locator('img').count(), 0, 'no thumbnail src before main onLoad/onError');
+    assert(!requests.some(path => path.includes('/render/')), 'thumbnails must not compete with the main photo');
+    const slotHeight = await strip.locator('button > div').first().evaluate(el => el.getBoundingClientRect().height);
+    releaseMain();
+    await page.waitForFunction(() => document.querySelector('img[src*="/render/image/"]')?.complete);
+    if (failMain) assert.equal(await bigPhoto.getAttribute('src'), '/assets/images/no_image.png');
+    assert.equal(await strip.locator('button > div').first().evaluate(el => el.getBoundingClientRect().height), slotHeight);
     const initialCount = await strip.locator('img').count();
     assert(initialCount > 0 && initialCount < 20, `initial attached images: ${initialCount}`);
     await page.waitForFunction(() => document.querySelector('button img[src*="/object/public/images/fixture/239.jpg"]')?.complete);
     await page.waitForFunction(() => document.querySelector('button img[src="/assets/images/no_image.png"]'));
     assert(requests.some(path => path.includes('/render/') && path.includes('width=320&quality=60&resize=contain')));
     assert(!requests.some(path => path.includes('/fixture/1.jpg')), 'far-off image requested too soon');
+    const firstThumbnail = await strip.locator('img[src*="/fixture/240.jpg"]').elementHandle();
+    const firstRequests = requests.filter(path => path.includes('/render/') && path.includes('/fixture/240.jpg')).length;
     await strip.evaluate(el => { el.scrollLeft = el.scrollWidth; });
     await page.waitForFunction(() => document.querySelector('button img[src*="/fixture/1.jpg"]'));
     await strip.locator('button').last().scrollIntoViewIfNeeded();
     await page.waitForFunction(() => document.querySelector('button img[src*="/fixture/1.jpg"]')?.complete);
-    assert(await strip.locator('img').count() < 20);
-    assert.equal(await strip.locator('img[src*="/fixture/240.jpg"]').count(), 0);
+    assert(await strip.locator('img').count() > initialCount, 'newly visited images join the retained images');
+    assert.equal(await strip.locator('img[src*="/fixture/240.jpg"]').count(), 1);
+    assert(await firstThumbnail.evaluate(node => node.isConnected), 'visited thumbnail is not destroyed');
+    assert(!requests.some(path => path.includes('/fixture/120.jpg')), 'unvisited middle of strip is still deferred');
+    await strip.evaluate(el => { el.scrollLeft = 0; });
+    await page.waitForFunction(() => document.querySelector('img[src*="/fixture/240.jpg"]')?.complete);
+    assert(await firstThumbnail.evaluate(node => node.isConnected));
+    assert.equal(requests.filter(path => path.includes('/render/') && path.includes('/fixture/240.jpg')).length, firstRequests);
+    await strip.locator('button').last().scrollIntoViewIfNeeded();
     await strip.locator('button').last().click();
     assert((await bigPhoto.getAttribute('src')).endsWith('/object/public/images/fixture/1.jpg'));
     await page.getByRole('button', { name: 'Generate Video', exact: true }).click();
@@ -80,7 +110,7 @@ try {
       assert(src.includes('/object/public/images/'), `video must keep original enhanced: ${src}`);
     assert(queries.every(query => new URLSearchParams(query).get('limit') === '240'));
     assert.deepEqual(errors, []);
-    console.log(JSON.stringify({ mobile, initialAttachedImages: initialCount, totalPhotos: 240, passed: true, syntheticOnly: true }));
+    console.log(JSON.stringify({ mobile, failMain, initialAttachedImages: initialCount, totalPhotos: 240, passed: true, syntheticOnly: true }));
     await context.close();
   }
 } finally {

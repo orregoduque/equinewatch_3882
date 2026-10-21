@@ -219,6 +219,9 @@ const HorseTimeline: React.FC = () => {
 
   const selectedHorse = horses.find(h => h.id === selectedHorseId);
   const latestObservation = selectedHorse ? observations.find((observation) => observation.horseId === selectedHorse.id) : undefined;
+  const activePhoto = selectedObservation || latestObservation;
+  const mainPhotoKey = JSON.stringify([viewerKey, selectedHorseId, activePhoto?.id, activePhoto?.imageVersion, activePhoto?.imageUrl]);
+  const [settledMainPhotoKey, setSettledMainPhotoKey] = useState('');
 
   return (
     <>
@@ -328,6 +331,12 @@ const HorseTimeline: React.FC = () => {
                           loading="eager"
                           {...{ fetchpriority: 'high' }}
                           decoding="async"
+                          onLoad={() => setSettledMainPhotoKey(mainPhotoKey)}
+                          onError={event => {
+                            setSettledMainPhotoKey(mainPhotoKey);
+                            if (event.currentTarget.getAttribute('src') !== '/assets/images/no_image.png')
+                              event.currentTarget.src = '/assets/images/no_image.png';
+                          }}
                           className="w-full h-full object-contain"
                         />
                       </div>
@@ -384,6 +393,7 @@ const HorseTimeline: React.FC = () => {
                             originalSrc={obs.imageUrl}
                             alt={obs.imageAlt}
                             scrollRoot={photoStripRef}
+                            enabled={!!activePhoto && settledMainPhotoKey === mainPhotoKey}
                           />
                           <div className="absolute bottom-0 left-0 right-0 p-2">
                             <span className="rounded bg-black/50 px-1.5 py-0.5 text-xs font-semibold text-white">
