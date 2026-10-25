@@ -37,6 +37,7 @@ export function startPilotPlayback(
   let statusTimer: ReturnType<typeof setTimeout> | undefined;
   let lastFrame = performance.now();
   let lastMediaTime = -1;
+  let watchdogMediaTime = -1;
   let stage = "Autorizando cámara";
   let lastHlsError = "";
   let recoveryTimer: ReturnType<typeof setTimeout> | undefined;
@@ -77,6 +78,16 @@ export function startPilotPlayback(
     if (typeof document !== "undefined" && document.hidden) {
       lastFrame = performance.now();
       return;
+    }
+    // Occluded windows can throttle presentation callbacks while media advances.
+    // Startup still requires presented frames; do not restart healthy playback.
+    if (
+      !video.paused &&
+      video.readyState >= 2 &&
+      video.currentTime > watchdogMediaTime
+    ) {
+      watchdogMediaTime = video.currentTime;
+      lastFrame = performance.now();
     }
     const stoppedFor = performance.now() - lastFrame;
     if (stoppedFor > 20_000)
@@ -354,10 +365,10 @@ export function startPilotPlayback(
           enableWorker: false,
           lowLatencyMode: false,
           // Seconds, not multiples of the receiver's conservative TARGETDURATION.
-          liveSyncDuration: 1,
+          liveSyncDuration: 3,
           liveMaxLatencyDuration: 12,
-          liveSyncOnStallIncrease: 0.5,
-          maxLiveSyncPlaybackRate: 1.03,
+          liveSyncOnStallIncrease: 1,
+          maxLiveSyncPlaybackRate: 1.01,
           maxBufferLength: 8,
           maxMaxBufferLength: 12,
           backBufferLength: 4,
@@ -366,6 +377,10 @@ export function startPilotPlayback(
         hls = player;
         player.on(Hls.Events.ERROR, (_event, data) => {
           lastHlsError = `HLS: ${data.details}${data.response?.code ? ` · HTTP ${data.response.code}` : ""}.`;
+          if (video.dataset) {
+            video.dataset.liveLastHlsError = String(data.details);
+            video.dataset.liveLastHlsFatal = String(data.fatal === true);
+          }
           if (data.response?.code === 401 || data.response?.code === 403) {
             fail(NO_ACCESS_MESSAGE);
             return;
