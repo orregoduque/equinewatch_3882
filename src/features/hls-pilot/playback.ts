@@ -75,7 +75,7 @@ export function startPilotPlayback(
   if (activated) armMeasurement();
   const watchdog = setInterval(() => {
     if (disposed || !measured || !activated) return;
-    if (typeof document !== "undefined" && document.hidden) {
+    if (video.paused || (typeof document !== "undefined" && document.hidden)) {
       lastFrame = performance.now();
       return;
     }
@@ -94,7 +94,7 @@ export function startPilotPlayback(
       fail(
         "No se pudo recuperar el vídeo; comprueba la conexión de la cámara.",
       );
-    else if (stoppedFor > 8000) recover("network");
+    else if (stoppedFor > 8000) recover("network", "watchdog");
   }, 1000);
 
   function record(outcome?: "failed" | "cancelled", message?: string) {
@@ -141,7 +141,7 @@ export function startPilotPlayback(
   }
   function videoError() {
     if (video.error?.code === 2 && measured) {
-      recover("network");
+      recover("network", "video");
       return;
     }
     fail(
@@ -149,13 +149,17 @@ export function startPilotPlayback(
     );
   }
   function waiting() {
-    if (!activated || !measured || disposed || buffering) return;
+    if (!activated || !measured || disposed || buffering || video.paused)
+      return;
     buffering = true;
     stalls++;
     if (video.dataset) video.dataset.liveStalls = String(stalls);
     callbacks.onStatus("Ajustando la conexión");
   }
-  function recover(kind: "network" | "media") {
+  function recover(
+    kind: "network" | "media",
+    trigger: "hls" | "video" | "watchdog" = "hls",
+  ) {
     if (disposed || recoveryTimer !== undefined) return;
     const now = performance.now();
     if (now - lastRecoveryAttempt < 2000) return;
@@ -171,6 +175,8 @@ export function startPilotPlayback(
     recoveries++;
     buffering = true;
     if (video.dataset) video.dataset.liveRecoveries = String(recoveries);
+    if (video.dataset) video.dataset.liveLastRecovery = `${trigger}:${kind}`;
+    console.info("[HLS recovery]", { trigger, kind, detail: lastHlsError });
     callbacks.onStatus("Recuperando conexión");
     recoveryTimer = setTimeout(
       () => {
@@ -380,6 +386,13 @@ export function startPilotPlayback(
           if (video.dataset) {
             video.dataset.liveLastHlsError = String(data.details);
             video.dataset.liveLastHlsFatal = String(data.fatal === true);
+            if (data.fatal) {
+              video.dataset.liveLastFatalError = String(data.details);
+              video.dataset.liveLastFatalType = String(data.type);
+              video.dataset.liveLastFatalCode = String(
+                data.response?.code ?? 0,
+              );
+            }
           }
           if (data.response?.code === 401 || data.response?.code === 403) {
             fail(NO_ACCESS_MESSAGE);
