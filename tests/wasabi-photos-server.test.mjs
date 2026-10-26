@@ -1,0 +1,196 @@
+import assert from 'node:assert/strict';
+import { EventEmitter } from 'node:events';
+import test from 'node:test';
+import { createWasabiPhotosHandler, LUCERO_ID, WASABI_SCOPE } from '../services/wasabi-photos/handler.mjs';
+
+const ownerId = '00000000-0000-4000-8000-000000000001';
+const captured = '2026-10-26T10:00:00.000Z';
+const row = { id: 17, horse_id: LUCERO_ID, captured_at: captured,
+  storage_path_enhanced: WASABI_SCOPE.prefix + '2026/10/26/10-00-00.jpg' };
+function fixture({
+  userId = ownerId, validSession = true, horseOwner = ownerId, profile = null,
+  rows = [row], horseVisible = true, env = {}, realSigner = false,
+} = {}) {
+  const queries = [], signatures = [], validations = [];
+  const clientFactory = (_url, _key, options) => {
+    assert.equal(options.auth.persistSession, false);
+    assert.equal(options.global.headers.Authorization, 'Bearer fixture-session');
+    return {
+      auth: { async getUser(token) {
+        validations.push(token);
+        return { data: { user: validSession ? { id: userId, user_metadata: { role: 'admin' } } : null },
+          error: validSession ? null : { message: 'invalid' } };
+      } },
+      from(table) {
+        const trace = { table, filters: [], orders: [] };
+        queries.push(trace);
+        const q = {
+          select(columns) { trace.columns = columns; return q; },
+          eq(k, v) { trace.filters.push(['eq', k, v]); return q; },
+          not(...args) { trace.filters.push(['not', ...args]); return q; },
+          gte(k, v) { trace.filters.push(['gte', k, v]); return q; },
+          lt(k, v) { trace.filters.push(['lt', k, v]); return q; },
+          in(k, v) { trace.filters.push(['in', k, v]); return q; },
+          or(v) { trace.or = v; return q; },
+          order(k, v) { trace.orders.push([k, v]); return q; },
+          limit(n) { trace.limit = n; return q; },
+          abortSignal(signal) { trace.signal = signal; return q; },
+          async maybeSingle() {
+            return { error: null, data: table === 'horses'
+              ? horseVisible ? { id: LUCERO_ID, owner_id: horseOwner, photo_backend: 'wasabi' } : null
+              : profile };
+          },
+          then(resolve, reject) {
+            const ids = trace.filters.find(f => f[0] === 'in')?.[2];
+            return Promise.resolve({ error: null, data: rows.filter(r => !ids || ids.includes(String(r.id))).slice(0, trace.limit) }).then(resolve, reject);
+          },
+        };
+        return q;
+      },
+    };
+  };
+  const handler = createWasabiPhotosHandler({
+    env: { VITE_SUPABASE_ANON_KEY: 'fixture-public-key', ...env }, clientFactory,
+    now: () => Date.parse(captured),
+    ...(realSigner ? {} : { signerFactory: async () => async key => {
+      signatures.push(key);
+      return `${WASABI_SCOPE.endpoint}/${WASABI_SCOPE.bucket}/${key}?fixture-signature=temporary`;
+    } }),
+  });
+  return {
+    queries, signatures, validations,
+    async request(query = '', authorization = 'Bearer fixture-session', horse = LUCERO_ID, method = 'GET') {
+      const response = new EventEmitter();
+      response.writeHead = (status, headers) => Object.assign(response, { status, headers });
+      response.end = body => Object.assign(response, { body: JSON.parse(body), writableEnded: true });
+      const handled = await handler({ method, url: `/api/horses/${horse}/photos${query}`, headers: { authorization } }, response);
+      return { handled, status: response.status, body: response.body, headers: response.headers };
+    },
+  };
+}
+
+test('private photos require a verified Auth token even if metadata is publicly selectable', async () => {
+  const f = fixture();
+  const missing = await f.request('', '');
+  assert.equal(missing.status, 401);
+  assert.equal(missing.body.photos, undefined);
+  assert.equal(f.signatures.length, 0);
+  assert.equal(f.queries.length, 0);
+  const invalid = fixture({ validSession: false });
+  assert.equal((await invalid.request()).status, 401);
+  assert.equal(invalid.signatures.length, 0);
+  assert.equal(invalid.queries.length, 0);
+});
+
+test('owner gets signed GET URLs, scoped rows and private no-store responses', async () => {
+  const f = fixture(), response = await f.request();
+  assert.equal(response.status, 200);
+  assert.equal(response.headers['Cache-Control'], 'private, no-store');
+  assert.equal(response.headers.Vary, 'Authorization');
+  assert.equal(response.body.photos[0].imageUrl.includes('fixture-signature='), true);
+  assert.equal(response.body.photos[0].expiresAt, '2026-10-26T10:10:00.000Z');
+  assert.deepEqual(f.validations, ['fixture-session']);
+  const q = f.queries.find(q => q.table === 'images_wasabi');
+  assert(q.filters.some(f => f[0] === 'eq' && f[1] === 'horse_id' && f[2] === LUCERO_ID));
+  assert.deepEqual(q.orders, [['captured_at', { ascending: false }], ['id', { ascending: false }]]);
+  assert.equal(q.limit, 240);
+  assert(q.signal instanceof AbortSignal);
+});
+
+test('nonowner cannot gain access using editable auth metadata; only trusted active staff pass', async () => {
+  for (const profile of [null, { id: ownerId, role: 'admin', is_active: false },
+    { id: 'other-user', role: 'admin', is_active: true },
+    { id: ownerId, role: 'horse_owner', is_active: true }]) {
+    const f = fixture({ horseOwner: 'another-owner', profile });
+    assert.equal((await f.request()).status, 403);
+    assert.equal(f.signatures.length, 0);
+    assert(!f.queries.some(q => q.table === 'images_wasabi'));
+  }
+  for (const role of ['admin', 'caretaker']) {
+    const f = fixture({ horseOwner: 'another-owner', profile: { id: ownerId, role, is_active: true } });
+    assert.equal((await f.request()).status, 200);
+  }
+});
+
+test('hidden or other horses never receive signed URLs', async () => {
+  const hidden = fixture({ horseVisible: false });
+  assert.equal((await hidden.request()).status, 403);
+  const other = fixture();
+  assert.equal((await other.request('', 'Bearer fixture-session', ownerId)).status, 403);
+  assert.equal(hidden.signatures.length + other.signatures.length, 0);
+});
+
+test('malformed limits, arbitrary paths and caller-supplied storage configuration are rejected', async () => {
+  for (const query of ['?limit=241', '?limit=100000', '?limit=-1', '?limit=2&limit=3',
+    '?bucket=other', '?key=private.jpg', '?endpoint=https://evil.test', '?cursor=invalid',
+    '?from=2026-10-26T00:00:00Z&to=2026-10-27T00:00:00Z',
+    '?ids=17&since=2026-10-26T00:00:00Z']) {
+    const f = fixture();
+    assert.equal((await f.request(query)).status, 400, query);
+    assert.equal(f.signatures.length, 0);
+  }
+  for (const key of ['outside/lucero.jpg', WASABI_SCOPE.prefix + '../outside.jpg',
+    WASABI_SCOPE.prefix + '%2e%2e.jpg', WASABI_SCOPE.prefix + 'clip.mp4']) {
+    const f = fixture({ rows: [{ ...row, storage_path_enhanced: key }] });
+    assert.equal((await f.request()).status, 503);
+    assert.equal(f.signatures.length, 0);
+  }
+});
+
+test('hourly reads use captured_at and cap 400, metadata polling does not sign any URL', async () => {
+  const f = fixture();
+  const result = await f.request('?from=2026-10-26T10:00:00Z&to=2026-10-26T11:00:00Z&limit=400&metadata=1');
+  assert.equal(result.status, 200);
+  assert.equal(result.body.photos[0].imageUrl, undefined);
+  assert.equal(f.signatures.length, 0);
+  const q = f.queries.find(q => q.table === 'images_wasabi');
+  assert.equal(q.limit, 400);
+  assert.deepEqual(q.orders[0], ['captured_at', { ascending: true }]);
+  assert(q.filters.some(f => f[0] === 'gte' && f[1] === 'captured_at'));
+  assert(q.filters.some(f => f[0] === 'lt' && f[1] === 'captured_at'));
+  assert(!q.filters.some(f => f[1] === 'uploaded_at'));
+});
+
+test('keyset pagination binds a cursor to horse and interval, and handles ties by id', async () => {
+  const f = fixture();
+  const first = await f.request('?limit=1&metadata=1');
+  assert(first.body.nextCursor);
+  const next = await f.request('?limit=1&metadata=1&cursor=' + first.body.nextCursor);
+  assert.equal(next.status, 200);
+  assert.equal(f.queries.filter(q => q.table === 'images_wasabi').at(-1).or,
+    `captured_at.lt.${captured},and(captured_at.eq.${captured},id.lt.17)`);
+  assert.equal((await f.request('?since=2026-10-26T01:00:00Z&cursor=' + first.body.nextCursor)).status, 400);
+});
+
+test('renewal signs only server-resolved row IDs, never caller paths', async () => {
+  const f = fixture({ rows: [row, { ...row, id: 18 }] });
+  const result = await f.request('?ids=17');
+  assert.equal(result.status, 200);
+  assert.equal(result.body.photos.length, 1);
+  assert.equal(result.body.nextCursor, null);
+  assert.equal(f.signatures.length, 1);
+});
+
+test('missing private credentials fail closed for photos, without leaking configuration', async () => {
+  const f = fixture({ realSigner: true });
+  const response = await f.request();
+  assert.equal(response.status, 503);
+  assert.equal(response.body.photos, undefined);
+  assert(!JSON.stringify(response.body).includes('ACCESS_KEY'));
+});
+
+test('real AWS presigner produces a local 10-minute GET signature restricted to fixed Wasabi settings', async () => {
+  const env = { WASABI_ACCESS_KEY_ID: 'fixture-access-not-real', WASABI_SECRET_ACCESS_KEY: 'fixture-secret-not-real' };
+  const f = fixture({ realSigner: true, env });
+  const result = await f.request();
+  assert.equal(result.status, 200);
+  const url = new URL(result.body.photos[0].imageUrl);
+  assert.equal(url.origin, WASABI_SCOPE.endpoint);
+  assert.equal(decodeURIComponent(url.pathname), '/' + WASABI_SCOPE.bucket + '/' + row.storage_path_enhanced);
+  assert.equal(url.searchParams.get('X-Amz-Expires'), '600');
+  assert.match(url.searchParams.get('X-Amz-Signature'), /^[a-f0-9]{64}$/);
+  for (const config of [{ WASABI_BUCKET: 'other' }, { WASABI_REGION: 'eu-central-1' }, { WASABI_ENDPOINT: 'https://evil.test' }]) {
+    const denied = fixture({ realSigner: true, env: { ...env, ...config } });
+    assert.equal((await denied.request()).status, 503);
+  }
+});

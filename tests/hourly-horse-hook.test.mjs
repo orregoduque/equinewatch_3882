@@ -13,7 +13,7 @@ function fixture() {
   let horseId = 'horse-one', viewer = { id: 'owner' }, viewerKey = 'owner';
   let selection = { day: '2026-10-21', hour: 8 };
   vm.runInNewContext(compiled, {
-    exports: api, AbortController,
+    exports: api, AbortController, clearTimeout,
     require(id) {
       if (id === 'react') return {
         useState(initial) {

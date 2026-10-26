@@ -7,7 +7,7 @@ import MobileNavigation from '../../components/ui/MobileNavigation';
 import Image from '../../components/AppImage';
 import Icon from '../../components/AppIcon';
 import { Observation, Horse } from './types';
-import { fetchHorseImages, getImageUrl, CameraImage } from '../../utils/supabase';
+import { fetchHorseImages, getImageUrl, CameraImage, renewPrivatePhotos } from '../../utils/supabase';
 import { useAccessibleHorses } from '../../hooks/useAccessibleHorses';
 import { watchHorseImages } from '../../utils/liveHorseImages';
 import TimelineLiveVideo from './components/TimelineLiveVideo';
@@ -31,12 +31,13 @@ const mapHorseImagesToObservations = (
   horseName: string,
 ): Observation[] =>
   images.map((img, index) => ({
-    id: `obs-${img.id}`,
+    id: `obs-${img.source === 'wasabi' ? 'wasabi-' : ''}${img.id}`,
     horseId,
     horseName,
-    imageUrl: getImageUrl(img.storage_path_enhanced),
-    thumbnailUrl: getImageUrl(img.storage_path_enhanced, { width: 320, quality: 60 }),
-    imageVersion: `${img.uploaded_at}:${img.is_processed}`,
+    imageUrl: img.source === 'wasabi' ? img.imageUrl! : getImageUrl(img.storage_path_enhanced),
+    thumbnailUrl: img.source === 'wasabi' ? img.imageUrl! : getImageUrl(img.storage_path_enhanced, { width: 320, quality: 60 }),
+    imageVersion: img.source === 'wasabi' ? `${img.captured_at}:${img.storage_path_enhanced}` : `${img.uploaded_at}:${img.is_processed}`,
+    privateImage: img.source === 'wasabi' ? img : undefined,
     imageAlt: `${horseName} observation ${img.image_number}`,
     timestamp: new Date(img.created_at),
     temperature: 37.5 + (Math.random() * 1.5 - 0.5),
@@ -119,7 +120,8 @@ const HorseTimeline: React.FC = () => {
           : current ? realObservations.find(item => item.id === current.id) || current : null);
       },
       onError: error => setRefreshError(error
-        ? 'No se pudieron actualizar las fotos. Se reintentará automáticamente.' : ''),
+        ? selectedHorse && records.find(row => row.id === selectedHorse.id)?.photo_backend === 'wasabi'
+          ? error.message : 'No se pudieron actualizar las fotos. Se reintentará automáticamente.' : ''),
       onSettled: () => setIsLoading(false),
     });
   }, [selectedHorseId, horses, viewerKey, reviewSelection !== null]);
@@ -232,9 +234,65 @@ const HorseTimeline: React.FC = () => {
     ? mapHorseImagesToObservations(hourly.images, selectedHorseId, selectedHorse?.name || '')
     : observations;
   const latestObservation = selectedHorse ? displayedObservations.find((observation) => observation.horseId === selectedHorse.id) : undefined;
-  const activePhoto = (selectedObservation?.horseId === selectedHorseId ? selectedObservation : null) || latestObservation;
+  const activePhoto = (selectedObservation?.horseId === selectedHorseId
+    ? displayedObservations.find(photo => photo.id === selectedObservation.id) || selectedObservation
+    : null) || latestObservation;
   const mainPhotoKey = JSON.stringify([viewerKey, selectedHorseId, reviewSelection, activePhoto?.id, activePhoto?.imageVersion, activePhoto?.imageUrl]);
   const [settledMainPhotoKey, setSettledMainPhotoKey] = useState('');
+  const [failedPrivatePhotoKey, setFailedPrivatePhotoKey] = useState('');
+  // Explicitly selected/expanded photos may outlive the 240-photo live window.
+  // Renew those objects too, without replacing the photo the user is inspecting.
+  useEffect(() => {
+    if (reviewSelection || !viewer) return;
+    const pinned = [selectedObservation, expandedPhoto]
+      .filter((photo): photo is Observation => !!photo?.privateImage && photo.horseId === selectedHorseId);
+    if (!pinned.length) return;
+    const rows = [...new Map(pinned.map(photo => [photo.id, photo.privateImage!])).values()];
+    const controller = new AbortController();
+    let active = true, busy = false;
+    let timer: ReturnType<typeof setTimeout>;
+    const schedule = (delay?: number) => {
+      clearTimeout(timer);
+      if (document.visibilityState !== 'hidden')
+        timer = setTimeout(() => { void renew(); }, delay ?? Math.max(1000,
+          Math.min(...rows.map(row => Date.parse(row.expiresAt!))) - Date.now() - 60_000));
+    };
+    const renew = async () => {
+      if (!active || busy || document.visibilityState === 'hidden') return;
+      if (rows.every(row => Date.parse(row.expiresAt!) > Date.now() + 60_000)) { schedule(); return; }
+      busy = true;
+      try {
+        const updated = await renewPrivatePhotos(rows, viewer, controller.signal);
+        if (!active) return;
+        const update = (photo: Observation | null) => {
+          const row = updated.find(row => row.id === photo?.privateImage?.id);
+          return photo && row ? { ...photo, imageUrl: row.imageUrl!, thumbnailUrl: row.imageUrl!, privateImage: row } : photo;
+        };
+        setSelectedObservation(update);
+        setExpandedPhoto(update);
+      } catch {
+        if (active) {
+          setSelectedObservation(null);
+          setExpandedPhoto(null);
+          setRefreshError('No se pudo renovar la foto privada. Vuelve a intentarlo con una sesión válida.');
+        }
+      } finally { busy = false; }
+    };
+    const resume = () => {
+      if (document.visibilityState === 'hidden') clearTimeout(timer);
+      else void renew();
+    };
+    document.addEventListener('visibilitychange', resume);
+    window.addEventListener('focus', resume);
+    schedule();
+    return () => {
+      active = false;
+      controller.abort();
+      clearTimeout(timer);
+      document.removeEventListener('visibilitychange', resume);
+      window.removeEventListener('focus', resume);
+    };
+  }, [selectedObservation, expandedPhoto, selectedHorseId, viewerKey, !!reviewSelection]);
   const chooseHour = (hour: number, day = reviewDay) => {
     if (!day) return;
     setSelectedObservation(null);
@@ -352,6 +410,11 @@ const HorseTimeline: React.FC = () => {
             {!reviewSelection && refreshError && (
               <p role="status" className="mb-4 text-sm text-amber-800">{refreshError}</p>
             )}
+            {activePhoto?.privateImage && failedPrivatePhotoKey === mainPhotoKey && (
+              <p role="alert" className="mb-4 text-sm text-amber-800">
+                No se pudo descargar esta foto privada. Selecciona otra foto o vuelve a intentarlo más tarde.
+              </p>
+            )}
             {isLoadingHorses || (reviewSelection ? hourly.loading : isLoading) ? (
               <div className="rounded-xl p-8 animate-pulse" style={{ backgroundColor: '#ffffff', border: '1px solid rgba(64,53,44,0.1)' }}>
                 <div className="aspect-video rounded-xl mb-6" style={{ backgroundColor: 'rgba(64,53,44,0.05)' }} />
@@ -400,6 +463,7 @@ const HorseTimeline: React.FC = () => {
                           onLoad={() => setSettledMainPhotoKey(mainPhotoKey)}
                           onError={event => {
                             setSettledMainPhotoKey(mainPhotoKey);
+                            if (activePhoto?.privateImage) setFailedPrivatePhotoKey(mainPhotoKey);
                             if (event.currentTarget.getAttribute('src') !== '/assets/images/no_image.png')
                               event.currentTarget.src = '/assets/images/no_image.png';
                           }}
@@ -519,7 +583,9 @@ const HorseTimeline: React.FC = () => {
 
         <MobileNavigation />
         {expandedPhoto && expandedPhoto.horseId === selectedHorseId && selectedHorse && !isLoadingHorses && (
-          <FullscreenPhoto src={expandedPhoto.imageUrl} alt={expandedPhoto.imageAlt} onClose={() => setExpandedPhoto(null)} />
+          <FullscreenPhoto
+            src={displayedObservations.find(photo => photo.id === expandedPhoto.id)?.imageUrl || expandedPhoto.imageUrl}
+            alt={expandedPhoto.imageAlt} onClose={() => setExpandedPhoto(null)} />
         )}
 
         {/* Video Modal */}

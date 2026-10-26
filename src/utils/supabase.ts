@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { freshHorseFetch } from './freshHorseFetch';
 import { localHourRange } from './hourlyHorseImages';
+import { createWasabiPhotoReader, PrivatePhotoError } from './wasabiPhotos';
 
 declare global {
   interface ImportMetaEnv {
@@ -33,9 +34,15 @@ export interface HorseImage {
   user_id: string;
 }
 
-export type CameraImage = Pick<HorseImage,
+export type CameraImage = Omit<Pick<HorseImage,
   'id' | 'storage_path_enhanced' | 'uploaded_at' | 'created_at' |
-  'horse_id' | 'image_number' | 'is_processed' | 'notes'>;
+  'horse_id' | 'image_number' | 'is_processed' | 'notes'>, 'id'> & {
+    id: number | string;
+    source?: 'wasabi';
+    captured_at?: string;
+    imageUrl?: string;
+    expiresAt?: string;
+  };
 
 export interface UserProfile {
   id: string;
@@ -52,6 +59,7 @@ export interface SupabaseHorse {
   name: string;
   breed: string | null;
   profile_photo_url: string | null;
+  photo_backend?: string | null;
   stall_number: string | null;
   owner_id: string | null;
   age: number | null;
@@ -110,14 +118,34 @@ const isHorseOwner = (viewer: HorseViewer) =>
   viewer.role === 'horse_owner' || viewer.role === 'owner';
 
 export class HorseAccessError extends Error {}
+let privateReader: ReturnType<typeof createWasabiPhotoReader> | undefined;
+const getPrivateReader = () => privateReader ??= createWasabiPhotoReader(supabase.auth);
+export const renewPrivatePhotos = (images: CameraImage[], viewer: HorseViewer, signal?: AbortSignal) =>
+  getPrivateReader().renew(images, viewer, signal);
+
+const privateRead = async (
+  horseId: string, viewer: HorseViewer,
+  options: Parameters<ReturnType<typeof createWasabiPhotoReader>['read']>[2],
+) => {
+  try {
+    return (await getPrivateReader().read(horseId, viewer, options)).images;
+  } catch (error) {
+    if (error instanceof PrivatePhotoError && [401, 403].includes(error.status))
+      throw new HorseAccessError(error.message);
+    throw error;
+  }
+};
 
 export const fetchHorseImages = async (
   limit: number = 20,
   horseId?: string,
   viewer: HorseViewer | null = null,
   uploadedSince?: string,
+  signal?: AbortSignal,
 ): Promise<CameraImage[]> => {
-  await requireHorseAccess(horseId, viewer);
+  const horse = await requireHorseAccess(horseId, viewer);
+  if (horse.photo_backend === 'wasabi')
+    return privateRead(horseId!, viewer!, { limit, since: uploadedSince, signal });
   let query = supabase
     .from('images')
     .select('id, storage_path_enhanced, uploaded_at, created_at, horse_id, image_number, is_processed, notes')
@@ -128,6 +156,7 @@ export const fetchHorseImages = async (
     .order('id', { ascending: false })
     .limit(limit);
   if (uploadedSince) query = query.gte('uploaded_at', uploadedSince);
+  if (signal) query = query.abortSignal(signal);
 
   const { data, error } = await query;
   if (error) throw new Error(error.message);
@@ -144,7 +173,9 @@ export const fetchHorseImagesForHour = async (
   signal?: AbortSignal,
 ): Promise<CameraImage[]> => {
   const { start, end } = localHourRange(day, hour);
-  await requireHorseAccess(horseId, viewer);
+  const horse = await requireHorseAccess(horseId, viewer);
+  if (horse.photo_backend === 'wasabi')
+    return privateRead(horseId, viewer, { limit: 400, from: start, to: end, signal });
   if (signal?.aborted) throw new DOMException('Aborted', 'AbortError');
   let query = supabase.from('images')
     .select('id, storage_path_enhanced, uploaded_at, created_at, horse_id, image_number, is_processed, notes')
@@ -178,7 +209,7 @@ export const fetchHorses = (viewer: HorseViewer | null = null): Promise<Supabase
 const loadHorses = async (viewer: HorseViewer): Promise<SupabaseHorse[]> => {
   let query = supabase
     .from('horses')
-    .select('id, name, profile_photo_url, stall_number, breed, age, owner_id, gender, color, is_active, created_at, updated_at')
+    .select('id, name, profile_photo_url, photo_backend, stall_number, breed, age, owner_id, gender, color, is_active, created_at, updated_at')
     .order('created_at', { ascending: true });
 
   if (isHorseOwner(viewer)) {
@@ -202,9 +233,11 @@ const loadHorses = async (viewer: HorseViewer): Promise<SupabaseHorse[]> => {
 export const requireHorseAccess = async (horseId: string | undefined, viewer: HorseViewer | null) => {
   if (!horseId || !viewer) throw new HorseAccessError('Sign in to access this horse.');
   const horses = await fetchHorses(viewer);
-  if (!horses.some((horse) => horse.id === horseId)) {
+  const horse = horses.find((horse) => horse.id === horseId);
+  if (!horse) {
     throw new HorseAccessError('You do not have access to this horse.');
   }
+  return horse;
 };
 
 export const fetchDetectionsForDay = async (

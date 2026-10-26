@@ -6,12 +6,14 @@ const RECONCILE_MS = 60_000;
 export function mergeHorseImages(
   previous: CameraImage[], incoming: CameraImage[], limit: number,
 ): CameraImage[] {
-  const byId = new Map(previous.map(image => [image.id, image]));
-  incoming.forEach(image => byId.set(image.id, image));
+  const identity = (image: CameraImage) => `${image.source || 'supabase'}:${image.id}`;
+  const byId = new Map(previous.map(image => [identity(image), image]));
+  incoming.forEach(image => byId.set(identity(image), image));
   return [...byId.values()]
     .sort((a, b) =>
-      Date.parse(b.uploaded_at || b.created_at) - Date.parse(a.uploaded_at || a.created_at)
-      || Date.parse(b.created_at) - Date.parse(a.created_at) || b.id - a.id)
+      Date.parse(b.captured_at || b.uploaded_at || b.created_at) - Date.parse(a.captured_at || a.uploaded_at || a.created_at)
+      || Date.parse(b.created_at) - Date.parse(a.created_at)
+      || String(b.id).localeCompare(String(a.id), 'en', { numeric: true }))
     .slice(0, limit);
 }
 
@@ -32,6 +34,7 @@ export function watchHorseImages({
   let images: CameraImage[] = [];
   let lastFullRefresh = 0;
   let timer: ReturnType<typeof setTimeout> | undefined;
+  let request: AbortController | undefined;
   const hidden = () => document.visibilityState === 'hidden';
 
   const refresh = async (forceFull = false) => {
@@ -41,9 +44,10 @@ export function watchHorseImages({
     const full = forceFull || !loaded || Date.now() - lastFullRefresh >= RECONCILE_MS;
     // Recheck the last few records too: their enhanced variant may finish later.
     const boundary = images[Math.min(5, images.length - 1)];
-    const since = full ? undefined : boundary?.uploaded_at || boundary?.created_at;
+    const since = full ? undefined : boundary?.captured_at || boundary?.uploaded_at || boundary?.created_at;
     try {
-      const incoming = await fetchHorseImages(limit, horseId, viewer, since);
+      request = new AbortController();
+      const incoming = await fetchHorseImages(limit, horseId, viewer, since, request.signal);
       if (!active) return;
       const next = full ? incoming : mergeHorseImages(images, incoming, limit);
       if (!loaded || JSON.stringify(next) !== JSON.stringify(images)) onImages(next);
@@ -80,6 +84,7 @@ export function watchHorseImages({
 
   return () => {
     active = false;
+    request?.abort();
     clearTimeout(timer);
     document.removeEventListener('visibilitychange', visibilityChanged);
     window.removeEventListener('focus', resume);

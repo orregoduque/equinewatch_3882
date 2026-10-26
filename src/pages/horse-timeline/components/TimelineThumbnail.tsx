@@ -15,6 +15,8 @@ export default function TimelineThumbnail({
   const slot = useRef<HTMLDivElement>(null);
   const [nearViewport, setNearViewport] = useState(false);
   const [fallback, setFallback] = useState(0);
+  // A renewed private URL must recover from a previous expiry without unmounting the slot.
+  useEffect(() => setFallback(0), [src]);
 
   useEffect(() => {
     if (!enabled || nearViewport || !slot.current || !scrollRoot.current) return;

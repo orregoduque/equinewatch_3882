@@ -1,3 +1,5 @@
+import type { CameraImage } from '../../../utils/supabase';
+
 export interface Observation {
   id: string;
   horseId: string;
@@ -5,6 +7,7 @@ export interface Observation {
   imageUrl: string;
   thumbnailUrl?: string;
   imageVersion?: string;
+  privateImage?: CameraImage;
   imageAlt: string;
   timestamp: Date;
   temperature: number;

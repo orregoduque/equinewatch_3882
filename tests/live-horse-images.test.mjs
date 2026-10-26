@@ -33,7 +33,7 @@ function fixture(load = async () => [image(1)], limit = 240) {
   const window = makeTarget();
   const api = {};
   vm.runInNewContext(compiled, {
-    exports: api, document, window, Error,
+    exports: api, document, window, Error, AbortController,
     Date: class extends Date { static now() { return now; } },
     setTimeout(fn, delay) { timers.set(++nextTimer, { fn, at: now + delay }); return nextTimer; },
     clearTimeout(id) { timers.delete(id); },
@@ -68,6 +68,26 @@ test('late uploads sort by uploaded_at even when their capture was older', () =>
   const late = { ...image(1), uploaded_at: image(101).created_at };
   const merged = f.api.mergeHorseImages([image(100)], [late], 240);
   assert.equal(merged[0].id, 1);
+  f.stop();
+});
+
+test('Wasabi sorts and polls by captured_at instead of upload time', async () => {
+  const older = { ...image(1), source: 'wasabi', captured_at: image(1).created_at,
+    uploaded_at: image(100).created_at };
+  const newest = { ...image(2), source: 'wasabi', captured_at: image(2).created_at };
+  const f = fixture(async () => [newest, older]);
+  assert.equal(f.api.mergeHorseImages([older], [newest], 240)[0].id, 2);
+  await settle();
+  await f.tick();
+  assert.equal(f.requests[1][3], older.captured_at);
+  f.stop();
+  assert(f.requests.at(-1)[4].aborted, 'leaving aborts the in-flight request signal');
+});
+
+test('metadata identities include their source so overlapping IDs cannot replace a different origin', () => {
+  const f = fixture();
+  const merged = f.api.mergeHorseImages([image(1)], [{ ...image(1), source: 'wasabi' }], 240);
+  assert.equal(merged.length, 2);
   f.stop();
 });
 
