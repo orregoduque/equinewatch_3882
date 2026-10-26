@@ -19,7 +19,7 @@ export function mergeHorseImages(
 
 /** Refresh metadata, not the page or the already-cached image files. */
 export function watchHorseImages({
-  horseId, viewer, limit, onImages, onError, onSettled,
+  horseId, viewer, limit, onImages, onError, onSettled, photoBackend,
 }: {
   horseId: string;
   viewer: HorseViewer;
@@ -27,6 +27,7 @@ export function watchHorseImages({
   onImages: (images: CameraImage[]) => void;
   onError: (error: Error | null) => void;
   onSettled: () => void;
+  photoBackend?: string | null;
 }): () => void {
   let active = true;
   let busy = false;
@@ -47,7 +48,7 @@ export function watchHorseImages({
     const since = full ? undefined : boundary?.captured_at || boundary?.uploaded_at || boundary?.created_at;
     try {
       request = new AbortController();
-      const incoming = await fetchHorseImages(limit, horseId, viewer, since, request.signal);
+      const incoming = await fetchHorseImages(limit, horseId, viewer, since, request.signal, photoBackend);
       if (!active) return;
       const next = full ? incoming : mergeHorseImages(images, incoming, limit);
       if (!loaded || JSON.stringify(next) !== JSON.stringify(images)) onImages(next);

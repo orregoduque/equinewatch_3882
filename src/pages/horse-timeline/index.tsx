@@ -7,7 +7,7 @@ import MobileNavigation from '../../components/ui/MobileNavigation';
 import Image from '../../components/AppImage';
 import Icon from '../../components/AppIcon';
 import { Observation, Horse } from './types';
-import { fetchHorseImages, getImageUrl, CameraImage, renewPrivatePhotos } from '../../utils/supabase';
+import { fetchHorseImages, getImageUrl, CameraImage, renewPrivatePhotos, loadPrivatePhoto } from '../../utils/supabase';
 import { useAccessibleHorses } from '../../hooks/useAccessibleHorses';
 import { watchHorseImages } from '../../utils/liveHorseImages';
 import TimelineLiveVideo from './components/TimelineLiveVideo';
@@ -53,6 +53,8 @@ const HorseTimeline: React.FC = () => {
   const { horses: records, viewer, viewerKey, isLoading: isLoadingHorses, error: horseError } = useAccessibleHorses();
   const videoRequestId = useRef(0);
   const photoStripRef = useRef<HTMLDivElement>(null);
+  const photoSelectionRequest = useRef(0);
+  const photoSelectionAbort = useRef<AbortController>();
   const horses = useMemo<Horse[]>(() => records.map((horse) => {
     const profilePhoto = horse.profile_photo_url?.trim();
     return {
@@ -110,6 +112,7 @@ const HorseTimeline: React.FC = () => {
       horseId: selectedHorseId,
       viewer,
       limit: PHOTO_LIMIT,
+      photoBackend: records.find(row => row.id === selectedHorseId)?.photo_backend,
       onImages: (images) => {
         const realObservations = mapHorseImagesToObservations(
           images, selectedHorseId, selectedHorse.name,
@@ -117,7 +120,7 @@ const HorseTimeline: React.FC = () => {
         setObservations(realObservations);
         // null follows the newest photo; an explicit historical selection stays pinned.
         setSelectedObservation(current => !realObservations.length ? null
-          : current ? realObservations.find(item => item.id === current.id) || current : null);
+          : current ? realObservations.find(item => item.id === current.id && item.imageUrl) || current : null);
       },
       onError: error => setRefreshError(error
         ? selectedHorse && records.find(row => row.id === selectedHorse.id)?.photo_backend === 'wasabi'
@@ -195,7 +198,8 @@ const HorseTimeline: React.FC = () => {
     setIsLoadingVideo(true);
 
     try {
-      const images = await fetchHorseImages(PHOTO_LIMIT, selectedHorseId, viewer);
+      let images = await fetchHorseImages(PHOTO_LIMIT, selectedHorseId, viewer);
+      if (images.some(image => image.source === 'wasabi')) images = await renewPrivatePhotos(images, viewer);
       if (requestId !== videoRequestId.current) return;
       setVideoObservations(
         mapHorseImagesToObservations(
@@ -229,17 +233,40 @@ const HorseTimeline: React.FC = () => {
   };
 
   const selectedHorse = horses.find(h => h.id === selectedHorseId);
-  const hourly = useHourlyHorseImages(selectedHorseId, viewer, viewerKey, reviewSelection);
+  const hourly = useHourlyHorseImages(selectedHorseId, viewer, viewerKey, reviewSelection,
+    records.find(row => row.id === selectedHorseId)?.photo_backend);
   const displayedObservations = reviewSelection
     ? mapHorseImagesToObservations(hourly.images, selectedHorseId, selectedHorse?.name || '')
     : observations;
-  const latestObservation = selectedHorse ? displayedObservations.find((observation) => observation.horseId === selectedHorse.id) : undefined;
+  const latestObservation = reviewSelection && displayedObservations[0]?.privateImage
+    ? displayedObservations.at(-1)
+    : selectedHorse ? displayedObservations.find((observation) => observation.horseId === selectedHorse.id) : undefined;
   const activePhoto = (selectedObservation?.horseId === selectedHorseId
-    ? displayedObservations.find(photo => photo.id === selectedObservation.id) || selectedObservation
+    ? displayedObservations.find(photo => photo.id === selectedObservation.id && photo.imageUrl) || selectedObservation
     : null) || latestObservation;
   const mainPhotoKey = JSON.stringify([viewerKey, selectedHorseId, reviewSelection, activePhoto?.id, activePhoto?.imageVersion, activePhoto?.imageUrl]);
   const [settledMainPhotoKey, setSettledMainPhotoKey] = useState('');
   const [failedPrivatePhotoKey, setFailedPrivatePhotoKey] = useState('');
+  useEffect(() => {
+    photoSelectionRequest.current++;
+    photoSelectionAbort.current?.abort();
+    return () => { photoSelectionRequest.current++; photoSelectionAbort.current?.abort(); };
+  }, [selectedHorseId, viewerKey, reviewSelection]);
+  const selectPhoto = async (photo: Observation) => {
+    const request = ++photoSelectionRequest.current;
+    photoSelectionAbort.current?.abort();
+    if (photo.id === latestObservation?.id) { setSelectedObservation(null); return; }
+    if (!photo.privateImage || !viewer) { setSelectedObservation(photo); return; }
+    const controller = new AbortController();
+    photoSelectionAbort.current = controller;
+    try {
+      const image = await loadPrivatePhoto(photo.privateImage, viewer, controller.signal);
+      if (request === photoSelectionRequest.current)
+        setSelectedObservation({ ...photo, imageUrl: image.imageUrl!, thumbnailUrl: image.imageUrl!, privateImage: image });
+    } catch {
+      if (request === photoSelectionRequest.current) setRefreshError('No se pudo abrir la foto privada.');
+    }
+  };
   // Explicitly selected/expanded photos may outlive the 240-photo live window.
   // Renew those objects too, without replacing the photo the user is inspecting.
   useEffect(() => {
@@ -517,7 +544,7 @@ const HorseTimeline: React.FC = () => {
                           key={obs.id}
                           aria-label={`Ver foto ${format(obs.timestamp, 'HH:mm:ss')}`}
                           aria-pressed={isSelected}
-                          onClick={() => setSelectedObservation(index === 0 ? null : obs)}
+                          onClick={() => { void selectPhoto(obs); }}
                           className={`relative flex-shrink-0 w-32 md:w-40 rounded-xl overflow-hidden border-2 transition-all duration-300 ${
                             isSelected
                               ? 'shadow-md'
@@ -532,6 +559,8 @@ const HorseTimeline: React.FC = () => {
                             alt={obs.imageAlt}
                             scrollRoot={photoStripRef}
                             enabled={!!activePhoto && settledMainPhotoKey === mainPhotoKey}
+                            privateImage={obs.privateImage}
+                            viewer={viewer}
                           />
                           <div className="absolute bottom-0 left-0 right-0 p-2">
                             <span className="rounded bg-black/50 px-1.5 py-0.5 text-xs font-semibold text-white">

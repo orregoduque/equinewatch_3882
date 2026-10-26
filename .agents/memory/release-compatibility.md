@@ -38,3 +38,16 @@ configuration would make an unrelated video problem an app-wide outage.
 **How to apply:** Isolate optional-video configuration and receiver failures in
 the main app. Keep strict validation in the receiver itself; test missing and
 invalid video settings as well as receiver outages against ordinary app routes.
+
+Photo-loading optimizations must preserve the existing private-photo API
+semantics for already-open customer tabs; make reduced-signature responses
+opt-in rather than changing the default response.
+
+**Why:** The user requires compatibility with the prior publication. Retaining
+old JavaScript files alone is insufficient if its API contract changes beneath
+it.
+
+**How to apply:** Keep legacy metadata and ID-signing requests valid. Any cache
+hint may suppress redundant signing but must never bypass authorization. Bind
+preview reuse to the image metadata version, not only its ID, so a changed
+object path at the same ID still becomes visible.

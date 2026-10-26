@@ -122,6 +122,10 @@ let privateReader: ReturnType<typeof createWasabiPhotoReader> | undefined;
 const getPrivateReader = () => privateReader ??= createWasabiPhotoReader(supabase.auth);
 export const renewPrivatePhotos = (images: CameraImage[], viewer: HorseViewer, signal?: AbortSignal) =>
   getPrivateReader().renew(images, viewer, signal);
+export const renewKnownPrivatePhotos = (images: CameraImage[], viewer: HorseViewer, signal?: AbortSignal) =>
+  getPrivateReader().renew(images, viewer, signal, true);
+export const loadPrivatePhoto = (image: CameraImage, viewer: HorseViewer, signal?: AbortSignal) =>
+  getPrivateReader().load(image, viewer, signal);
 
 const privateRead = async (
   horseId: string, viewer: HorseViewer,
@@ -142,7 +146,12 @@ export const fetchHorseImages = async (
   viewer: HorseViewer | null = null,
   uploadedSince?: string,
   signal?: AbortSignal,
+  photoBackend?: string | null,
 ): Promise<CameraImage[]> => {
+  // This hint only selects transport. The private API still verifies Auth,
+  // horse ownership/staff, backend and prefix on every request.
+  if (photoBackend === 'wasabi' && horseId && viewer)
+    return privateRead(horseId, viewer, { limit, since: uploadedSince, signal });
   const horse = await requireHorseAccess(horseId, viewer);
   if (horse.photo_backend === 'wasabi')
     return privateRead(horseId!, viewer!, { limit, since: uploadedSince, signal });
@@ -171,8 +180,11 @@ export const fetchHorseImagesForHour = async (
   day: string,
   hour: number,
   signal?: AbortSignal,
+  photoBackend?: string | null,
 ): Promise<CameraImage[]> => {
   const { start, end } = localHourRange(day, hour);
+  if (photoBackend === 'wasabi')
+    return privateRead(horseId, viewer, { limit: 400, from: start, to: end, signal });
   const horse = await requireHorseAccess(horseId, viewer);
   if (horse.photo_backend === 'wasabi')
     return privateRead(horseId, viewer, { limit: 400, from: start, to: end, signal });

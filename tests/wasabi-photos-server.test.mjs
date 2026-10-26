@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { EventEmitter } from 'node:events';
 import test from 'node:test';
-import { createWasabiPhotosHandler, LUCERO_ID, THUNDER_ID, PHOTO_PREFIXES, WASABI_SCOPE } from '../services/wasabi-photos/handler.mjs';
+import { createWasabiPhotosHandler, LUCERO_ID, THUNDER_ID, PHOTO_PREFIXES, WASABI_SCOPE, previewVersion } from '../services/wasabi-photos/handler.mjs';
 
 const ownerId = '00000000-0000-4000-8000-000000000001';
 const captured = '2026-10-26T10:00:00.000Z';
@@ -95,6 +95,39 @@ test('owner gets signed GET URLs, scoped rows and private no-store responses', a
   assert.deepEqual(q.orders, [['captured_at', { ascending: false }], ['id', { ascending: false }]]);
   assert.equal(q.limit, 240);
   assert(q.signal instanceof AbortSignal);
+});
+
+test('preview returns complete metadata with just newest signed, using one Auth/horse read', async () => {
+  const rows = Array.from({ length: 240 }, (_, index) => ({
+    ...row, id: 240 - index, captured_at: new Date(Date.parse(captured) - index * 10000).toISOString(),
+  }));
+  const f = fixture({ rows });
+  const response = await f.request('?limit=240&preview=1');
+  assert.equal(response.status, 200);
+  assert.equal(response.body.photos.length, 240);
+  assert.equal(response.body.photos.filter(photo => photo.imageUrl).length, 1);
+  assert(response.body.photos[0].imageUrl);
+  assert.equal(f.signatures.length, 1);
+  assert.equal(f.validations.length, 1);
+  assert.equal(f.queries.filter(query => query.table === 'horses').length, 1);
+  const again = await f.request('?preview=1&cached=' + previewVersion(rows[0]));
+  assert.equal(again.status, 200);
+  assert.equal(again.body.photos.filter(photo => photo.imageUrl).length, 0);
+  assert.equal(f.signatures.length, 1, 'cache hint only suppresses signing, never authorization');
+  assert.equal(f.validations.length, 2);
+});
+
+test('hour preview signs last/newest row only; malformed preview combinations are rejected', async () => {
+  const rows = Array.from({ length: 400 }, (_, index) => ({
+    ...row, id: index + 1, captured_at: new Date(Date.parse(captured) + index * 1000).toISOString(),
+  }));
+  const f = fixture({ rows });
+  const result = await f.request('?from=2026-10-26T10:00:00Z&to=2026-10-26T11:00:00Z&limit=400&preview=1');
+  assert.equal(result.body.photos.length, 400);
+  assert.equal(result.body.photos.filter(photo => photo.imageUrl).length, 1);
+  assert(result.body.photos.at(-1).imageUrl);
+  for (const query of ['?preview=2', '?preview=1&metadata=1', '?preview=1&ids=17', '?cached=17', '?preview=1&cached=../17'])
+    assert.equal((await f.request(query)).status, 400);
 });
 
 test('nonowner cannot gain access using editable auth metadata; only trusted active staff pass', async () => {

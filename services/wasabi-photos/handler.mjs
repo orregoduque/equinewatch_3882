@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { createHash } from 'node:crypto';
 
 export const LUCERO_ID = 'a95f853c-e90b-4b6d-a4ea-f25cfa317119';
 export const THUNDER_ID = 'd826a274-58ea-4a55-8fd2-1d4c78222ab1';
@@ -14,6 +15,8 @@ export const PHOTO_PREFIXES = Object.freeze({
 });
 const SUPABASE_URL = 'https://zmxppbpywizdjlhstfkf.supabase.co';
 const TTL_SECONDS = 600;
+export const previewVersion = row => createHash('sha256')
+  .update(JSON.stringify([String(row.id), row.captured_at, row.storage_path_enhanced])).digest('hex');
 class HttpError extends Error {
   constructor(status, message) { super(message); this.status = status; }
 }
@@ -28,7 +31,7 @@ export function validLuceroKey(key, horseId = LUCERO_ID) {
 }
 
 function parseQuery(search, horseId) {
-  const allowed = new Set(['limit', 'cursor', 'since', 'from', 'to', 'ids', 'metadata']);
+  const allowed = new Set(['limit', 'cursor', 'since', 'from', 'to', 'ids', 'metadata', 'preview', 'cached']);
   for (const name of search.keys())
     if (!allowed.has(name) || search.getAll(name).length !== 1) fail(400, 'Consulta de fotos inválida.');
   const limit = Number(search.get('limit') || 240);
@@ -42,6 +45,10 @@ function parseQuery(search, horseId) {
   if (ids && (ids.length > 100 || !ids.every(validId) || from || since || search.has('cursor')))
     fail(400, 'Selección de fotos inválida.');
   if (search.has('metadata') && search.get('metadata') !== '1') fail(400, 'Consulta inválida.');
+  const preview = search.get('preview') === '1';
+  const cached = search.get('cached');
+  if ((search.has('preview') && !preview) || (preview && (ids || search.has('metadata')))
+    || (cached !== null && (!preview || !/^[a-f0-9]{64}$/.test(cached)))) fail(400, 'Vista previa inválida.');
   let cursor;
   if (search.has('cursor')) {
     try {
@@ -52,7 +59,7 @@ function parseQuery(search, horseId) {
         || cursor.since !== since || !timestamp(cursor.at) || !validId(cursor.id)) throw Error();
     } catch { fail(400, 'Cursor inválido.'); }
   }
-  return { limit, from, to, since, ids, cursor, metadataOnly: search.get('metadata') === '1' };
+  return { limit, from, to, since, ids, cursor, preview, cached, metadataOnly: search.get('metadata') === '1' };
 }
 
 /** No S3 requests are made here: GetObjectCommand is signed locally, never sent. */
@@ -147,8 +154,11 @@ export function createWasabiPhotosHandler({
       if (rows.some(row => row.horse_id !== horseId || !validLuceroKey(row.storage_path_enhanced, horseId)
         || !validId(String(row.id)) || !timestamp(row.captured_at)))
         fail(503, 'Las rutas de las fotos requieren revisión.');
+      const previewRow = ascending ? rows.at(-1) : rows[0];
+      const needsSignature = row => !parsed.metadataOnly
+        && (!parsed.preview || (row === previewRow && previewVersion(row) !== parsed.cached));
       let sign;
-      if (!parsed.metadataOnly && rows.length) {
+      if (rows.some(needsSignature)) {
         signerPromise ??= signerFactory(env).catch(error => { signerPromise = undefined; throw error; });
         sign = await signerPromise;
       }
@@ -156,7 +166,9 @@ export function createWasabiPhotosHandler({
       const photos = await Promise.all(rows.map(async row => ({
         id: row.id, horse_id: horseId, captured_at: row.captured_at,
         storage_path_enhanced: row.storage_path_enhanced, source: 'wasabi',
-        ...(sign ? { imageUrl: await sign(row.storage_path_enhanced), expiresAt } : {}),
+        ...(sign && needsSignature(row) ? {
+          imageUrl: await sign(row.storage_path_enhanced), expiresAt, version: previewVersion(row),
+        } : {}),
       })));
       const last = rows.at(-1);
       const nextCursor = !parsed.ids && rows.length === cap && last

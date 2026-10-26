@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
-import { CameraImage, HorseViewer, fetchHorseImagesForHour, renewPrivatePhotos } from '../utils/supabase';
+import { CameraImage, HorseViewer, fetchHorseImagesForHour, renewKnownPrivatePhotos } from '../utils/supabase';
 
 export function useHourlyHorseImages(
   horseId: string, viewer: HorseViewer | null, viewerKey: string,
   selection: { day: string; hour: number } | null,
+  photoBackend?: string | null,
 ) {
   const key = selection ? JSON.stringify([viewerKey, horseId, selection.day, selection.hour]) : '';
   const [revision, setRevision] = useState(0);
@@ -24,7 +25,7 @@ export function useHourlyHorseImages(
     const schedule = () => {
       clearTimeout(timer);
       if (!active || !currentImages.some(row => row.source === 'wasabi') || document.visibilityState === 'hidden') return;
-      const expires = Math.min(...currentImages.map(row => Date.parse(row.expiresAt!)));
+      const expires = Math.min(...currentImages.filter(row => row.expiresAt).map(row => Date.parse(row.expiresAt!)));
       timer = setTimeout(() => { void resume(); }, Math.max(1000, expires - Date.now() - 60_000));
     };
     const resume = async () => {
@@ -32,7 +33,7 @@ export function useHourlyHorseImages(
       if (currentImages.every(row => Date.parse(row.expiresAt!) > Date.now() + 60_000)) { schedule(); return; }
       renewing = true;
       try {
-        const images = await renewPrivatePhotos(currentImages, viewer, controller.signal);
+        const images = await renewKnownPrivatePhotos(currentImages, viewer, controller.signal);
         if (active) {
           currentImages = images;
           setResult({ key, images, loading: false, error: '' });
@@ -53,7 +54,7 @@ export function useHourlyHorseImages(
       else void resume();
     };
     setResult({ key, images: [], loading: true, error: '' });
-    fetchHorseImagesForHour(horseId, viewer, selection.day, selection.hour, controller.signal)
+    fetchHorseImagesForHour(horseId, viewer, selection.day, selection.hour, controller.signal, photoBackend)
       .then(images => {
         if (!active) return;
         currentImages = images;
@@ -79,7 +80,7 @@ export function useHourlyHorseImages(
         window.removeEventListener('focus', resume);
       }
     };
-  }, [key, horseId, viewerKey, revision]);
+  }, [key, horseId, viewerKey, revision, photoBackend]);
   const current = result.key === key ? result
     : { key, images: [], loading: !!selection && !!viewer && !!horseId, error: '' };
   return { ...current, retry: () => setRevision(value => value + 1) };
