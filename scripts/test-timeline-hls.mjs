@@ -51,9 +51,9 @@ async function setup({ mobile = false, forceMse = false, deny = false, discovery
         body: JSON.stringify(cameraStatus === 200 ? { cameras: cameraList } : { error: 'Not authorized' }) });
     } catch { /* An intentionally cancelled discovery request may already be gone. */ }
   });
-  if (offline) await page.route('**/api/hls-pilot/session/*', route => route.fulfill({
+  if (offline) await page.route(/\/api\/hls-pilot\/(?:session\/[^/]+|horses\/[^/]+\/session)$/, route => route.fulfill({
     contentType: 'application/json', body: JSON.stringify({
-      ready: false, expiresAt: Date.now() + 90_000,
+      ready: false, horseId: 'fixture', cameraId: 'synthetic', expiresAt: Date.now() + 90_000,
       playbackUrl: '/api/hls-pilot/media/synthetic/index.m3u8',
     }),
   }));
@@ -108,14 +108,14 @@ try {
         const video = document.querySelector('[data-testid="timeline-live-video"]');
         return video && video.readyState >= 2;
       }, { timeout: 12000 });
-      assert(test.requests.some(url => /\/session\/synthetic$/.test(url)), 'authorize before click');
+      assert(test.requests.some(url => /\/horses\/fixture\/session$/.test(url)), 'authorize by horse before click');
       assert(test.requests.some(url => url.endsWith('.ts')), 'preload real HLS segments before click');
       assert(await test.page.getByTestId('timeline-live-video').evaluate(video => video.paused));
-      const sessions = test.requests.filter(url => /\/session\/synthetic$/.test(url)).length;
+      const sessions = test.requests.filter(url => /\/horses\/fixture\/session$/.test(url)).length;
       await open(test);
       await moving(test.page);
       const timing = await test.page.getByText('Movimiento de fotogramas confirmado en', { exact: false }).innerText();
-      assert.equal(test.requests.filter(url => /\/session\/synthetic$/.test(url)).length, sessions, 'reuse authorized player');
+      assert.equal(test.requests.filter(url => /\/horses\/fixture\/session$/.test(url)).length, sessions, 'reuse authorized player');
       await closeDialog(test);
       noDemo(test);
       results.push({ name: options.forceMse ? 'preload-mse-reused' : options.mobile ? 'preload-mobile-reused' : 'preload-native-reused', passed: true, timing });
@@ -146,7 +146,7 @@ try {
   const warmDenied = await setup({ cameraList: [] });
   try {
     await warmDenied.page.waitForTimeout(1200);
-    assert(!warmDenied.requests.some(url => /\/session\/|\/media\//.test(url)), 'unauthorized users never preload media');
+    assert(!warmDenied.requests.some(url => /\/session(?:\/|$)|\/media\//.test(url)), 'unauthorized users never preload media');
     assert.equal(await warmDenied.page.getByRole('dialog').count(), 0);
     await open(warmDenied);
     assert.equal(await warmDenied.page.getByRole('alert').innerText(), 'no access for now');
@@ -161,7 +161,7 @@ try {
     try {
       const modal = await open(test);
       const state = await moving(test.page);
-      assert(test.requests.some(url => /\/session\/synthetic$/.test(url)));
+      assert(test.requests.some(url => /\/horses\/fixture\/session$/.test(url)));
       assert(test.requests.some(url => url.endsWith('/index.m3u8')));
       assert(test.requests.some(url => url.endsWith('.ts')));
       assert(!((await modal.innerText()).includes('Muestra simulada')));
@@ -186,7 +186,7 @@ try {
   }
 
   for (const [name, options, expected] of [
-    ['wrong-horse', { cameraList: [{ ...cameras[0], horseId: 'unrelated' }] }, /No hay una cámara asignada/],
+    ['wrong-horse', { cameraList: [{ ...cameras[0], horseId: 'unrelated' }] }, /No hay un streaming publicado/],
     ['no-cameras', { cameraList: [] }, /^no access for now$/],
     ['denied', { deny: true }, /^no access for now$/],
     ['discovery-forbidden', { cameraStatus: 403 }, /^no access for now$/],
@@ -210,7 +210,7 @@ try {
       }
       assert(!test.requests.some(url => /\/media\//.test(url)), 'errors must not request camera media');
       if (['wrong-horse', 'no-cameras', 'disabled', 'signed-out'].includes(name))
-        assert(!test.requests.some(url => /\/session\//.test(url)), 'do not authorize unrelated cameras');
+        assert(!test.requests.some(url => /\/session(?:\/|$)/.test(url)), 'do not authorize unrelated cameras');
       await closeDialog(test);
       noDemo(test);
       results.push({ name, passed: true });
@@ -234,7 +234,7 @@ try {
     await open(cancelled);
     await closeDialog(cancelled);
     await cancelled.page.waitForTimeout(1000);
-    assert(!cancelled.requests.some(url => /\/session\/|\/media\//.test(url)), 'close cancels discovery');
+    assert(!cancelled.requests.some(url => /\/session(?:\/|$)|\/media\//.test(url)), 'close cancels discovery');
     noDemo(cancelled);
     results.push({ name: 'close-during-discovery', passed: true });
   } finally { await cancelled.context.close(); }

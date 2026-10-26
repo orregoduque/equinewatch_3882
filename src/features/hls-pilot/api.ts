@@ -11,6 +11,8 @@ export interface PilotCamera {
   lastReceivedAt: string | null;
 }
 export interface PilotSession {
+  cameraId?: string;
+  horseId?: string;
   ready: boolean;
   expiresAt: number;
   playbackUrl: string;
@@ -23,11 +25,12 @@ export async function pilotRequest<T>(path: string, signal?: AbortSignal, expect
   const { data, error } = await supabase.auth.getSession();
   if (error || !data.session || data.session.user.id !== expectedUid)
     throw new PilotAccessError();
+  const sessionRequest = path.startsWith('session/') || /^horses\/[^/]+\/session$/.test(path);
   const response = await fetch(`/api/hls-pilot/${path}`, {
-    method: path.startsWith('session/') ? 'POST' : 'GET',
+    method: sessionRequest ? 'POST' : 'GET',
     headers: {
       Authorization: `Bearer ${data.session.access_token}`,
-      ...(path.startsWith('session/') ? { 'Content-Type': 'application/json' } : {}),
+      ...(sessionRequest ? { 'Content-Type': 'application/json' } : {}),
     },
     cache: 'no-store', credentials: 'same-origin', signal,
   });

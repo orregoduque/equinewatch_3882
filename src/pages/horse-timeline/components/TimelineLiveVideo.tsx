@@ -215,12 +215,18 @@ export default function TimelineLiveVideo({ horseId, horseName }: TimelineLiveVi
         }
         if (!data.cameras.length) throw new PilotAccessError();
         const camera = data.cameras.find((candidate) => candidate.horseId === horseId);
-        if (!camera) throw new Error('No hay una cámara asignada a este caballo.');
-        if (!camera.ready) throw new Error('La cámara asignada todavía no está lista para transmitir.');
+        if (!camera) throw new Error('No hay un streaming publicado y autorizado para este caballo todavía.');
+        if (!camera.ready) throw new Error('La cámara de este caballo aún no está publicando vídeo. Las fotos funcionan de forma independiente.');
 
         const callbacks = {
-          request: (path: string, requestSignal: AbortSignal) =>
-            pilotRequest<PilotSession>(path, requestSignal, uid),
+          request: async (path: string, requestSignal: AbortSignal) => {
+            if (!path.startsWith('session/')) return pilotRequest<PilotSession>(path, requestSignal, uid);
+            const session = await pilotRequest<PilotSession>(`horses/${encodeURIComponent(horseId)}/session`, requestSignal, uid);
+            if (session.horseId !== horseId || session.cameraId !== camera.id
+              || session.playbackUrl !== `/api/hls-pilot/media/${camera.id}/index.m3u8`)
+              throw new Error('La sesión de vídeo no corresponde al caballo seleccionado.');
+            return session;
+          },
           onStatus: (value: string) => {
             if (isCurrent()) setStatus(value);
           },

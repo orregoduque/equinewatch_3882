@@ -3,7 +3,7 @@ name: Private photo authorization
 description: Why Wasabi photos require real server-verified sessions, independent of demo users and publicly readable metadata.
 ---
 
-The user requires Lucero's new private Wasabi photos without migrating other
+The user requires Lucero and Thunder's new private Wasabi photos without migrating other
 horses, changing Raspberry services/HLS, changing ingestion policies, or changing
 bucket retention, Versioning or Object Lock.
 

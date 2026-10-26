@@ -56,3 +56,31 @@ mtime_ms = 1792257731465
 storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:3cd14c48-b7f3-4b26-917e-adc412cfbcce/f3f0303d-9f31-4e82-b743-e9e6e957dce7/35a51f46-1054-4834-81be-829089bd849a"
 storage_version_token = "1792257769442875"
 content_type = "application/octet-stream"
+
+[[outputs]]
+id = "rMEuWxHSPsLYp1f-RXoQO"
+uri = "file://generated-artifacts/stableeye-two-cameras.zip"
+type = "unspecified"
+title = "Preparación de Thunder en Bacatá"
+description = "Agente independiente, generador seguro de configuración, servicio systemd, política Wasabi de lectura para ambos prefijos e instrucciones. No contiene credenciales."
+logical_id = "5048406d-88c6-4f70-bda0-2bf1e7a29ee9"
+content_hash = "sha256:dc400c849ab224102806d81463fd499770a4401e26263b07f64c79d958fe832d"
+size = 12554
+mtime_ms = 1793042855458
+storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:3cd14c48-b7f3-4b26-917e-adc412cfbcce/5048406d-88c6-4f70-bda0-2bf1e7a29ee9/1e1216a6-769e-4497-85a8-c5cb015eac1d"
+storage_version_token = "1793042872148663"
+content_type = "application/octet-stream"
+
+[[outputs]]
+id = "8HGPkdN6RZoRuRZt1MnVP"
+uri = "file://generated-artifacts/hls-receiver-two-cameras.zip"
+type = "unspecified"
+title = "Receptor HLS para dos cámaras"
+description = "Código del receptor con ventanas y permisos independientes, más instrucciones para conservar Lucero y añadir Thunder. No contiene configuración privada ni credenciales."
+logical_id = "f50d6b35-b507-44ca-9d1a-283f8a51b18e"
+content_hash = "sha256:6f960b236368aa2c18231ea04325c23736b721a9dc9e90d402902e6a37a19f4d"
+size = 16289
+mtime_ms = 1793042855473
+storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:3cd14c48-b7f3-4b26-917e-adc412cfbcce/f50d6b35-b507-44ca-9d1a-283f8a51b18e/4624e09a-60c8-4ad2-a135-8499451ac6fa"
+storage_version_token = "1793042873531325"
+content_type = "application/octet-stream"

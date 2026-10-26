@@ -1,11 +1,16 @@
 import { createClient } from '@supabase/supabase-js';
 
 export const LUCERO_ID = 'a95f853c-e90b-4b6d-a4ea-f25cfa317119';
+export const THUNDER_ID = 'd826a274-58ea-4a55-8fd2-1d4c78222ab1';
 export const WASABI_SCOPE = Object.freeze({
   endpoint: 'https://s3.us-east-1.wasabisys.com',
   region: 'us-east-1',
   bucket: 'equinewatch-photos',
   prefix: 'stable-eye/97e3674b-31ab-5373-8a21-aa8187e6a17f/node_108/',
+});
+export const PHOTO_PREFIXES = Object.freeze({
+  [LUCERO_ID]: WASABI_SCOPE.prefix,
+  [THUNDER_ID]: 'stable-eye/97e3674b-31ab-5373-8a21-aa8187e6a17f/node_109/',
 });
 const SUPABASE_URL = 'https://zmxppbpywizdjlhstfkf.supabase.co';
 const TTL_SECONDS = 600;
@@ -17,8 +22,8 @@ const validId = value => typeof value === 'string' && /^[A-Za-z0-9_-]{1,80}$/.te
 const timestamp = value => typeof value === 'string' && value.length <= 40
   && /^\d{4}-\d{2}-\d{2}T/.test(value) && Number.isFinite(Date.parse(value));
 
-export function validLuceroKey(key) {
-  return typeof key === 'string' && key.length <= 1024 && key.startsWith(WASABI_SCOPE.prefix)
+export function validLuceroKey(key, horseId = LUCERO_ID) {
+  return Boolean(PHOTO_PREFIXES[horseId]) && typeof key === 'string' && key.length <= 1024 && key.startsWith(PHOTO_PREFIXES[horseId])
     && !key.includes('..') && !/[\\%?#\u0000-\u001f]/.test(key) && /\.jpe?g$/i.test(key);
 }
 
@@ -108,8 +113,8 @@ export function createWasabiPhotosHandler({
       const { data: identity, error: authError } = await client.auth.getUser(token);
       if (authError || !identity?.user?.id) fail(401, 'La sesión no es válida. Vuelve a iniciar sesión.');
       const horseId = match[1];
-      // This credential is intentionally scoped to just Lucero, never other Wasabi horses.
-      if (horseId !== LUCERO_ID) fail(403, 'No tienes acceso a estas fotos.');
+      // Only explicitly approved horses and their own prefixes may be signed.
+      if (!PHOTO_PREFIXES[horseId]) fail(403, 'No tienes acceso a estas fotos.');
       const { data: horse, error: horseError } = await client.from('horses')
         .select('id, owner_id, photo_backend').eq('id', horseId).maybeSingle();
       if (horseError) fail(503, 'No se pudo comprobar el acceso al caballo.');
@@ -139,7 +144,7 @@ export function createWasabiPhotosHandler({
       if (error) fail(503, 'No se pudieron consultar las fotos privadas.');
       const rows = data || [];
       // Validate every database row before signing any of them, including metadata-only requests.
-      if (rows.some(row => row.horse_id !== horseId || !validLuceroKey(row.storage_path_enhanced)
+      if (rows.some(row => row.horse_id !== horseId || !validLuceroKey(row.storage_path_enhanced, horseId)
         || !validId(String(row.id)) || !timestamp(row.captured_at)))
         fail(503, 'Las rutas de las fotos requieren revisión.');
       let sign;

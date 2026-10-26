@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { EventEmitter } from 'node:events';
 import test from 'node:test';
-import { createWasabiPhotosHandler, LUCERO_ID, WASABI_SCOPE } from '../services/wasabi-photos/handler.mjs';
+import { createWasabiPhotosHandler, LUCERO_ID, THUNDER_ID, PHOTO_PREFIXES, WASABI_SCOPE } from '../services/wasabi-photos/handler.mjs';
 
 const ownerId = '00000000-0000-4000-8000-000000000001';
 const captured = '2026-10-26T10:00:00.000Z';
@@ -37,7 +37,7 @@ function fixture({
           abortSignal(signal) { trace.signal = signal; return q; },
           async maybeSingle() {
             return { error: null, data: table === 'horses'
-              ? horseVisible ? { id: LUCERO_ID, owner_id: horseOwner, photo_backend: 'wasabi' } : null
+              ? horseVisible ? { id: trace.filters.find(f => f[1] === 'id')?.[2], owner_id: horseOwner, photo_backend: 'wasabi' } : null
               : profile };
           },
           then(resolve, reject) {
@@ -118,6 +118,19 @@ test('hidden or other horses never receive signed URLs', async () => {
   const other = fixture();
   assert.equal((await other.request('', 'Bearer fixture-session', ownerId)).status, 403);
   assert.equal(hidden.signatures.length + other.signatures.length, 0);
+});
+
+test('Thunder signs only its own prefix; neither horse can sign the other camera JPEG', async () => {
+  const thunderRow = { ...row, horse_id: THUNDER_ID, storage_path_enhanced: PHOTO_PREFIXES[THUNDER_ID] + 'capture.jpg' };
+  const thunder = fixture({ rows: [thunderRow] });
+  assert.equal((await thunder.request('', 'Bearer fixture-session', THUNDER_ID)).status, 200);
+  assert(thunder.signatures[0].startsWith(PHOTO_PREFIXES[THUNDER_ID]));
+  for (const [horse, bad] of [[THUNDER_ID, { ...row, horse_id: THUNDER_ID }],
+    [LUCERO_ID, { ...thunderRow, horse_id: LUCERO_ID }]]) {
+    const f = fixture({ rows: [bad] });
+    assert.equal((await f.request('', 'Bearer fixture-session', horse)).status, 503);
+    assert.equal(f.signatures.length, 0);
+  }
 });
 
 test('malformed limits, arbitrary paths and caller-supplied storage configuration are rejected', async () => {

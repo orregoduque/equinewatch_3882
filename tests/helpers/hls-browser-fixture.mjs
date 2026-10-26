@@ -4,8 +4,9 @@ import { resolve } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { StreamWindow } from '../../services/hls-pilot/stream-window.mjs';
 
-export async function installPilotFixture(page, { authorizationDelayMs = 0, deny = false, forceMse = false, live = false } = {}) {
-  const uid = '00000000-0000-4000-8000-000000000001';
+export async function installPilotFixture(page, { authorizationDelayMs = 0, deny = false, forceMse = false, live = false,
+  userId = '00000000-0000-4000-8000-000000000001' } = {}) {
+  const uid = userId;
   let liveWindow;
   let syncLive = () => {};
   if (live) {
@@ -56,10 +57,12 @@ export async function installPilotFixture(page, { authorizationDelayMs = 0, deny
       ready: true, segments: 12, bufferedBytes: 1000000, lastReceivedAt: new Date().toISOString(),
       ...(liveWindow?.status() || {}),
     }] }); }
-    if (path.includes('/session/')) {
+    const horseSession = path.match(/\/horses\/([^/]+)\/session$/);
+    if (path.includes('/session/') || horseSession) {
       await new Promise(resolve => setTimeout(resolve, authorizationDelayMs));
       return deny ? json({ error: 'No tienes acceso a esta cámara.' }, 403)
-        : json({ ready: true, expiresAt: Date.now() + 90_000, playbackUrl: '/api/hls-pilot/media/synthetic/index.m3u8' });
+        : json({ ready: true, horseId: horseSession?.[1] || 'fixture', cameraId: 'synthetic',
+          expiresAt: Date.now() + 90_000, playbackUrl: '/api/hls-pilot/media/synthetic/index.m3u8' });
     }
     if (path.endsWith('/status')) { syncLive(); return json(liveWindow?.status() || { ready: true }); }
     const name = path.split('/').at(-1);

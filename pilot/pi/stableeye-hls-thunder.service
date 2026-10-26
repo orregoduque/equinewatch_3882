@@ -1,0 +1,30 @@
+[Unit]
+Description=Stable Eye Thunder HLS publisher (independent outbound HTTPS)
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=stableeye
+Group=stableeye
+ExecStart=/usr/bin/python3 /opt/stableeye-thunder/pilot/pi/agent.py --config /etc/stableeye/hls-thunder.json
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=10
+RuntimeDirectory=stableeye-hls-thunder
+RuntimeDirectoryMode=0700
+UMask=0077
+MemoryMax=256M
+CPUQuota=100%
+TasksMax=32
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/run/stableeye-hls-thunder
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

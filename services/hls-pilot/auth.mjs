@@ -15,6 +15,7 @@ export function validateConfig(config) {
     throw new Error('Configurar Supabase Auth HTTPS y su clave pública.');
   for (const id of config.adminUserIds || []) if (!uuid.test(id)) throw new Error('UUID admin inválido.');
   const ids = new Set();
+  const horseIds = new Set();
   const deviceKeys = new Set();
   for (const camera of config.cameras) {
     if (!cameraIdPattern.test(camera.id) || ids.has(camera.id)
@@ -22,6 +23,8 @@ export function validateConfig(config) {
       || typeof camera.horseId !== 'string' || !camera.horseId
       || !/^[a-f0-9]{64}$/.test(camera.publisherKeySha256 || ''))
       throw new Error('Registro de cámara inválido.');
+    if (horseIds.has(camera.horseId)) throw new Error('Cada caballo necesita una asignación de cámara única.');
+    horseIds.add(camera.horseId);
     if (deviceKeys.has(camera.publisherKeySha256)) throw new Error('Cada cámara necesita una credencial de publicación distinta.');
     if (camera.publisherKeySha256 === config.appProxyKeySha256)
       throw new Error('El proxy y el dispositivo necesitan credenciales distintas.');

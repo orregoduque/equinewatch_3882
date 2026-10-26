@@ -1,4 +1,4 @@
-# Fotos privadas de Lucero
+# Fotos privadas de Lucero y Thunder
 
 La Raspberry, sus servicios de fotos y vídeo, el bucket privado, Versioning y
 Object Lock no se cambian. No se implementan escrituras, borrados, lifecycle ni
@@ -7,9 +7,9 @@ migración de fotografías. Los demás caballos conservan `images` y Supabase St
 ## Antes de conectar
 
 1. En Wasabi, crear una identidad IAM **nueva y distinta de la Raspberry**.
-   Adjuntar únicamente `iam-replit-lucero-readonly.json` de este directorio.
+   Adjuntar únicamente `iam-replit-two-horses-readonly.json` de este directorio.
    No adjuntar otras políticas que amplíen sus permisos. El JSON concede solo
-   `s3:GetObject` para el prefijo de Lucero; no concede listado, subida ni borrado.
+   `s3:GetObject` para los dos prefijos; no concede listado, subida ni borrado.
    La app no puede crear esta identidad sin acceso administrativo a Wasabi.
 2. Guardar por el formulario seguro de Replit Secrets:
    `WASABI_ACCESS_KEY_ID`, `WASABI_SECRET_ACCESS_KEY`.
@@ -37,7 +37,10 @@ de ese UID sea un `admin` / `caretaker` activo en `user_profiles`.
 No utiliza roles del navegador ni `user_metadata`. Una fila visible de
 `images_wasabi` no basta para autorizar, aunque exista SELECT anon.
 
-La credencial queda restringida al caballo Lucero y al prefijo del brief.
+La credencial queda restringida a los prefijos de Lucero (108) y Thunder (109).
+El backend vincula cada caballo exclusivamente con su propio prefijo.
+Para ampliar la política original de Lucero, seguir `pilot/TWO-CAMERAS.md`:
+no rotar claves ni cambiar la credencial de la Raspberry para añadir Thunder.
 El servidor obtiene cada key de la base, valida **todas** las filas y firma
 localmente GET por diez minutos. No descarga JPEGs ni hace HEAD a Wasabi.
 Respuestas: `Cache-Control: private, no-store`, `Vary: Authorization`.

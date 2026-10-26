@@ -6,6 +6,7 @@ const base = process.argv[2];
 if (!base) throw Error('Provide development preview URL');
 const browser = await chromium.launch({ executablePath: '/repl/tools/bin/chromium', args: ['--no-sandbox'] });
 const lucero = 'a95f853c-e90b-4b6d-a4ea-f25cfa317119';
+const thunder = 'd826a274-58ea-4a55-8fd2-1d4c78222ab1';
 const legacy = '00000000-0000-4000-8000-000000000010';
 const uid = '00000000-0000-4000-8000-000000000001';
 const prefix = 'stable-eye/97e3674b-31ab-5373-8a21-aa8187e6a17f/node_108/';
@@ -15,12 +16,14 @@ try {
   const page = await context.newPage(), apiQueries = [], imageGets = [], restImages = [], errors = [];
   let newest = 240, offset = 0, serial = 0;
   const records = new Map();
-  const photo = (id, at = new Date(Date.now() - (240 - id) * 10000).toISOString()) => {
-    const row = { id, horse_id: lucero, captured_at: at, storage_path_enhanced: prefix + id + '.jpg', source: 'wasabi' };
-    records.set(String(id), row);
+  const photo = (id, at = new Date(Date.now() - (240 - id) * 10000).toISOString(), horse = lucero) => {
+    const row = { id, horse_id: horse, captured_at: at,
+      storage_path_enhanced: (horse === thunder ? prefix.replace('node_108/', 'node_109/') : prefix) + id + '.jpg', source: 'wasabi' };
+    records.set(`${horse}:${id}`, row);
     return row;
   };
   Array.from({ length: 240 }, (_, index) => photo(240 - index));
+  Array.from({ length: 7 }, (_, index) => photo(7 - index, new Date(Date.now() - index * 10000).toISOString(), thunder));
   page.on('pageerror', error => errors.push(error.message));
   await installPilotFixture(page);
   await page.addInitScript(() => {
@@ -36,6 +39,7 @@ try {
       return route.fulfill({ contentType: 'image/png', body: pixel });
     if (url.pathname.endsWith('/horses')) return json([
       { id: lucero, owner_id: uid, name: 'Lucero fixture', photo_backend: 'wasabi', is_active: true, created_at: new Date().toISOString() },
+      { id: thunder, owner_id: uid, name: 'Thunder fixture', photo_backend: 'wasabi', is_active: true, created_at: new Date().toISOString() },
       { id: legacy, owner_id: uid, name: 'Legacy fixture', photo_backend: 'supabase', is_active: true, created_at: new Date().toISOString() },
     ]);
     if (url.pathname.endsWith('/images')) {
@@ -48,18 +52,20 @@ try {
   });
   await page.route('**/api/horses/*/photos?*', async route => {
     const params = new URL(route.request().url()).searchParams;
+    const horse = new URL(route.request().url()).pathname.split('/')[3];
     apiQueries.push(params);
     assert(route.request().headers().authorization?.startsWith('Bearer '), 'private API receives a session, never just local role');
     let rows;
     if (params.has('ids')) {
-      rows = params.get('ids').split(',').map(id => records.get(id)).filter(Boolean).map(row => ({
+      rows = params.get('ids').split(',').map(id => records.get(`${horse}:${id}`)).filter(Boolean).map(row => ({
         ...row, imageUrl: `https://s3.us-east-1.wasabisys.com/equinewatch-photos/${row.storage_path_enhanced}?X-Amz-Signature=fixture-${++serial}`,
         expiresAt: new Date(Date.now() + offset + 600000).toISOString(),
       }));
     } else if (params.has('from')) {
-      rows = [1001, 1002, 1003].map((id, i) => photo(id, new Date(Date.parse(params.get('from')) + i * 10000).toISOString()));
+      rows = [1001, 1002, 1003].map((id, i) => photo(id, new Date(Date.parse(params.get('from')) + i * 10000).toISOString(), horse));
     } else {
-      rows = Array.from({ length: 240 }, (_, i) => records.get(String(newest - i))).filter(Boolean);
+      rows = Array.from({ length: horse === thunder ? 7 : 240 }, (_, i) =>
+        records.get(`${horse}:${(horse === thunder ? 7 : newest) - i}`)).filter(Boolean);
       if (params.has('since')) rows = rows.filter(row => row.captured_at >= params.get('since'));
     }
     return route.fulfill({ contentType: 'application/json', headers: { 'Cache-Control': 'private, no-store' },
@@ -107,6 +113,14 @@ try {
   await page.getByRole('button', { name: 'Ampliar', exact: true }).click();
   assert.equal(await page.getByRole('dialog', { name: 'Foto ampliada' }).locator('img').getAttribute('src'), await main.getAttribute('src'));
   await page.keyboard.press('Escape');
+  await page.getByRole('button', { name: /Thunder fixture/ }).click();
+  await page.waitForFunction(() => document.querySelector('img[fetchpriority="high"]')?.src.includes('/node_109/7.jpg?'));
+  assert.equal(await page.locator('img[src*="node_108"]').count(), 0, 'Thunder never displays Lucero JPEGs, including overlapping IDs');
+  await page.getByRole('button', { name: /Lucero fixture/ }).click();
+  await page.getByRole('button', { name: /Thunder fixture/ }).click();
+  await page.waitForFunction(() => document.querySelector('img[fetchpriority="high"]')?.src.includes('/node_109/7.jpg?'));
+  await page.waitForTimeout(300);
+  assert.equal(await page.locator('img[src*="node_108"]').count(), 0);
   const privateReads = apiQueries.length;
   await page.getByRole('button', { name: /Legacy fixture/ }).click();
   await page.waitForFunction(() => document.querySelector('img[fetchpriority="high"]')?.src.includes('/object/public/images/legacy/1.jpg'));
@@ -126,6 +140,6 @@ try {
   assert.deepEqual(errors, []);
   console.log(JSON.stringify({ mobile: '390x844', passed: true, fixtureOnly: true, realWasabiGetVerified: false,
     realAuthSessionVerified: false, newCapture: true, selectiveSigning: true, renewal: true, historyRenewal: true,
-    signedImageBrowserGets: imageGets.length, legacyPreserved: true }));
+    signedImageBrowserGets: imageGets.length, twoWasabiHorses: true, rapidHorseSwitch: true, legacyPreserved: true }));
   await context.close();
 } finally { await browser.close(); }

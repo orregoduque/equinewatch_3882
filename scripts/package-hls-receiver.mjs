@@ -7,6 +7,7 @@ await mkdir(`${directory}/services/hls-pilot`, { recursive: true });
 for (const name of ['auth.mjs', 'receiver.mjs', 'stream-window.mjs', 'proxy-receiver.mjs'])
   await copyFile(`services/hls-pilot/${name}`, `${directory}/services/hls-pilot/${name}`);
 await copyFile('pilot/RECEIVER-PUBLISH.md', `${directory}/README.md`);
+await copyFile('pilot/TWO-CAMERAS.md', `${directory}/TWO-CAMERAS.md`);
 await writeFile(`${directory}/package.json`, JSON.stringify({
   name: 'stableeye-private-hls-receiver', private: true, type: 'module',
   engines: { node: '>=20' },
