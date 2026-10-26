@@ -369,12 +369,12 @@ export function startPilotPlayback(
         if (video.dataset) video.dataset.liveEngine = "mse";
         const player = new Hls({
           enableWorker: false,
-          lowLatencyMode: false,
+          lowLatencyMode: true,
           // Seconds, not multiples of the receiver's conservative TARGETDURATION.
           liveSyncDuration: 3,
           liveMaxLatencyDuration: 12,
           liveSyncOnStallIncrease: 1,
-          maxLiveSyncPlaybackRate: 1.01,
+          maxLiveSyncPlaybackRate: 1.05,
           maxBufferLength: 8,
           maxMaxBufferLength: 12,
           backBufferLength: 4,
