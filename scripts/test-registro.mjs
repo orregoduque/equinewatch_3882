@@ -100,9 +100,13 @@ async function setup({
     try { return await json(rows.filter(row => row.horse_id === horseId).slice(offset, offset + limit)); }
     catch { /* Abort on a deliberate horse switch is expected. */ }
   });
+  // Arm the listener before navigation; a fast request can precede DOMContentLoaded.
+  const initialChecksRequest = slow
+    ? page.waitForRequest(request => request.url().includes('/rest/v1/checks'))
+    : null;
   await page.goto(`${base}/registro?horseId=${requested}`, { waitUntil: 'domcontentloaded' });
   await page.getByRole('heading', { name: 'Registro', exact: true }).waitFor();
-  return { context, page, errors, requests, inserted };
+  return { context, page, errors, requests, inserted, initialChecksRequest };
 }
 
 async function assertNoOverflow(page) {
@@ -196,7 +200,7 @@ try {
   await finish(refreshError, 'confirmed-save-distinct-from-failed-refresh');
 
   const stale = await setup({ slow: true });
-  await stale.page.waitForRequest(request => request.url().includes('/rest/v1/checks'));
+  await stale.initialChecksRequest;
   await stale.page.getByRole('combobox', { name: 'Selecciona un caballo' }).selectOption(second);
   await stale.page.getByText('Todavía no hay registros').waitFor();
   await stale.page.waitForTimeout(900);
