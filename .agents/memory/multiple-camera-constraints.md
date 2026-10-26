@@ -31,3 +31,12 @@ Supabase user grants; the prior founder-only restriction remains in force.
 authorization and real UUIDs before adding other viewers. Separate real camera
 acceptance from synthetic multi-camera tests; preparing a player is not evidence
 that the Raspberry is publishing its stream.
+
+The user confirmed that Live video works for both Lucero and Thunder on
+2026-10-26.
+
+**Why:** This is user-observed playback, not merely a passing synthetic test.
+
+**How to apply:** Do not continue describing Thunder as never verified to play.
+This confirmation does not provide click-to-motion measurements, real-world
+latency, concurrent-viewer results or long-running reliability evidence.
