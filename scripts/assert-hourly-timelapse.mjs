@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 export async function assertHourlyTimelapse(page) {
   await page.evaluate(() => {
     const NativeImage = window.Image;
+    window.restoreTimelapseImage = () => { window.Image = NativeImage; };
     const descriptor = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, 'src');
     window.timelapseBlobs = { current: 0, max: 0, total: 0 };
     const urls = new Set();
@@ -50,5 +51,6 @@ export async function assertHourlyTimelapse(page) {
   await modal.waitFor({ state: 'detached' });
   await page.waitForTimeout(150);
   assert.equal(await page.evaluate(() => window.timelapseBlobs.current), 0, 'close releases all preloaded frames');
+  await page.evaluate(() => window.restoreTimelapseImage());
   return { frames: times.length, medianFrameMs: Math.round(median), maxPreloadedFrames: await page.evaluate(() => window.timelapseBlobs.max) };
 }

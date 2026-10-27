@@ -165,13 +165,18 @@ export function createWasabiPhotosHandler({
         sign = await signerPromise;
       }
       const expiresAt = new Date(now() + TTL_SECONDS * 1000).toISOString();
-      const photos = await Promise.all(rows.map(async row => ({
+      const photos = await Promise.all(rows.map(async row => {
+        const photoUrl = sign && needsSignature(row) ? await sign(row.storage_path_enhanced) : undefined;
+        return {
         id: row.id, horse_id: horseId, captured_at: row.captured_at,
         storage_path_enhanced: row.storage_path_enhanced, source: 'wasabi',
-        ...(sign && needsSignature(row) ? {
-          imageUrl: await sign(row.storage_path_enhanced), expiresAt, version: previewVersion(row),
+        ...(photoUrl ? {
+          photo_url: photoUrl,
+          // Preserve the API contract for customer tabs opened before publishing.
+          imageUrl: photoUrl, expiresAt, version: previewVersion(row),
         } : {}),
-      })));
+      };
+      }));
       const last = rows.at(-1);
       const nextCursor = !parsed.ids && rows.length === cap && last
         ? Buffer.from(JSON.stringify({ horseId, from: parsed.from, to: parsed.to, since: parsed.since,

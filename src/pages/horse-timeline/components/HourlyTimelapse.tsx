@@ -78,8 +78,9 @@ export default function HourlyTimelapse({
         if (!photos.length) { setLoading(false); return; }
         buffer = new TimelapseFrames(photos.length, async (index, signal) => {
           const photo = photos[index];
-          const src = photo.source === 'wasabi'
-            ? (await loadPrivatePhoto(photo, viewer, signal)).imageUrl!
+          const authorized = photo.source === 'wasabi'
+            ? await loadPrivatePhoto(photo, viewer, signal) : null;
+          const src = authorized ? (authorized.photo_url || authorized.imageUrl)!
             : getImageUrl(photo.storage_path_enhanced);
           if (signal.aborted) throw new DOMException('Aborted', 'AbortError');
           const abort = () => release(src);

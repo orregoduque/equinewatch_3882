@@ -12,6 +12,8 @@ const thunder = 'd826a274-58ea-4a55-8fd2-1d4c78222ab1';
 const encantador = '0c8856e1-87eb-4abb-b145-28b070d34cf9';
 const ranchoPrefix = 'stable-eye/bda0c371-2ffc-567c-87d4-168726ebfda4/node_1/';
 const legacy = '00000000-0000-4000-8000-000000000010';
+const tessa = '00000000-0000-4000-8000-000000000011';
+const velvet = '00000000-0000-4000-8000-000000000012';
 const uid = '00000000-0000-4000-8000-000000000001';
 const prefix = 'stable-eye/97e3674b-31ab-5373-8a21-aa8187e6a17f/node_108/';
 const pixel = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=', 'base64');
@@ -52,6 +54,8 @@ try {
       { id: thunder, owner_id: uid, name: 'Thunder fixture', photo_backend: 'wasabi', is_active: true, created_at: new Date().toISOString() },
       { id: encantador, owner_id: uid, name: 'Encantador fixture', photo_backend: encantadorBackend, is_active: true, created_at: new Date().toISOString() },
       { id: legacy, owner_id: uid, name: 'Legacy fixture', photo_backend: 'supabase', is_active: true, created_at: new Date().toISOString() },
+      { id: tessa, owner_id: uid, name: 'Tessa fixture', photo_backend: 'supabase', is_active: true, created_at: new Date().toISOString() },
+      { id: velvet, owner_id: uid, name: 'Velvet fixture', photo_backend: 'supabase', is_active: true, created_at: new Date().toISOString() },
     ]); }
     if (url.pathname.endsWith('/images')) {
       restImages.push(url.search);
@@ -93,6 +97,9 @@ try {
         version: previewVersion(row),
       } : row);
     }
+    if (horse === encantador) rows = rows.map(({ imageUrl, ...row }) => ({
+      ...row, ...(imageUrl ? { photo_url: imageUrl } : {}),
+    }));
     return route.fulfill({ contentType: 'application/json', headers: { 'Cache-Control': 'private, no-store' },
       body: JSON.stringify({ photos: rows, nextCursor: null }) });
   });
@@ -209,6 +216,15 @@ try {
   await page.getByRole('button', { name: 'Revisar el día', exact: true }).click();
   await page.getByRole('button', { name: 'Revisar 08:00', exact: true }).click();
   await page.waitForFunction(() => document.querySelector('img[fetchpriority="high"]')?.src.includes('/node_1/1003.jpg?'));
+  await assertHourlyTimelapse(page);
+  assert.equal(restImages.length, publicReads, 'Encantador hourly/timelapse never fetch public.images');
+  for (const name of ['Tessa fixture', 'Velvet fixture']) {
+    const privateCount = apiQueries.length;
+    await page.getByRole('button', { name: new RegExp(name) }).click();
+    await page.waitForFunction(() => document.querySelector('img[fetchpriority="high"]')?.src.includes('/object/public/images/legacy/1.jpg'));
+    await page.waitForTimeout(100);
+    assert.equal(apiQueries.length, privateCount, `${name} never calls Wasabi`);
+  }
   await page.goto(`${base}/profile`);
   // The shared fixture seeds a session on every full navigation. A 204 prevents
   // logout's location.href reload from creating a brand-new synthetic login.

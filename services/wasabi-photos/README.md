@@ -1,6 +1,6 @@
 # Fotos privadas de Lucero, Thunder y soporte preparado para Encantador
 
-## Encantador / Rancho: soporte preparado, migración sin activar
+## Encantador / Rancho: selección por photo_backend
 
 El catálogo admite el caballo `0c8856e1-87eb-4abb-b145-28b070d34cf9`
 exclusivamente bajo
@@ -8,12 +8,15 @@ exclusivamente bajo
 en `equinewatch-photos`, `us-east-1`, endpoint
 `https://s3.us-east-1.wasabisys.com`.
 
-No activar ni actualizar `horses.photo_backend` desde esta preparación:
-Encantador continúa en Supabase hasta la migración coordinada.
+El usuario confirmó que Encantador ya tiene `horses.photo_backend = 'wasabi'`.
+La app lee ese campo; no fuerza un origen por nombre ni lo actualiza desde código.
 Con `photo_backend = 'supabase'`, la UI conserva `images` y la API privada
 rechaza el acceso Wasabi con 409. Cuando se active externamente como `wasabi`,
 la UI existente consultará `images_wasabi` por caballo/captured_at, manteniendo
 la galería de 20, actualización cada 10 segundos y renovación anticipada.
+La API entrega `photo_url` firmado por el servidor y mantiene `imageUrl` como
+alias compatible con pestañas de clientes anteriores. Ninguno se construye
+concatenando una ruta de Wasabi con Storage de Supabase.
 La revisión por hora y el timelapse utilizan el mismo origen autorizado.
 
 `storage_path_raw` y `storage_path_enhanced` pueden ser iguales: solo se firma
@@ -31,8 +34,8 @@ Antes de la prueba real, un operador debe:
    credenciales publicadoras, bucket público ni cambio de claves de la app.
    Este archivo es una política preparada; no se aplica automáticamente.
 3. Verificar la primera subida real y su metadata asociada a Encantador.
-4. Coordinar la activación de `photo_backend` solo cuando lectura/subida estén
-   listas y se autorice la migración; no se incluye SQL de actualización.
+4. Si el campo todavía no está activo en otro entorno, coordinar su activación
+   solo con lectura/subida verificadas; no se incluye SQL de actualización.
 5. Probar con sesiones reales permitida/no permitida, GET JPEG 200,
    siguiente captura en 10 segundos y renovación tras suspensión/expiración.
 

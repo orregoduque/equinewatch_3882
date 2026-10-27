@@ -25,7 +25,7 @@ export default function TimelineThumbnail({
     const controller = new AbortController();
     setPrivateFailed(false);
     loadPrivatePhoto(privateImage, viewer, controller.signal)
-      .then(image => { if (!controller.signal.aborted) setPrivateSrc(image.imageUrl!); })
+      .then(image => { if (!controller.signal.aborted) setPrivateSrc((image.photo_url || image.imageUrl)!); })
       .catch(() => { if (!controller.signal.aborted) { setPrivateSrc(''); setPrivateFailed(true); } });
     return () => controller.abort();
   }, [nearViewport, enabled, privateImage?.id, privateImage?.horse_id,

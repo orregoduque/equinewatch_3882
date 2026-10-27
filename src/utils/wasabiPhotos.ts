@@ -3,7 +3,7 @@ import type { CameraImage, HorseViewer } from './supabase';
 
 type PrivateRow = {
   id: number | string; horse_id: string; captured_at: string; storage_path_enhanced: string;
-  imageUrl?: string; expiresAt?: string; version?: string;
+  photo_url?: string; imageUrl?: string; expiresAt?: string; version?: string;
 };
 export class PrivatePhotoError extends Error {
   constructor(message: string, public status: number) { super(message); }
@@ -97,6 +97,11 @@ export function createWasabiPhotoReader(
       }
       if (!Array.isArray(body.photos) || body.photos.some((row: PrivateRow) => row.horse_id !== horseId))
         throw new PrivatePhotoError('Respuesta de fotos privadas inválida.', 503);
+      // photo_url is signed by our authenticated server, never a public Storage URL.
+      // Accept legacy imageUrl responses while server/client releases overlap.
+      body.photos = body.photos.map((row: PrivateRow) => ({
+        ...row, imageUrl: row.photo_url || row.imageUrl,
+      }));
       return body as { photos: PrivateRow[]; nextCursor: string | null };
     };
     try {
@@ -209,6 +214,7 @@ function toCameraImage(row: PrivateRow): CameraImage {
     id: row.id, horse_id: row.horse_id, source: 'wasabi', captured_at: row.captured_at,
     created_at: row.captured_at, uploaded_at: row.captured_at,
     storage_path_enhanced: row.storage_path_enhanced, image_number: 0,
-    is_processed: true, notes: null, imageUrl: row.imageUrl, expiresAt: row.expiresAt,
+    is_processed: true, notes: null, photo_url: row.imageUrl,
+    imageUrl: row.imageUrl, expiresAt: row.expiresAt,
   };
 }

@@ -183,6 +183,8 @@ test('Encantador permits the owner, active staff, and one JPEG shared by raw/enh
     const response = await f.request('?limit=20&preview=1', 'Bearer fixture-session', ENCANTADOR_ID);
     assert.equal(response.status, 200);
     assert.equal(response.body.photos[0].horse_id, ENCANTADOR_ID);
+    assert.equal(response.body.photos[0].photo_url, response.body.photos[0].imageUrl);
+    assert(response.body.photos[0].photo_url.startsWith('https://s3.us-east-1.wasabisys.com/'));
     assert.deepEqual(f.signatures, [key]);
     const query = f.queries.find(q => q.table === 'images_wasabi');
     assert(query.filters.some(f => f[1] === 'horse_id' && f[2] === ENCANTADOR_ID));

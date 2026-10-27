@@ -41,6 +41,7 @@ export type CameraImage = Omit<Pick<HorseImage,
     source?: 'wasabi';
     captured_at?: string;
     imageUrl?: string;
+  photo_url?: string;
     expiresAt?: string;
   };
 

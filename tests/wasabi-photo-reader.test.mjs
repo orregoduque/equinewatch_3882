@@ -9,7 +9,7 @@ const compiled = ts.transpileModule(readFileSync('src/utils/wasabiPhotos.ts', 'u
 }).outputText;
 const horseId = 'a95f853c-e90b-4b6d-a4ea-f25cfa317119';
 const prefix = 'stable-eye/97e3674b-31ab-5373-8a21-aa8187e6a17f/node_108/';
-function fixture() {
+function fixture(urlField = 'imageUrl') {
   const api = {}, requests = [];
   let time = Date.parse('2026-10-26T10:00:00Z'), listener, version = 0;
   let session = { user: { id: 'owner' }, access_token: 'fixture-token-owner' };
@@ -31,7 +31,7 @@ function fixture() {
       ...row,
       ...(params.has('ids') || (params.get('preview') === '1'
         && row === preview && previewVersion(row) !== params.get('cached')) ? {
-        imageUrl: `https://s3.us-east-1.wasabisys.com/equinewatch-photos/${row.storage_path_enhanced}?signature=fixture-${++version}`,
+        [urlField]: `https://s3.us-east-1.wasabisys.com/equinewatch-photos/${row.storage_path_enhanced}?signature=fixture-${++version}`,
         expiresAt: new Date(time + 600000).toISOString(),
         version: previewVersion(row),
       } : {}),
@@ -130,6 +130,14 @@ test('reader forwards bounded pagination/hour options without modifying signed U
   assert.equal(f.requests[0].params.get('preview'), '1');
   const imageUrl = new URL(result.images[0].imageUrl);
   assert.deepEqual([...imageUrl.searchParams.keys()], ['signature']);
+});
+
+test('photo_url-only responses are displayed and renewed without public Storage conversion', async () => {
+  const f = fixture('photo_url');
+  const first = (await f.read({ limit: 20 })).images[0];
+  assert(first.photo_url.startsWith('https://s3.us-east-1.wasabisys.com/'));
+  assert.equal(first.imageUrl, first.photo_url);
+  assert(!first.photo_url.includes('/storage/v1/'));
 });
 
 test('240-photo list signs only newest; visible thumbnails batch IDs and reuse session cache', async () => {
