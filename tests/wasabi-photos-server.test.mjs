@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import { EventEmitter } from 'node:events';
+import { readFileSync } from 'node:fs';
 import test from 'node:test';
-import { createWasabiPhotosHandler, LUCERO_ID, THUNDER_ID, PHOTO_PREFIXES, WASABI_SCOPE, previewVersion } from '../services/wasabi-photos/handler.mjs';
+import { createWasabiPhotosHandler, LUCERO_ID, THUNDER_ID, ENCANTADOR_ID, PHOTO_PREFIXES, WASABI_SCOPE, previewVersion } from '../services/wasabi-photos/handler.mjs';
 
 const ownerId = '00000000-0000-4000-8000-000000000001';
 const captured = '2026-10-26T10:00:00.000Z';
@@ -9,7 +10,7 @@ const row = { id: 17, horse_id: LUCERO_ID, captured_at: captured,
   storage_path_enhanced: WASABI_SCOPE.prefix + '2026/10/26/10-00-00.jpg' };
 function fixture({
   userId = ownerId, validSession = true, horseOwner = ownerId, profile = null,
-  rows = [row], horseVisible = true, env = {}, realSigner = false,
+  rows = [row], horseVisible = true, horseBackend = 'wasabi', env = {}, realSigner = false,
 } = {}) {
   const queries = [], signatures = [], validations = [];
   const clientFactory = (_url, _key, options) => {
@@ -37,7 +38,7 @@ function fixture({
           abortSignal(signal) { trace.signal = signal; return q; },
           async maybeSingle() {
             return { error: null, data: table === 'horses'
-              ? horseVisible ? { id: trace.filters.find(f => f[1] === 'id')?.[2], owner_id: horseOwner, photo_backend: 'wasabi' } : null
+              ? horseVisible ? { id: trace.filters.find(f => f[1] === 'id')?.[2], owner_id: horseOwner, photo_backend: horseBackend } : null
               : profile };
           },
           then(resolve, reject) {
@@ -151,6 +152,71 @@ test('hidden or other horses never receive signed URLs', async () => {
   const other = fixture();
   assert.equal((await other.request('', 'Bearer fixture-session', ownerId)).status, 403);
   assert.equal(hidden.signatures.length + other.signatures.length, 0);
+});
+
+test('three-horse reader policy keeps previous scopes and adds only Encantador GetObject', () => {
+  const policy = JSON.parse(readFileSync('services/wasabi-photos/iam-replit-three-horses-readonly.json', 'utf8'));
+  assert.equal(policy.Statement.length, 1);
+  assert.equal(policy.Statement[0].Effect, 'Allow');
+  assert.equal(policy.Statement[0].Action, 's3:GetObject');
+  assert.deepEqual(policy.Statement[0].Resource, [LUCERO_ID, THUNDER_ID, ENCANTADOR_ID]
+    .map(horse => `arn:aws:s3:::${WASABI_SCOPE.bucket}/${PHOTO_PREFIXES[horse]}*`));
+});
+
+test('Encantador is prepared but remains inaccessible through Wasabi until its backend is activated', async () => {
+  const f = fixture({ horseBackend: 'supabase' });
+  const response = await f.request('?limit=20&preview=1', 'Bearer fixture-session', ENCANTADOR_ID);
+  assert.equal(response.status, 409);
+  assert.equal(f.signatures.length, 0);
+  assert(!f.queries.some(q => q.table === 'images_wasabi'));
+});
+
+test('Encantador permits the owner, active staff, and one JPEG shared by raw/enhanced', async () => {
+  const key = PHOTO_PREFIXES[ENCANTADOR_ID] + '2026/10/27/capture.jpg';
+  const rows = [{ ...row, horse_id: ENCANTADOR_ID, storage_path_raw: key, storage_path_enhanced: key }];
+  for (const options of [
+    {},
+    { horseOwner: 'other', profile: { id: ownerId, role: 'admin', is_active: true } },
+    { horseOwner: 'other', profile: { id: ownerId, role: 'caretaker', is_active: true } },
+  ]) {
+    const f = fixture({ rows, ...options });
+    const response = await f.request('?limit=20&preview=1', 'Bearer fixture-session', ENCANTADOR_ID);
+    assert.equal(response.status, 200);
+    assert.equal(response.body.photos[0].horse_id, ENCANTADOR_ID);
+    assert.deepEqual(f.signatures, [key]);
+    const query = f.queries.find(q => q.table === 'images_wasabi');
+    assert(query.filters.some(f => f[1] === 'horse_id' && f[2] === ENCANTADOR_ID));
+    assert.equal(query.limit, 20);
+    assert.deepEqual(query.orders[0], ['captured_at', { ascending: false }]);
+  }
+});
+
+test('Encantador cannot be viewed using an ingestion identity, local role or inactive staff', async () => {
+  for (const options of [
+    { validSession: false },
+    { horseOwner: 'other' },
+    { horseOwner: 'other', profile: { id: ownerId, role: 'admin', is_active: false } },
+    { horseOwner: 'other', profile: { id: ownerId, role: 'horse_owner', is_active: true } },
+  ]) {
+    const f = fixture(options);
+    assert([401, 403].includes((await f.request('', 'Bearer fixture-session', ENCANTADOR_ID)).status));
+    assert.equal(f.signatures.length, 0);
+  }
+});
+
+test('all three horses reject cross-prefix and cross-horse metadata before any signature', async () => {
+  for (const horse of [LUCERO_ID, THUNDER_ID, ENCANTADOR_ID]) {
+    for (const other of [LUCERO_ID, THUNDER_ID, ENCANTADOR_ID].filter(id => id !== horse)) {
+      for (const bad of [
+        { ...row, horse_id: horse, storage_path_enhanced: PHOTO_PREFIXES[other] + 'capture.jpg' },
+        { ...row, horse_id: other, storage_path_enhanced: PHOTO_PREFIXES[horse] + 'capture.jpg' },
+      ]) {
+        const f = fixture({ rows: [bad] });
+        assert.equal((await f.request('', 'Bearer fixture-session', horse)).status, 503);
+        assert.equal(f.signatures.length, 0);
+      }
+    }
+  }
 });
 
 test('Thunder signs only its own prefix; neither horse can sign the other camera JPEG', async () => {

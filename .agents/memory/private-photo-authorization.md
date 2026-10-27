@@ -18,6 +18,20 @@ horse permission using trusted data, and sign only database-derived keys in the
 approved scope. Demo identities and local roles never authorize private objects.
 Do not change customer login or grant extra HLS access to make testing work.
 
+Encantador/Rancho is an explicitly approved additional photo scope, but its
+migration must stay unactivated during preparation. The user states Rancho is
+prepared but publisher credentials and a real upload test are still pending;
+Encantador remains on Supabase until coordinated activation.
+
+**Why:** Preparing reader support must not interrupt the existing photos or
+switch a horse to a source that is not yet verified. Its ingest identity does
+not grant viewing access. This request covers photos only, not Live video.
+
+**How to apply:** Do not update photo_backend, delete/rewrite the old history,
+reuse Rancho publisher credentials in Replit, or modify Lucero's bacata-mock.
+Preserve Lucero/Thunder read scopes when adding the exclusive Rancho prefix.
+Raw and enhanced may refer to the same single JPEG; do not require two objects.
+
 Real download/access tests require credentials for a separate readonly Wasabi
 identity and real permitted/denied Supabase sessions.
 

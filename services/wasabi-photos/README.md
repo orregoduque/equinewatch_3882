@@ -1,4 +1,44 @@
-# Fotos privadas de Lucero y Thunder
+# Fotos privadas de Lucero, Thunder y soporte preparado para Encantador
+
+## Encantador / Rancho: soporte preparado, migración sin activar
+
+El catálogo admite el caballo `0c8856e1-87eb-4abb-b145-28b070d34cf9`
+exclusivamente bajo
+`stable-eye/bda0c371-2ffc-567c-87d4-168726ebfda4/node_1/`
+en `equinewatch-photos`, `us-east-1`, endpoint
+`https://s3.us-east-1.wasabisys.com`.
+
+No activar ni actualizar `horses.photo_backend` desde esta preparación:
+Encantador continúa en Supabase hasta la migración coordinada.
+Con `photo_backend = 'supabase'`, la UI conserva `images` y la API privada
+rechaza el acceso Wasabi con 409. Cuando se active externamente como `wasabi`,
+la UI existente consultará `images_wasabi` por caballo/captured_at, manteniendo
+la galería de 20, actualización cada 10 segundos y renovación anticipada.
+La revisión por hora y el timelapse utilizan el mismo origen autorizado.
+
+`storage_path_raw` y `storage_path_enhanced` pueden ser iguales: solo se firma
+el JPEG de `storage_path_enhanced`, sin exigir otra variante ni transformar.
+No se lee ni se usa la identidad publicadora para autorizar visualizadores.
+Las sesiones reales del propietario/staff activo se comprueban en cada petición.
+El historial Supabase no se borra, copia, reescribe ni combina automáticamente.
+Live video no cambia: `bacata-mock` sigue perteneciendo a Lucero.
+
+Antes de la prueba real, un operador debe:
+1. Configurar la identidad publicadora de Rancho en Rancho, no en Replit.
+2. Ampliar la política de la identidad **lectora existente** de Replit siguiendo
+   `iam-replit-three-horses-readonly.json`, preservando los recursos de Lucero
+   y Thunder. Solo añade `s3:GetObject` al nuevo prefijo: sin escritura,
+   credenciales publicadoras, bucket público ni cambio de claves de la app.
+   Este archivo es una política preparada; no se aplica automáticamente.
+3. Verificar la primera subida real y su metadata asociada a Encantador.
+4. Coordinar la activación de `photo_backend` solo cuando lectura/subida estén
+   listas y se autorice la migración; no se incluye SQL de actualización.
+5. Probar con sesiones reales permitida/no permitida, GET JPEG 200,
+   siguiente captura en 10 segundos y renovación tras suspensión/expiración.
+
+Las pruebas automatizadas simulan ambas fases de Encantador y no demuestran
+credenciales, subida, permisos IAM ni descarga de objetos reales. Estos cambios
+no publican la app ni aplican políticas en Wasabi.
 
 La Raspberry, sus servicios de fotos y vídeo, el bucket privado, Versioning y
 Object Lock no se cambian. No se implementan escrituras, borrados, lifecycle ni
@@ -37,7 +77,9 @@ de ese UID sea un `admin` / `caretaker` activo en `user_profiles`.
 No utiliza roles del navegador ni `user_metadata`. Una fila visible de
 `images_wasabi` no basta para autorizar, aunque exista SELECT anon.
 
-La credencial queda restringida a los prefijos de Lucero (108) y Thunder (109).
+La política original de dos caballos restringe la credencial a los prefijos de
+Lucero (108) y Thunder (109). La ampliación preparada para Encantador se describe
+arriba y debe aplicarla el operador; el código no modifica permisos IAM.
 El backend vincula cada caballo exclusivamente con su propio prefijo.
 Para ampliar la política original de Lucero, seguir `pilot/TWO-CAMERAS.md`:
 no rotar claves ni cambiar la credencial de la Raspberry para añadir Thunder.

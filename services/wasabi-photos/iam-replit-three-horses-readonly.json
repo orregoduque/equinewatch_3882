@@ -1,0 +1,13 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Sid": "ReadLuceroThunderAndEncantadorPhotosOnly",
+    "Effect": "Allow",
+    "Action": "s3:GetObject",
+    "Resource": [
+      "arn:aws:s3:::equinewatch-photos/stable-eye/97e3674b-31ab-5373-8a21-aa8187e6a17f/node_108/*",
+      "arn:aws:s3:::equinewatch-photos/stable-eye/97e3674b-31ab-5373-8a21-aa8187e6a17f/node_109/*",
+      "arn:aws:s3:::equinewatch-photos/stable-eye/bda0c371-2ffc-567c-87d4-168726ebfda4/node_1/*"
+    ]
+  }]
+}

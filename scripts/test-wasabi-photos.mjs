@@ -9,6 +9,8 @@ if (!base) throw Error('Provide development preview URL');
 const browser = await chromium.launch({ executablePath: '/repl/tools/bin/chromium', args: ['--no-sandbox'] });
 const lucero = 'a95f853c-e90b-4b6d-a4ea-f25cfa317119';
 const thunder = 'd826a274-58ea-4a55-8fd2-1d4c78222ab1';
+const encantador = '0c8856e1-87eb-4abb-b145-28b070d34cf9';
+const ranchoPrefix = 'stable-eye/bda0c371-2ffc-567c-87d4-168726ebfda4/node_1/';
 const legacy = '00000000-0000-4000-8000-000000000010';
 const uid = '00000000-0000-4000-8000-000000000001';
 const prefix = 'stable-eye/97e3674b-31ab-5373-8a21-aa8187e6a17f/node_108/';
@@ -21,15 +23,17 @@ try {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true });
   const page = await context.newPage(), apiQueries = [], imageGets = [], restImages = [], errors = [];
   let newest = 240, offset = 0, serial = 0;
+  let encantadorBackend = 'supabase', encantadorNewest = 5;
   const records = new Map();
   const photo = (id, at = new Date(Date.now() - (240 - id) * 10000).toISOString(), horse = lucero) => {
     const row = { id, horse_id: horse, captured_at: at,
-      storage_path_enhanced: (horse === thunder ? prefix.replace('node_108/', 'node_109/') : prefix) + id + '.jpg', source: 'wasabi' };
+      storage_path_enhanced: (horse === encantador ? ranchoPrefix : horse === thunder ? prefix.replace('node_108/', 'node_109/') : prefix) + id + '.jpg', source: 'wasabi' };
     records.set(`${horse}:${id}`, row);
     return row;
   };
   Array.from({ length: 240 }, (_, index) => photo(240 - index));
   Array.from({ length: 7 }, (_, index) => photo(7 - index, new Date(Date.now() - index * 10000).toISOString(), thunder));
+  Array.from({ length: 5 }, (_, index) => photo(5 - index, new Date(Date.now() - index * 10000).toISOString(), encantador));
   page.on('pageerror', error => errors.push(error.message));
   await installPilotFixture(page);
   await page.addInitScript(() => {
@@ -46,12 +50,14 @@ try {
     if (url.pathname.endsWith('/horses')) { horseListReads++; return json([
       { id: lucero, owner_id: uid, name: 'Lucero fixture', photo_backend: 'wasabi', is_active: true, created_at: new Date().toISOString() },
       { id: thunder, owner_id: uid, name: 'Thunder fixture', photo_backend: 'wasabi', is_active: true, created_at: new Date().toISOString() },
+      { id: encantador, owner_id: uid, name: 'Encantador fixture', photo_backend: encantadorBackend, is_active: true, created_at: new Date().toISOString() },
       { id: legacy, owner_id: uid, name: 'Legacy fixture', photo_backend: 'supabase', is_active: true, created_at: new Date().toISOString() },
     ]); }
     if (url.pathname.endsWith('/images')) {
       restImages.push(url.search);
-      return json([{ id: 1, horse_id: legacy, created_at: new Date().toISOString(), uploaded_at: new Date().toISOString(),
-        storage_path_enhanced: 'legacy/1.jpg', image_number: 1, is_processed: true }]);
+      const horse = url.searchParams.get('horse_id')?.slice(3) || legacy;
+      return json([{ id: 1, horse_id: horse, created_at: new Date().toISOString(), uploaded_at: new Date().toISOString(),
+        storage_path_enhanced: horse === encantador ? 'encantador-history/1.jpg' : 'legacy/1.jpg', image_number: 1, is_processed: true }]);
     }
     if (url.pathname.endsWith('/user_profiles')) return json([{ id: uid, email: 'fixture@example.test' }]);
     return json([]);
@@ -74,8 +80,9 @@ try {
         ? Array.from({ length: 360 }, (_, i) => 1001 + i) : [1001, 1002, 1003];
       rows = ids.map((id, i) => photo(id, new Date(Date.parse(params.get('from')) + i * 10000).toISOString(), horse));
     } else {
-      rows = Array.from({ length: Math.min(horse === thunder ? 7 : 240, Number(params.get('limit'))) }, (_, i) =>
-        records.get(`${horse}:${(horse === thunder ? 7 : newest) - i}`)).filter(Boolean);
+      const latest = horse === encantador ? encantadorNewest : horse === thunder ? 7 : newest;
+      rows = Array.from({ length: Math.min(horse === encantador ? 5 : horse === thunder ? 7 : 240, Number(params.get('limit'))) }, (_, i) =>
+        records.get(`${horse}:${latest - i}`)).filter(Boolean);
       if (params.has('since')) rows = rows.filter(row => row.captured_at >= params.get('since'));
     }
     if (params.get('preview') === '1' && rows.length) {
@@ -180,6 +187,28 @@ try {
   assert(restImages.length > 0);
   await page.waitForTimeout(300);
   assert.equal(apiQueries.length, privateReads, 'previous private requests stop after horse change');
+  await page.getByRole('button', { name: /Encantador fixture/ }).click();
+  await page.waitForFunction(() => document.querySelector('img[fetchpriority="high"]')?.src.includes('/encantador-history/1.jpg'));
+  assert.equal(apiQueries.length, privateReads, 'Encantador stays on Supabase before coordinated migration');
+  // Simulated metadata change only: never updates the real database.
+  encantadorBackend = 'wasabi';
+  const publicReads = restImages.length;
+  await page.reload();
+  await page.waitForFunction(() => document.querySelector('img[fetchpriority="high"]')?.src.includes('/node_1/5.jpg?'));
+  await page.evaluate(delta => window.advancePhotoTestClock(delta), offset);
+  assert.equal(restImages.length, publicReads, 'Wasabi Encantador does not fetch legacy metadata');
+  assert.equal(await page.locator('img[src*="node_108"],img[src*="node_109"]').count(), 0);
+  photo(6, new Date(Date.now() + offset + 10000).toISOString(), encantador);
+  encantadorNewest = 6;
+  await page.waitForFunction(() => document.querySelector('img[fetchpriority="high"]')?.src.includes('/node_1/6.jpg?'), { timeout: 15000 });
+  const encantadorUrl = await main.getAttribute('src');
+  offset += 550000;
+  await page.evaluate(() => { window.advancePhotoTestClock(550000); window.dispatchEvent(new Event('focus')); });
+  await page.waitForFunction(oldUrl => document.querySelector('img[fetchpriority="high"]')?.src !== oldUrl, encantadorUrl);
+  assert((await main.getAttribute('src')).includes('/node_1/6.jpg?'), 'Encantador renewal keeps the newest capture');
+  await page.getByRole('button', { name: 'Revisar el día', exact: true }).click();
+  await page.getByRole('button', { name: 'Revisar 08:00', exact: true }).click();
+  await page.waitForFunction(() => document.querySelector('img[fetchpriority="high"]')?.src.includes('/node_1/1003.jpg?'));
   await page.goto(`${base}/profile`);
   // The shared fixture seeds a session on every full navigation. A 204 prevents
   // logout's location.href reload from creating a brand-new synthetic login.
@@ -192,6 +221,7 @@ try {
   assert.deepEqual(errors, []);
   console.log(JSON.stringify({ mobile: '390x844', passed: true, fixtureOnly: true, realWasabiGetVerified: false,
     realAuthSessionVerified: false, newCapture: true, selectiveSigning: true, renewal: true, historyRenewal: true,
-    signedImageBrowserGets: imageGets.length, twoWasabiHorses: true, rapidHorseSwitch: true, legacyPreserved: true }));
+    signedImageBrowserGets: imageGets.length, threeWasabiHorses: true, encantadorMigrationSimulated: true,
+    encantadorPollingAndRenewal: true, rapidHorseSwitch: true, legacyPreserved: true }));
   await context.close();
 } finally { await browser.close(); }
