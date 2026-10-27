@@ -43,6 +43,24 @@ Las pruebas automatizadas simulan ambas fases de Encantador y no demuestran
 credenciales, subida, permisos IAM ni descarga de objetos reales. Estos cambios
 no publican la app ni aplican políticas en Wasabi.
 
+### Diagnóstico de una descarga fallida de Encantador
+
+Si la imagen principal de Encantador falla en el navegador, la UI puede pedir
+`ids=<un ID>&limit=1&probe=1` a la misma API autorizada. Solo Encantador admite
+esta comprobación: sesión real, propietario/staff, backend y prefijo se validan
+igual que antes; no admite rutas arbitrarias ni hace listados.
+El servidor intenta un GetObject real acotado a 256 bytes y devuelve únicamente
+un estado (readable, access_denied, not_found o read_failed).
+El registro `[encantador-photo-read]` no incluye keys, identidades, credenciales,
+tokens ni URLs firmadas. El diagnóstico no realiza escrituras ni modifica IAM.
+Las consultas normales continúan firmando localmente sin leer Wasabi.
+
+Si devuelve 403, revisar el permiso de la **identidad lectora actual de Replit**
+y posibles Deny de bucket/política. El archivo
+`iam-replit-encantador-additional-readonly.json` puede adjuntarse como política
+adicional: solo concede GetObject al prefijo de Rancho. No reemplazar políticas
+anteriores, rotar claves, usar la credencial publicadora ni hacer público el bucket.
+
 La Raspberry, sus servicios de fotos y vídeo, el bucket privado, Versioning y
 Object Lock no se cambian. No se implementan escrituras, borrados, lifecycle ni
 migración de fotografías. Los demás caballos conservan `images` y Supabase Storage.

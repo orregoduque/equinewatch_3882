@@ -11,8 +11,9 @@ const row = { id: 17, horse_id: LUCERO_ID, captured_at: captured,
 function fixture({
   userId = ownerId, validSession = true, horseOwner = ownerId, profile = null,
   rows = [row], horseVisible = true, horseBackend = 'wasabi', env = {}, realSigner = false,
+  probeStatus = 206,
 } = {}) {
-  const queries = [], signatures = [], validations = [];
+  const queries = [], signatures = [], validations = [], probes = [];
   const clientFactory = (_url, _key, options) => {
     assert.equal(options.auth.persistSession, false);
     assert.equal(options.global.headers.Authorization, 'Bearer fixture-session');
@@ -53,13 +54,19 @@ function fixture({
   const handler = createWasabiPhotosHandler({
     env: { VITE_SUPABASE_ANON_KEY: 'fixture-public-key', ...env }, clientFactory,
     now: () => Date.parse(captured),
+    probe: async (_env, key, signal) => {
+      probes.push({ key, signal });
+      return { status: probeStatus, code: probeStatus === 403 ? 'access_denied'
+        : probeStatus === 404 ? 'not_found' : 'readable' };
+    },
+    log: () => {},
     ...(realSigner ? {} : { signerFactory: async () => async key => {
       signatures.push(key);
       return `${WASABI_SCOPE.endpoint}/${WASABI_SCOPE.bucket}/${key}?fixture-signature=temporary`;
     } }),
   });
   return {
-    queries, signatures, validations,
+    queries, signatures, validations, probes,
     async request(query = '', authorization = 'Bearer fixture-session', horse = LUCERO_ID, method = 'GET') {
       const response = new EventEmitter();
       response.writeHead = (status, headers) => Object.assign(response, { status, headers });
@@ -161,6 +168,51 @@ test('three-horse reader policy keeps previous scopes and adds only Encantador G
   assert.equal(policy.Statement[0].Action, 's3:GetObject');
   assert.deepEqual(policy.Statement[0].Resource, [LUCERO_ID, THUNDER_ID, ENCANTADOR_ID]
     .map(horse => `arn:aws:s3:::${WASABI_SCOPE.bucket}/${PHOTO_PREFIXES[horse]}*`));
+});
+
+test('additional Encantador policy never widens or replaces other horse resources', () => {
+  const policy = JSON.parse(readFileSync('services/wasabi-photos/iam-replit-encantador-additional-readonly.json', 'utf8'));
+  assert.equal(policy.Statement.length, 1);
+  assert.equal(policy.Statement[0].Effect, 'Allow');
+  assert.equal(policy.Statement[0].Action, 's3:GetObject');
+  assert.equal(policy.Statement[0].Resource, `arn:aws:s3:::${WASABI_SCOPE.bucket}/${PHOTO_PREFIXES[ENCANTADOR_ID]}*`);
+});
+
+test('Encantador diagnostic does a bounded authorized read without signing or exposing a URL', async () => {
+  const key = PHOTO_PREFIXES[ENCANTADOR_ID] + 'capture.jpg';
+  for (const status of [206, 403, 404]) {
+    const f = fixture({ probeStatus: status, rows: [{ ...row, horse_id: ENCANTADOR_ID, storage_path_enhanced: key }] });
+    const response = await f.request('?ids=17&limit=1&probe=1', 'Bearer fixture-session', ENCANTADOR_ID);
+    assert.equal(response.status, 200);
+    assert.equal(response.body.diagnostic.status, status);
+    assert.deepEqual(response.body.photos, []);
+    assert.equal(f.probes.length, 1);
+    assert.equal(f.probes[0].key, key);
+    assert.equal(f.signatures.length, 0);
+    assert(!JSON.stringify(response.body).includes(key));
+  }
+});
+
+test('photo diagnostic preserves session, ownership, source and prefix checks', async () => {
+  const good = { ...row, horse_id: ENCANTADOR_ID, storage_path_enhanced: PHOTO_PREFIXES[ENCANTADOR_ID] + 'capture.jpg' };
+  for (const options of [
+    { validSession: false }, { horseOwner: 'other' }, { horseBackend: 'supabase' },
+    { rows: [{ ...good, storage_path_enhanced: PHOTO_PREFIXES[LUCERO_ID] + 'capture.jpg' }] },
+  ]) {
+    const f = fixture({ rows: [good], ...options });
+    assert.notEqual((await f.request('?ids=17&probe=1', 'Bearer fixture-session', ENCANTADOR_ID)).status, 200);
+    assert.equal(f.probes.length, 0);
+  }
+  for (const horse of [LUCERO_ID, THUNDER_ID]) {
+    const f = fixture();
+    assert.equal((await f.request('?ids=17&probe=1', 'Bearer fixture-session', horse)).status, 400);
+    assert.equal(f.probes.length, 0);
+  }
+  for (const query of ['?probe=1', '?probe=0&ids=17', '?probe=1&ids=17,18', '?probe=1&ids=17&preview=1']) {
+    const f = fixture({ rows: [good] });
+    assert.equal((await f.request(query, 'Bearer fixture-session', ENCANTADOR_ID)).status, 400);
+    assert.equal(f.probes.length, 0);
+  }
 });
 
 test('Encantador is prepared but remains inaccessible through Wasabi until its backend is activated', async () => {

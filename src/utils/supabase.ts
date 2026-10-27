@@ -127,6 +127,8 @@ export const renewKnownPrivatePhotos = (images: CameraImage[], viewer: HorseView
   getPrivateReader().renew(images, viewer, signal, true);
 export const loadPrivatePhoto = (image: CameraImage, viewer: HorseViewer, signal?: AbortSignal) =>
   getPrivateReader().load(image, viewer, signal);
+export const diagnosePrivatePhoto = (image: CameraImage, viewer: HorseViewer, signal?: AbortSignal) =>
+  getPrivateReader().diagnose(image, viewer, signal);
 
 const privateRead = async (
   horseId: string, viewer: HorseViewer,

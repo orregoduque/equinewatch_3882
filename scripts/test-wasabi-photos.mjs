@@ -26,6 +26,7 @@ try {
   const page = await context.newPage(), apiQueries = [], imageGets = [], restImages = [], errors = [];
   let newest = 240, offset = 0, serial = 0;
   let encantadorBackend = 'supabase', encantadorNewest = 5;
+  let failEncantadorPhoto = false;
   const records = new Map();
   const photo = (id, at = new Date(Date.now() - (240 - id) * 10000).toISOString(), horse = lucero) => {
     const row = { id, horse_id: horse, captured_at: at,
@@ -71,6 +72,13 @@ try {
     const horse = new URL(route.request().url()).pathname.split('/')[3];
     apiQueries.push(params);
     assert(route.request().headers().authorization?.startsWith('Bearer '), 'private API receives a session, never just local role');
+    if (params.get('probe') === '1') {
+      assert.equal(horse, encantador);
+      assert.equal(params.get('ids').split(',').length, 1);
+      return route.fulfill({ contentType: 'application/json', body: JSON.stringify({
+        photos: [], nextCursor: null, diagnostic: { status: 403, code: 'access_denied' },
+      }) });
+    }
     let rows;
     if (params.has('ids')) {
       if (holdInitialThumbnails) await thumbnailGate;
@@ -105,6 +113,9 @@ try {
   });
   await context.route('https://s3.us-east-1.wasabisys.com/**', route => {
     imageGets.push({ method: route.request().method(), url: route.request().url() });
+    if (failEncantadorPhoto && new URL(route.request().url()).pathname.includes('/node_1/')) {
+      return route.fulfill({ status: 403, contentType: 'application/xml', body: '<Error><Code>AccessDenied</Code></Error>' });
+    }
     return route.fulfill({ contentType: 'image/png', body: pixel });
   });
   await page.goto(`${base}/horse-timeline?horseId=${lucero}`);
@@ -218,6 +229,14 @@ try {
   await page.waitForFunction(() => document.querySelector('img[fetchpriority="high"]')?.src.includes('/node_1/1003.jpg?'));
   await assertHourlyTimelapse(page);
   assert.equal(restImages.length, publicReads, 'Encantador hourly/timelapse never fetch public.images');
+  await page.getByRole('button', { name: 'Volver a en vivo', exact: true }).click();
+  failEncantadorPhoto = true;
+  photo(7, new Date(Date.now() + offset + 20000).toISOString(), encantador);
+  encantadorNewest = 7;
+  await page.getByRole('alert').filter({ hasText: 'Wasabi rechazó la lectura de Encantador (403)' }).waitFor({ timeout: 15000 });
+  assert(apiQueries.some(query => query.get('probe') === '1'));
+  assert.equal(restImages.length, publicReads, 'a denied JPEG never falls back to Supabase history');
+  failEncantadorPhoto = false;
   for (const name of ['Tessa fixture', 'Velvet fixture']) {
     const privateCount = apiQueries.length;
     await page.getByRole('button', { name: new RegExp(name) }).click();

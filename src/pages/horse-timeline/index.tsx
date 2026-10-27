@@ -7,7 +7,7 @@ import MobileNavigation from '../../components/ui/MobileNavigation';
 import Image from '../../components/AppImage';
 import Icon from '../../components/AppIcon';
 import { Observation, Horse } from './types';
-import { getImageUrl, CameraImage, renewPrivatePhotos, loadPrivatePhoto } from '../../utils/supabase';
+import { getImageUrl, CameraImage, renewPrivatePhotos, loadPrivatePhoto, diagnosePrivatePhoto } from '../../utils/supabase';
 import { useAccessibleHorses } from '../../hooks/useAccessibleHorses';
 import { watchHorseImages } from '../../utils/liveHorseImages';
 import TimelineLiveVideo from './components/TimelineLiveVideo';
@@ -139,6 +139,31 @@ const HorseTimeline: React.FC = () => {
   const mainPhotoKey = JSON.stringify([viewerKey, selectedHorseId, reviewSelection, activePhoto?.id, activePhoto?.imageVersion, activePhoto?.imageUrl]);
   const [settledMainPhotoKey, setSettledMainPhotoKey] = useState('');
   const [failedPrivatePhotoKey, setFailedPrivatePhotoKey] = useState('');
+  const [photoDiagnostic, setPhotoDiagnostic] = useState({ key: '', message: '' });
+  useEffect(() => {
+    // This diagnostic is scoped to Encantador, runs only after an actual image
+    // failure, and uses the same verified session and object authorization.
+    if (selectedHorseId !== '0c8856e1-87eb-4abb-b145-28b070d34cf9'
+      || !viewer || !activePhoto?.privateImage || failedPrivatePhotoKey !== mainPhotoKey) return;
+    const controller = new AbortController();
+    let active = true;
+    setPhotoDiagnostic({ key: mainPhotoKey, message: 'Comprobando la descarga en Wasabi…' });
+    diagnosePrivatePhoto(activePhoto.privateImage, viewer, controller.signal).then(result => {
+      if (!active) return;
+      const message = result.status === 403
+        ? 'Wasabi rechazó la lectura de Encantador (403). Revisa el permiso s3:GetObject de la identidad lectora para el prefijo de Rancho.'
+        : result.status === 404
+          ? 'Wasabi no encontró el archivo de esta captura (404). La ruta registrada debe coincidir con el objeto subido.'
+          : result.code === 'readable'
+            ? 'El servidor pudo leer el archivo en Wasabi. La descarga o decodificación de la imagen falló en el navegador.'
+            : 'No se pudo comprobar la descarga desde Wasabi. Vuelve a intentarlo.';
+      setPhotoDiagnostic({ key: mainPhotoKey, message });
+    }).catch(error => {
+      if (active) setPhotoDiagnostic({ key: mainPhotoKey, message: error instanceof Error
+        ? error.message : 'No se pudo comprobar la descarga.' });
+    });
+    return () => { active = false; controller.abort(); };
+  }, [failedPrivatePhotoKey, mainPhotoKey, selectedHorseId, viewerKey]);
   useEffect(() => {
     photoSelectionRequest.current++;
     photoSelectionAbort.current?.abort();
@@ -338,7 +363,8 @@ const HorseTimeline: React.FC = () => {
             )}
             {activePhoto?.privateImage && failedPrivatePhotoKey === mainPhotoKey && (
               <p role="alert" className="mb-4 text-sm text-amber-800">
-                No se pudo descargar esta foto privada. Selecciona otra foto o vuelve a intentarlo más tarde.
+                {photoDiagnostic.key === mainPhotoKey ? photoDiagnostic.message
+                  : 'No se pudo descargar esta foto privada. Selecciona otra foto o vuelve a intentarlo más tarde.'}
               </p>
             )}
             {isLoadingHorses || (reviewSelection ? hourly.loading : isLoading) ? (

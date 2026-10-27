@@ -5,6 +5,7 @@ type PrivateRow = {
   id: number | string; horse_id: string; captured_at: string; storage_path_enhanced: string;
   photo_url?: string; imageUrl?: string; expiresAt?: string; version?: string;
 };
+type PhotoDiagnostic = { status: number; code: string };
 export class PrivatePhotoError extends Error {
   constructor(message: string, public status: number) { super(message); }
 }
@@ -70,7 +71,9 @@ export function createWasabiPhotoReader(
   };
   const run = async <T,>(
     viewer: HorseViewer, signal: AbortSignal | undefined,
-    work: (request: (horseId: string, params: URLSearchParams) => Promise<{ photos: PrivateRow[]; nextCursor: string | null }>) => Promise<T>,
+    work: (request: (horseId: string, params: URLSearchParams) => Promise<{
+      photos: PrivateRow[]; nextCursor: string | null; diagnostic?: PhotoDiagnostic;
+    }>) => Promise<T>,
   ): Promise<T> => {
     const session = await establish(viewer);
     const controller = new AbortController();
@@ -102,7 +105,7 @@ export function createWasabiPhotoReader(
       body.photos = body.photos.map((row: PrivateRow) => ({
         ...row, imageUrl: row.photo_url || row.imageUrl,
       }));
-      return body as { photos: PrivateRow[]; nextCursor: string | null };
+      return body as { photos: PrivateRow[]; nextCursor: string | null; diagnostic?: PhotoDiagnostic };
     };
     try {
       const result = await work(request);
@@ -158,6 +161,13 @@ export function createWasabiPhotoReader(
     }
   };
   return {
+    async diagnose(image: CameraImage, viewer: HorseViewer, signal?: AbortSignal): Promise<PhotoDiagnostic> {
+      return run(viewer, signal, async request => {
+        const result = await request(image.horse_id, new URLSearchParams({ ids: String(image.id), probe: '1', limit: '1' }));
+        if (!result.diagnostic) throw new PrivatePhotoError('No se pudo comprobar la descarga.', 503);
+        return result.diagnostic;
+      });
+    },
     clear,
     load: (image: CameraImage, viewer: HorseViewer, signal?: AbortSignal): Promise<CameraImage> =>
       new Promise((resolve, reject) => {

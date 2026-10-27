@@ -33,7 +33,7 @@ export function validLuceroKey(key, horseId = LUCERO_ID) {
 }
 
 function parseQuery(search, horseId) {
-  const allowed = new Set(['limit', 'cursor', 'since', 'from', 'to', 'ids', 'metadata', 'preview', 'cached']);
+  const allowed = new Set(['limit', 'cursor', 'since', 'from', 'to', 'ids', 'metadata', 'preview', 'cached', 'probe']);
   for (const name of search.keys())
     if (!allowed.has(name) || search.getAll(name).length !== 1) fail(400, 'Consulta de fotos inválida.');
   const limit = Number(search.get('limit') || 240);
@@ -44,6 +44,10 @@ function parseQuery(search, horseId) {
     fail(400, 'Intervalo de fotos inválido.');
   if (since && (!timestamp(since) || from)) fail(400, 'Inicio de consulta inválido.');
   const ids = search.get('ids')?.split(',');
+  const probe = search.get('probe') === '1';
+  if (search.has('probe') && (!probe || horseId !== ENCANTADOR_ID || ids?.length !== 1
+    || search.has('metadata') || search.has('preview') || search.has('cached')))
+    fail(400, 'Diagnóstico inválido.');
   if (ids && (ids.length > 100 || !ids.every(validId) || from || since || search.has('cursor')))
     fail(400, 'Selección de fotos inválida.');
   if (search.has('metadata') && search.get('metadata') !== '1') fail(400, 'Consulta inválida.');
@@ -61,30 +65,58 @@ function parseQuery(search, horseId) {
         || cursor.since !== since || !timestamp(cursor.at) || !validId(cursor.id)) throw Error();
     } catch { fail(400, 'Cursor inválido.'); }
   }
-  return { limit, from, to, since, ids, cursor, preview, cached, metadataOnly: search.get('metadata') === '1' };
+  return { limit, from, to, since, ids, cursor, preview, cached, probe, metadataOnly: search.get('metadata') === '1' };
 }
 
 /** No S3 requests are made here: GetObjectCommand is signed locally, never sent. */
-async function productionSigner(env) {
+async function productionStorage(env) {
   for (const [name, expected] of [
     ['WASABI_REGION', WASABI_SCOPE.region], ['WASABI_ENDPOINT', WASABI_SCOPE.endpoint],
     ['WASABI_BUCKET', WASABI_SCOPE.bucket],
   ]) if (env[name] && env[name] !== expected) fail(503, 'Configuración de fotos privadas no disponible.');
   if (!env.WASABI_ACCESS_KEY_ID || !env.WASABI_SECRET_ACCESS_KEY)
     fail(503, 'Las fotos privadas todavía no están configuradas.');
-  const [{ S3Client, GetObjectCommand }, { getSignedUrl }] = await Promise.all([
-    import('@aws-sdk/client-s3'), import('@aws-sdk/s3-request-presigner'),
-  ]);
+  const { S3Client, GetObjectCommand } = await import('@aws-sdk/client-s3');
   const client = new S3Client({
     endpoint: WASABI_SCOPE.endpoint, region: WASABI_SCOPE.region, forcePathStyle: true,
     credentials: { accessKeyId: env.WASABI_ACCESS_KEY_ID, secretAccessKey: env.WASABI_SECRET_ACCESS_KEY },
   });
+  return { client, GetObjectCommand };
+}
+
+async function productionSigner(env) {
+  const { client, GetObjectCommand } = await productionStorage(env);
+  const { getSignedUrl } = await import('@aws-sdk/s3-request-presigner');
   return key => getSignedUrl(client,
     new GetObjectCommand({ Bucket: WASABI_SCOPE.bucket, Key: key }), { expiresIn: TTL_SECONDS });
 }
 
+/** One bounded real GET, never HEAD/list/write; callers already passed photo authorization. */
+async function productionProbe(env, key, signal) {
+  const { client, GetObjectCommand } = await productionStorage(env);
+  try {
+    const result = await client.send(new GetObjectCommand({
+      Bucket: WASABI_SCOPE.bucket, Key: key, Range: 'bytes=0-255',
+    }), { abortSignal: signal });
+    // Drain at most the requested range and never expose image bytes.
+    let bytes = 0;
+    for await (const chunk of result.Body) {
+      bytes += chunk.length;
+      if (bytes >= 256) { result.Body.destroy?.(); break; }
+    }
+    return { status: result.$metadata.httpStatusCode, code: 'readable' };
+  } catch (error) {
+    const status = error.$metadata?.httpStatusCode;
+    return {
+      status: Number.isInteger(status) ? status : 503,
+      code: status === 403 ? 'access_denied' : status === 404 ? 'not_found' : 'read_failed',
+    };
+  } finally { client.destroy(); }
+}
+
 export function createWasabiPhotosHandler({
   env = process.env, clientFactory = createClient, signerFactory = productionSigner, now = Date.now,
+  probe = productionProbe, log = console.info,
 } = {}) {
   // No auth/session clients are shared across users, and no signed URLs are logged/cached on the server.
   let signerPromise;
@@ -156,6 +188,14 @@ export function createWasabiPhotosHandler({
       if (rows.some(row => row.horse_id !== horseId || !validLuceroKey(row.storage_path_enhanced, horseId)
         || !validId(String(row.id)) || !timestamp(row.captured_at)))
         fail(503, 'Las rutas de las fotos requieren revisión.');
+      if (parsed.probe) {
+        if (rows.length !== 1) fail(404, 'Esta foto ya no está disponible en los metadatos.');
+        const diagnostic = await probe(env, rows[0].storage_path_enhanced, controller.signal);
+        // No identity, key, token, credentials, image bytes or signed URL is logged.
+        log('[encantador-photo-read]', JSON.stringify(diagnostic));
+        if (!controller.signal.aborted) reply(response, 200, { photos: [], nextCursor: null, diagnostic });
+        return true;
+      }
       const previewRow = ascending ? rows.at(-1) : rows[0];
       const needsSignature = row => !parsed.metadataOnly
         && (!parsed.preview || (row === previewRow && previewVersion(row) !== parsed.cached));
