@@ -7,7 +7,7 @@ import MobileNavigation from '../../components/ui/MobileNavigation';
 import Image from '../../components/AppImage';
 import Icon from '../../components/AppIcon';
 import { Observation, Horse } from './types';
-import { fetchHorseImages, getImageUrl, CameraImage, renewPrivatePhotos, loadPrivatePhoto } from '../../utils/supabase';
+import { getImageUrl, CameraImage, renewPrivatePhotos, loadPrivatePhoto } from '../../utils/supabase';
 import { useAccessibleHorses } from '../../hooks/useAccessibleHorses';
 import { watchHorseImages } from '../../utils/liveHorseImages';
 import TimelineLiveVideo from './components/TimelineLiveVideo';
@@ -16,15 +16,7 @@ import FullscreenPhoto from './components/FullscreenPhoto';
 import { useHourlyHorseImages } from '../../hooks/useHourlyHorseImages';
 import { localToday } from '../../utils/hourlyHorseImages';
 
-const VIDEO_DURATION_SECONDS = 120;
-const VIDEO_DURATION_MS = VIDEO_DURATION_SECONDS * 1000;
-const PHOTO_LIMIT = 240;
-const VIDEO_PRELOAD_FRAMES = 6;
-const formatVideoTime = (seconds: number) => {
-  const minutes = Math.floor(seconds / 60);
-  const remainingSeconds = String(seconds % 60).padStart(2, '0');
-  return `${minutes}:${remainingSeconds}`;
-};
+const PHOTO_LIMIT = 20;
 const mapHorseImagesToObservations = (
   images: CameraImage[],
   horseId: string,
@@ -51,7 +43,6 @@ const HorseTimeline: React.FC = () => {
   const requestedHorseId = searchParams.get('horseId') || '';
   const [selectedHorseId, setSelectedHorseId] = useState<string>('');
   const { horses: records, viewer, viewerKey, isLoading: isLoadingHorses, error: horseError } = useAccessibleHorses();
-  const videoRequestId = useRef(0);
   const photoStripRef = useRef<HTMLDivElement>(null);
   const photoSelectionRequest = useRef(0);
   const photoSelectionAbort = useRef<AbortController>();
@@ -71,14 +62,8 @@ const HorseTimeline: React.FC = () => {
     };
   }), [records]);
   const [observations, setObservations] = useState<Observation[]>([]);
-  const [videoObservations, setVideoObservations] = useState<Observation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isLoadingVideo, setIsLoadingVideo] = useState(false);
   const [selectedObservation, setSelectedObservation] = useState<Observation | null>(null);
-  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
-  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
-  const [currentVideoFrame, setCurrentVideoFrame] = useState(0);
-  const [videoProgress, setVideoProgress] = useState(0);
   const [refreshError, setRefreshError] = useState('');
   const [reviewSelection, setReviewSelection] = useState<{ day: string; hour: number } | null>(null);
   const [reviewDay, setReviewDay] = useState(localToday);
@@ -112,6 +97,7 @@ const HorseTimeline: React.FC = () => {
       horseId: selectedHorseId,
       viewer,
       limit: PHOTO_LIMIT,
+      captureOrder: true,
       photoBackend: records.find(row => row.id === selectedHorseId)?.photo_backend,
       onImages: (images) => {
         const realObservations = mapHorseImagesToObservations(
@@ -130,107 +116,9 @@ const HorseTimeline: React.FC = () => {
   }, [selectedHorseId, horses, viewerKey, reviewSelection !== null]);
 
   useEffect(() => {
-    videoRequestId.current += 1;
-    setIsVideoModalOpen(false);
-    setIsVideoPlaying(false);
-    setIsLoadingVideo(false);
-    setVideoObservations([]);
-    setCurrentVideoFrame(0);
-    setVideoProgress(0);
     setReviewSelection(null);
     setExpandedPhoto(null);
   }, [selectedHorseId, viewerKey]);
-
-  // Video playback effect - 2 minutes total, divided by number of photos
-  useEffect(() => {
-    if (!isVideoPlaying || videoObservations.length === 0) return;
-    
-    const frameInterval = VIDEO_DURATION_MS / videoObservations.length;
-    const progressInterval = 50; // Update progress every 50ms
-    
-    const frameTimer = setInterval(() => {
-      setCurrentVideoFrame((prev) => {
-        const next = prev + 1;
-        if (next >= videoObservations.length) {
-          setIsVideoPlaying(false);
-          setVideoProgress(100);
-          return prev;
-        }
-        return next;
-      });
-    }, frameInterval);
-    
-    const progressTimer = setInterval(() => {
-      setVideoProgress((prev) => {
-        const increment = (progressInterval / VIDEO_DURATION_MS) * 100;
-        const next = prev + increment;
-        return next >= 100 ? 100 : next;
-      });
-    }, progressInterval);
-    
-    return () => {
-      clearInterval(frameTimer);
-      clearInterval(progressTimer);
-    };
-  }, [isVideoPlaying, videoObservations.length]);
-
-  // Handle body scroll lock when video modal is open
-  useEffect(() => {
-    if (isVideoModalOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [isVideoModalOpen]);
-
-  const handleGenerateVideo = async () => {
-    const selectedHorse = horses.find((horse) => horse.id === selectedHorseId);
-    if (!viewer || !selectedHorse || isLoadingHorses) return;
-    const requestId = ++videoRequestId.current;
-    setIsVideoModalOpen(true);
-    setCurrentVideoFrame(0);
-    setVideoProgress(0);
-    setIsVideoPlaying(false);
-    setVideoObservations([]);
-    setIsLoadingVideo(true);
-
-    try {
-      let images = await fetchHorseImages(PHOTO_LIMIT, selectedHorseId, viewer);
-      if (images.some(image => image.source === 'wasabi')) images = await renewPrivatePhotos(images, viewer);
-      if (requestId !== videoRequestId.current) return;
-      setVideoObservations(
-        mapHorseImagesToObservations(
-          [...images].reverse(),
-          selectedHorseId,
-          selectedHorse?.name || 'Horse',
-        ),
-      );
-    } catch (error) {
-      if (requestId !== videoRequestId.current) return;
-      console.error('Error loading video photos:', error);
-      setVideoObservations([]);
-    } finally {
-      if (requestId === videoRequestId.current) setIsLoadingVideo(false);
-    }
-  };
-
-  const handlePlayVideo = () => {
-    if (videoObservations.length === 0) return;
-    setCurrentVideoFrame(0);
-    setVideoProgress(0);
-    setIsVideoPlaying(true);
-  };
-
-  const handleCloseVideo = () => {
-    videoRequestId.current += 1;
-    setIsVideoModalOpen(false);
-    setIsVideoPlaying(false);
-    setCurrentVideoFrame(0);
-    setVideoProgress(0);
-  };
 
   const selectedHorse = horses.find(h => h.id === selectedHorseId);
   const hourly = useHourlyHorseImages(selectedHorseId, viewer, viewerKey, reviewSelection,
@@ -267,7 +155,7 @@ const HorseTimeline: React.FC = () => {
       if (request === photoSelectionRequest.current) setRefreshError('No se pudo abrir la foto privada.');
     }
   };
-  // Explicitly selected/expanded photos may outlive the 240-photo live window.
+  // Explicitly selected/expanded photos may outlive the 20-photo live window.
   // Renew those objects too, without replacing the photo the user is inspecting.
   useEffect(() => {
     if (reviewSelection || !viewer) return;
@@ -523,16 +411,6 @@ const HorseTimeline: React.FC = () => {
                     <h3 className="text-base font-bold" style={{ color: '#40352C', fontFamily: 'Syne, sans-serif' }}>{reviewSelection ? 'Fotos de esta hora' : 'Recent Photos'}</h3>
                     <div className="flex items-center gap-2">
                       <span className="text-xs" style={{ color: 'rgba(64,53,44,0.5)' }}>{displayedObservations.length} fotos</span>
-                      {!reviewSelection && (
-                      <button
-                        onClick={handleGenerateVideo}
-                        className="min-h-[44px] flex items-center gap-2 px-3 py-2 rounded-xl text-white font-semibold text-sm transition-all duration-300 hover:opacity-80"
-                        style={{ backgroundColor: '#40352C' }}
-                      >
-                        <Icon name="Video" size={16} />
-                        Generate Video
-                      </button>
-                      )}
                     </div>
                   </div>
 
@@ -617,145 +495,6 @@ const HorseTimeline: React.FC = () => {
             alt={expandedPhoto.imageAlt} onClose={() => setExpandedPhoto(null)} />
         )}
 
-        {/* Video Modal */}
-        {isVideoModalOpen && selectedHorse && !isLoadingHorses && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl">
-            <div className="relative w-full max-w-4xl">
-              {/* Close Button */}
-              <button
-                onClick={handleCloseVideo}
-                className="absolute -top-12 right-0 min-h-[44px] min-w-[44px] p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
-              >
-                <Icon name="X" size={24} className="text-white" />
-              </button>
-
-              {/* Video Player Card */}
-              <div className="rounded-xl overflow-hidden" style={{ backgroundColor: '#ffffff', border: '1px solid rgba(64,53,44,0.15)' }}>
-                {/* Header */}
-                <div className="flex items-center justify-between px-6 py-4" style={{ backgroundColor: 'rgba(64,53,44,0.04)', borderBottom: '1px solid rgba(64,53,44,0.1)' }}>
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full overflow-hidden border-2" style={{ borderColor: 'rgba(64,53,44,0.2)' }}>
-                      <Image
-                        src={selectedHorse?.profileImage || ''}
-                        alt={selectedHorse?.name || ''}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-bold" style={{ color: '#40352C', fontFamily: 'Syne, sans-serif' }}>
-                        {selectedHorse?.name}'s Daily Recap
-                      </h3>
-                      <p className="text-sm" style={{ color: 'rgba(64,53,44,0.55)' }}>
-                        {isLoadingVideo ? 'Loading photos…' : `${videoObservations.length} photos • 2 minutes`}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 px-3 py-1 rounded-full" style={{ backgroundColor: 'rgba(64,53,44,0.08)', border: '1px solid rgba(64,53,44,0.15)' }}>
-                    <Icon name="Video" size={14} style={{ color: '#40352C' }} />
-                    <span className="text-sm font-medium" style={{ color: '#40352C' }}>Generated Video</span>
-                  </div>
-                </div>
-
-                {/* Video Display */}
-                <div className="relative aspect-video bg-black">
-                  {isLoadingVideo ? (
-                    <div className="absolute inset-0 flex items-center justify-center text-white">
-                      Loading photos for your 2-minute video…
-                    </div>
-                  ) : videoObservations.length === 0 ? (
-                    <div className="absolute inset-0 flex items-center justify-center px-6 text-center text-white">
-                      No photos are available to create this video.
-                    </div>
-                  ) : (
-                    videoObservations.map((obs, index) => (
-                      index >= currentVideoFrame - 1 &&
-                      index <= currentVideoFrame + VIDEO_PRELOAD_FRAMES ? (
-                        <div
-                          key={obs.id}
-                          className={`absolute inset-0 transition-opacity duration-200 ${
-                            currentVideoFrame === index ? 'opacity-100' : 'opacity-0'
-                          }`}
-                        >
-                          <Image
-                            src={obs.imageUrl}
-                            alt={obs.imageAlt}
-                            className="w-full h-full object-contain"
-                          />
-                          {/* Photo Info Overlay */}
-                          <div className="absolute bottom-4 left-4 right-4">
-                             <div className="inline-block rounded-lg bg-black/50 px-3 py-2">
-                               <p className="text-white font-medium">{format(obs.timestamp, 'HH:mm')}</p>
-                               <p className="text-white/70 text-sm">{obs.notes.substring(0, 50)}...</p>
-                            </div>
-                          </div>
-                          {/* Frame Counter */}
-                          <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-black/50 backdrop-blur-sm">
-                            <span className="text-white text-sm font-medium">
-                              {index + 1} / {videoObservations.length}
-                            </span>
-                          </div>
-                        </div>
-                      ) : null
-                    ))
-                  )}
-
-                  {/* Play Button Overlay */}
-                  {!isVideoPlaying && !isLoadingVideo && videoObservations.length > 0 && (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <button
-                        onClick={handlePlayVideo}
-                        className="w-20 h-20 rounded-full bg-[#c9a962] flex items-center justify-center hover:scale-110 hover:shadow-[0_0_40px_rgba(201,169,98,0.5)] transition-all duration-300"
-                      >
-                        <Icon name="Play" size={32} className="text-[#0a0a0f] ml-1" />
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                {/* Progress Bar & Controls */}
-                <div className="px-6 py-4" style={{ backgroundColor: 'rgba(64,53,44,0.04)', borderTop: '1px solid rgba(64,53,44,0.08)' }}>
-                  {/* Progress Bar */}
-                  <div className="relative h-2 rounded-full overflow-hidden mb-4" style={{ backgroundColor: 'rgba(64,53,44,0.1)' }}>
-                    <div
-                      className="absolute inset-y-0 left-0 transition-all duration-100"
-                      style={{ width: `${videoProgress}%`, backgroundColor: '#40352C' }}
-                    />
-                  </div>
-
-                  {/* Controls */}
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <button
-                        onClick={isVideoPlaying ? () => setIsVideoPlaying(false) : handlePlayVideo}
-                        className="p-3 rounded-full transition-colors hover:bg-stone-100"
-                        style={{ backgroundColor: 'rgba(64,53,44,0.08)' }}
-                      >
-                        <Icon
-                          name={isVideoPlaying ? "Pause" : "Play"}
-                          size={20}
-                          style={{ color: '#40352C' }}
-                        />
-                      </button>
-                      <span className="text-sm" style={{ color: 'rgba(64,53,44,0.55)' }}>
-                        {formatVideoTime(Math.floor((videoProgress / 100) * VIDEO_DURATION_SECONDS))} / {formatVideoTime(VIDEO_DURATION_SECONDS)}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={handlePlayVideo}
-                        className="min-h-[44px] flex items-center gap-2 px-4 py-2 rounded-xl transition-colors hover:bg-stone-100"
-                        style={{ backgroundColor: 'rgba(64,53,44,0.06)', border: '1px solid rgba(64,53,44,0.1)' }}
-                      >
-                        <Icon name="RotateCcw" size={16} style={{ color: 'rgba(64,53,44,0.55)' }} />
-                        <span className="text-sm" style={{ color: 'rgba(64,53,44,0.55)' }}>Replay</span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </>
   );

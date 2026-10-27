@@ -71,7 +71,7 @@ try {
     } else if (params.has('from')) {
       rows = [1001, 1002, 1003].map((id, i) => photo(id, new Date(Date.parse(params.get('from')) + i * 10000).toISOString(), horse));
     } else {
-      rows = Array.from({ length: horse === thunder ? 7 : 240 }, (_, i) =>
+      rows = Array.from({ length: Math.min(horse === thunder ? 7 : 240, Number(params.get('limit'))) }, (_, i) =>
         records.get(`${horse}:${(horse === thunder ? 7 : newest) - i}`)).filter(Boolean);
       if (params.has('since')) rows = rows.filter(row => row.captured_at >= params.get('since'));
     }
@@ -100,12 +100,15 @@ try {
   const initialHorseListReads = horseListReads;
   assert(first.includes('/240.jpg?X-Amz-Signature=fixture-'));
   assert.equal(apiQueries[0].get('preview'), '1', 'first response includes latest URL, no metadata round trip');
+  assert.equal(apiQueries[0].get('limit'), '20');
+  assert.equal(await page.getByRole('button', { name: /^Ver foto / }).count(), 20);
+  assert.equal(await page.getByRole('button', { name: 'Generate Video', exact: true }).count(), 0);
   assert.equal(restImages.length, 0, 'Lucero never queries legacy images');
   await page.waitForTimeout(300);
   assert(imageGets.length > 0 && imageGets.length < 20, 'private thumbnails remain deferred');
   assert(imageGets.every(request => request.method === 'GET'));
   assert(apiQueries.filter(q => q.has('ids')).length <= 1, 'nearby thumbnails share a batch');
-  assert(apiQueries.filter(q => q.has('ids')).every(q => !q.get('ids').split(',').includes('1')),
+  assert(apiQueries.filter(q => q.has('ids')).every(q => !q.get('ids').split(',').includes('221')),
     'far offscreen thumbnail never requests a signature');
   const firstSignatures = apiQueries.filter(q => q.has('ids')).length;
   const thumbnailBatchesBeforeScroll = firstSignatures;
@@ -116,7 +119,7 @@ try {
   await page.waitForTimeout(350);
   assert.equal(apiQueries.filter(q => q.has('ids')).length, thumbnailBatchesBeforeScroll + 1,
     'newly approaching thumbnails share one batch');
-  assert(apiQueries.filter(q => q.has('ids')).at(-1).get('ids').split(',').includes('1'),
+  assert(apiQueries.filter(q => q.has('ids')).at(-1).get('ids').split(',').includes('221'),
     'the last thumbnail is signed only after scrolling near it');
   await page.getByRole('button', { name: /^Ver foto / }).first().evaluate(button => {
     button.parentElement.scrollLeft = 0;

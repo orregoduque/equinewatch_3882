@@ -4,14 +4,15 @@ export const LIVE_PHOTO_REFRESH_MS = 10_000;
 const RECONCILE_MS = 60_000;
 
 export function mergeHorseImages(
-  previous: CameraImage[], incoming: CameraImage[], limit: number,
+  previous: CameraImage[], incoming: CameraImage[], limit: number, captureOrder = false,
 ): CameraImage[] {
   const identity = (image: CameraImage) => `${image.source || 'supabase'}:${image.id}`;
   const byId = new Map(previous.map(image => [identity(image), image]));
   incoming.forEach(image => byId.set(identity(image), image));
   return [...byId.values()]
     .sort((a, b) =>
-      Date.parse(b.captured_at || b.uploaded_at || b.created_at) - Date.parse(a.captured_at || a.uploaded_at || a.created_at)
+      Date.parse(b.captured_at || (captureOrder ? b.created_at : b.uploaded_at) || b.created_at)
+        - Date.parse(a.captured_at || (captureOrder ? a.created_at : a.uploaded_at) || a.created_at)
       || Date.parse(b.created_at) - Date.parse(a.created_at)
       || String(b.id).localeCompare(String(a.id), 'en', { numeric: true }))
     .slice(0, limit);
@@ -19,7 +20,7 @@ export function mergeHorseImages(
 
 /** Refresh metadata, not the page or the already-cached image files. */
 export function watchHorseImages({
-  horseId, viewer, limit, onImages, onError, onSettled, photoBackend,
+  horseId, viewer, limit, onImages, onError, onSettled, photoBackend, captureOrder = false,
 }: {
   horseId: string;
   viewer: HorseViewer;
@@ -28,6 +29,7 @@ export function watchHorseImages({
   onError: (error: Error | null) => void;
   onSettled: () => void;
   photoBackend?: string | null;
+  captureOrder?: boolean;
 }): () => void {
   let active = true;
   let busy = false;
@@ -45,12 +47,13 @@ export function watchHorseImages({
     const full = forceFull || !loaded || Date.now() - lastFullRefresh >= RECONCILE_MS;
     // Recheck the last few records too: their enhanced variant may finish later.
     const boundary = images[Math.min(5, images.length - 1)];
-    const since = full ? undefined : boundary?.captured_at || boundary?.uploaded_at || boundary?.created_at;
+    const since = full ? undefined : boundary?.captured_at
+      || (captureOrder ? boundary?.created_at : boundary?.uploaded_at) || boundary?.created_at;
     try {
       request = new AbortController();
-      const incoming = await fetchHorseImages(limit, horseId, viewer, since, request.signal, photoBackend);
+      const incoming = await fetchHorseImages(limit, horseId, viewer, since, request.signal, photoBackend, captureOrder);
       if (!active) return;
-      const next = full ? incoming : mergeHorseImages(images, incoming, limit);
+      const next = full ? incoming : mergeHorseImages(images, incoming, limit, captureOrder);
       if (!loaded || JSON.stringify(next) !== JSON.stringify(images)) onImages(next);
       images = next;
       loaded = true;

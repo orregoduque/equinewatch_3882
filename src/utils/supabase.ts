@@ -147,6 +147,7 @@ export const fetchHorseImages = async (
   uploadedSince?: string,
   signal?: AbortSignal,
   photoBackend?: string | null,
+  captureOrder = false,
 ): Promise<CameraImage[]> => {
   // This hint only selects transport. The private API still verifies Auth,
   // horse ownership/staff, backend and prefix on every request.
@@ -160,11 +161,11 @@ export const fetchHorseImages = async (
     .select('id, storage_path_enhanced, uploaded_at, created_at, horse_id, image_number, is_processed, notes')
     .eq('horse_id', horseId)
     .not('storage_path_enhanced', 'is', null)
-    .order('uploaded_at', { ascending: false, nullsFirst: false })
+    .order(captureOrder ? 'created_at' : 'uploaded_at', { ascending: false, nullsFirst: false })
     .order('created_at', { ascending: false })
     .order('id', { ascending: false })
     .limit(limit);
-  if (uploadedSince) query = query.gte('uploaded_at', uploadedSince);
+  if (uploadedSince) query = query.gte(captureOrder ? 'created_at' : 'uploaded_at', uploadedSince);
   if (signal) query = query.abortSignal(signal);
 
   const { data, error } = await query;

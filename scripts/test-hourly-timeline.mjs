@@ -51,7 +51,7 @@ try {
             uploaded_at: new Date().toISOString(), is_processed: true,
           })));
         }
-        return json(Array.from({ length: 240 }, (_, index) => ({
+        return json(Array.from({ length: Number(url.searchParams.get('limit')) }, (_, index) => ({
           id: 240 + liveVersion - index, horse_id: horseId, image_number: 240 + liveVersion - index,
           storage_path_enhanced: `fixture/live-${240 + liveVersion - index}.jpg`,
           created_at: new Date(Date.now() - index * 10_000).toISOString(),
@@ -143,15 +143,18 @@ try {
     await main.waitFor();
     await page.getByRole('button', { name: 'Volver a en vivo', exact: true }).click();
     await page.waitForFunction(() => document.querySelector('img[fetchpriority="high"]')?.getAttribute('src')?.includes('live-241.jpg'));
-    assert.equal(await photoButtons.count(), 240);
+    assert.equal(await photoButtons.count(), 20);
     assert.equal(await page.getByRole('button', { name: 'Revisar 08:00', exact: true }).count(), 0);
     const liveQueries = queries.map(query => new URLSearchParams(query)).filter(query => !query.getAll('created_at').some(v => v.startsWith('gte.')));
     assert(liveQueries.length >= 2);
-    assert(liveQueries.every(query => query.get('limit') === '240'));
+    assert(liveQueries.every(query => query.get('limit') === '20'));
+    assert(liveQueries.every(query => query.get('horse_id') === `eq.${horseId}`));
+    assert(liveQueries.every(query => query.get('order').startsWith('created_at.desc')));
+    assert.equal(await page.getByRole('button', { name: 'Generate Video', exact: true }).count(), 0);
     assert(storage.filter(path => path.includes('/render/')).every(path => new URLSearchParams(path.split('?')[1]).get('width') === '320'));
     assert.deepEqual(errors, []);
     if (mobile) await page.screenshot({ path: 'generated-artifacts/hour-review-mobile-live.jpg' });
-    console.log(JSON.stringify({ mobile, passed: true, syntheticOnly: true, hourlyLimit: 400, liveLimit: 240, touchPinch: mobile }));
+    console.log(JSON.stringify({ mobile, passed: true, syntheticOnly: true, hourlyLimit: 400, liveLimit: 20, touchPinch: mobile }));
     await context.close();
   }
 } finally { await browser.close(); }

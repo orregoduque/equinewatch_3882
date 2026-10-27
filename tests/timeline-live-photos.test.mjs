@@ -122,14 +122,15 @@ test('a main photo error releases deferred thumbnails and preserves its placehol
 
 test('the main Timeline photo follows new arrivals without manual reload or a loading-screen reset', () => {
   const f = fixture();
-  assert.equal(f.watcher.limit, 240);
+  assert.equal(f.watcher.limit, 20);
+  assert.equal(f.watcher.captureOrder, true);
   assert.equal(f.watcher.horseId, 'owned-horse');
   f.receive([photo(1)]);
   assert.equal(f.main(f.render()).props.src, '/images/1.jpg');
   f.receive([photo(2), photo(1)]);
   assert.equal(f.main(f.render()).props.src, '/images/2.jpg');
-  assert.equal(f.state[3], false);
-  assert.equal(f.state[5], null);
+  assert.equal(f.state[2], false);
+  assert.equal(f.state[3], null);
   f.stop();
   assert.equal(f.stops, 1);
 });

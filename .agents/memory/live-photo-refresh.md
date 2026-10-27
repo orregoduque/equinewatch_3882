@@ -44,9 +44,21 @@ fails. Keep same-account horse cards visible during background revalidation.
 thumbnail requests compete with the main photo. Uploads come from an external
 process, so changing old objects or bucket settings cannot fix new uploads.
 
-**How to apply:** Preserve the 240-photo live window, the two-minute video, polling,
-authorization, original main/video URLs and Storage Cache-Control. Never retain
+**How to apply:** Preserve deferred thumbnails, polling, authorization, original
+photo URLs and Storage Cache-Control. Never retain
 horse lists across account changes or skip fresh reads on later revisions.
+
+The user now requires only the latest 20 captures per horse in the initial
+timeline, descending by created_at/captured_at, with no extra history fetch or
+JPEG-generated video. This supersedes the previous 240-photo live window and
+two-minute generated slideshow, but not HLS or hourly review.
+
+**Why:** The user explicitly narrowed initial photo loading while requiring live
+streaming and the hour search to remain unchanged.
+
+**How to apply:** Keep the initial metadata query and refreshed gallery bounded
+to 20. Private Wasabi URLs must retain their existing session authorization;
+do not turn object paths into public URLs to satisfy a display-field name.
 
 The user says most Stable Eye users open it on a phone and need to inspect
 earlier feeding, water and handling without having been connected then.

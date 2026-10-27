@@ -63,6 +63,17 @@ function fixture(load = async () => [image(1)], limit = 240) {
   };
 }
 
+test('capture-ordered timeline keeps only the latest 20 captures, not late uploads', () => {
+  const f = fixture();
+  const rows = Array.from({ length: 30 }, (_, i) => image(i + 1));
+  rows[0].uploaded_at = image(100).created_at;
+  const merged = f.api.mergeHorseImages([], rows, 20, true);
+  assert.equal(merged.length, 20);
+  assert.equal(merged[0].id, 30);
+  assert.equal(merged.at(-1).id, 11);
+  f.stop();
+});
+
 test('late uploads sort by uploaded_at even when their capture was older', () => {
   const f = fixture();
   const late = { ...image(1), uploaded_at: image(101).created_at };
