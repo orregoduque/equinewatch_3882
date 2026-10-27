@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { mkdir } from 'node:fs/promises';
 import { chromium } from 'playwright-core';
+import { assertHourlyTimelapse } from './assert-hourly-timelapse.mjs';
 
 const base = process.argv[2];
 if (!base) throw new Error('Provide the development preview URL');
@@ -44,7 +45,9 @@ try {
           const startDate = new Date(start.slice(4));
           const localHour = (startDate.getUTCHours() + 19) % 24;
           if (localHour === 3) return json([]);
-          return json([1, 2, 3].map(id => ({
+          const ids = url.searchParams.get('limit') === '360' && localHour === 8
+            ? Array.from({ length: 360 }, (_, i) => i + 1) : [1, 2, 3];
+          return json(ids.map(id => ({
             id: 1000 + id, horse_id: horseId, image_number: id,
             storage_path_enhanced: `fixture/hour-${localHour}-${id}.jpg`,
             created_at: new Date(+startDate + (id - 1) * 10_000).toISOString(),
@@ -83,6 +86,15 @@ try {
     assert.equal(hourlyQuery.get('horse_id'), `eq.${horseId}`);
     assert.equal(hourlyQuery.get('storage_path_enhanced'), 'not.is.null');
     assert.equal(hourlyQuery.get('order'), 'created_at.asc,id.asc');
+    assert(!queries.some(query => new URLSearchParams(query).get('limit') === '360'), 'hour selection never fetches timelapse');
+    const timelapse = await assertHourlyTimelapse(page);
+    const timelapseQueries = queries.map(query => new URLSearchParams(query)).filter(query => query.get('limit') === '360');
+    assert.equal(timelapseQueries.length, 1);
+    assert.equal(timelapseQueries[0].get('horse_id'), `eq.${horseId}`);
+    assert(timelapseQueries[0].get('order').startsWith('created_at.asc'));
+    assert.deepEqual(timelapseQueries[0].getAll('created_at'), [
+      'gte.2026-10-20T13:00:00.000Z', 'lt.2026-10-20T14:00:00.000Z',
+    ]);
     const photoButtons = page.getByRole('button', { name: /^Ver foto / });
     await photoButtons.nth(1).click();
     await page.waitForFunction(() => document.querySelector('img[fetchpriority="high"]')?.getAttribute('src')?.includes('hour-8-2.jpg'));
@@ -135,10 +147,27 @@ try {
     await page.getByRole('button', { name: 'Revisar 03:00', exact: true }).click();
     await page.getByRole('heading', { name: 'No hay fotos en esta hora', exact: true }).waitFor();
     assert.equal(await main.count(), 0);
+    await page.getByRole('button', { name: 'Generar timelapse', exact: true }).click();
+    const emptyTimelapse = page.getByRole('dialog', { name: /Timelapse/ });
+    await emptyTimelapse.getByText('No hay fotos en esta hora.', { exact: true }).waitFor();
+    assert.equal(await emptyTimelapse.locator('img').count(), 0);
+    await page.keyboard.press('Escape');
+    await emptyTimelapse.waitFor({ state: 'detached' });
     failHour = true;
     await page.getByRole('button', { name: 'Revisar 04:00', exact: true }).click();
     await page.getByRole('heading', { name: 'No se pudo revisar esta hora', exact: true }).waitFor();
+    await page.getByRole('button', { name: 'Generar timelapse', exact: true }).click();
+    const failedTimelapse = page.getByRole('dialog', { name: /Timelapse/ });
+    await failedTimelapse.getByRole('alert').waitFor();
     failHour = false;
+    await failedTimelapse.getByRole('button', { name: 'Reintentar', exact: true }).click();
+    await failedTimelapse.getByRole('button', { name: 'Repetir', exact: true }).waitFor();
+    assert((await failedTimelapse.textContent()).includes('3 fotos · 0.2 s a 15 fps'));
+    const queriesBeforeReplay = queries.length;
+    await failedTimelapse.getByRole('button', { name: 'Repetir', exact: true }).click();
+    await failedTimelapse.getByRole('button', { name: 'Repetir', exact: true }).waitFor();
+    assert.equal(queries.length, queriesBeforeReplay, 'replay does not repeat metadata query');
+    await failedTimelapse.getByRole('button', { name: 'Cerrar timelapse', exact: true }).click();
     await page.getByRole('button', { name: 'Reintentar', exact: true }).click();
     await main.waitFor();
     await page.getByRole('button', { name: 'Volver a en vivo', exact: true }).click();
@@ -154,7 +183,7 @@ try {
     assert(storage.filter(path => path.includes('/render/')).every(path => new URLSearchParams(path.split('?')[1]).get('width') === '320'));
     assert.deepEqual(errors, []);
     if (mobile) await page.screenshot({ path: 'generated-artifacts/hour-review-mobile-live.jpg' });
-    console.log(JSON.stringify({ mobile, passed: true, syntheticOnly: true, hourlyLimit: 400, liveLimit: 20, touchPinch: mobile }));
+    console.log(JSON.stringify({ mobile, passed: true, syntheticOnly: true, hourlyLimit: 400, liveLimit: 20, touchPinch: mobile, timelapse }));
     await context.close();
   }
 } finally { await browser.close(); }

@@ -60,6 +60,19 @@ streaming and the hour search to remain unchanged.
 to 20. Private Wasabi URLs must retain their existing session authorization;
 do not turn object paths into public URLs to satisfy a display-field name.
 
+An hourly timelapse is the explicit exception: the user requested a separate
+button for the already selected hour, fetching at most 360 chronologically ordered
+photos only on click, playing at 15 fps with current plus two frames preloaded.
+It must never populate or replace the 20-photo gallery or ordinary hour review.
+
+**Why:** The user wants a short review of a specific hour without automatic
+day-wide downloads, MP4 generation, or hundreds of mounted images.
+
+**How to apply:** Keep frame arrays and cancellation isolated from HLS and hourly
+browsing. Use native image preloading for the original authorized URLs; a URL
+that can display in an image does not imply the bucket permits fetch-to-blob CORS.
+Do not change bucket CORS or broaden CSP just to make this feature work.
+
 The user says most Stable Eye users open it on a phone and need to inspect
 earlier feeding, water and handling without having been connected then.
 

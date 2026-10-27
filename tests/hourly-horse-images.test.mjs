@@ -76,6 +76,21 @@ function fixture() {
   return { api, executed };
 }
 
+test('explicit timelapse query uses 360 while keeping the same horse/hour filters', async () => {
+  const f = fixture(), signal = new AbortController().signal;
+  const range = dates.localHourRange('2026-10-21', 8);
+  await f.api.fetchHorseImagesForHour(horseId, owner, '2026-10-21', 8, signal, null, 360);
+  const read = f.executed.find(call => call.table === 'images');
+  assert.equal(read.limit, 360);
+  assert.deepEqual(JSON.parse(JSON.stringify(read.filters)), [
+    ['eq', 'horse_id', horseId], ['not', 'storage_path_enhanced', 'is', null],
+    ['gte', 'created_at', range.start], ['lt', 'created_at', range.end],
+  ]);
+  assert.deepEqual(JSON.parse(JSON.stringify(read.orders)), [
+    ['created_at', { ascending: true }], ['id', { ascending: true }],
+  ]);
+});
+
 test('hour review reads only that horse and created_at interval, ascending, max 400', async () => {
   const f = fixture(), signal = new AbortController().signal;
   const range = dates.localHourRange('2026-10-21', 8);

@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { previewVersion } from '../services/wasabi-photos/handler.mjs';
 import { chromium } from 'playwright-core';
+import { assertHourlyTimelapse } from './assert-hourly-timelapse.mjs';
 import { installPilotFixture } from '../tests/helpers/hls-browser-fixture.mjs';
 
 const base = process.argv[2];
@@ -69,7 +70,9 @@ try {
         version: previewVersion(row),
       }));
     } else if (params.has('from')) {
-      rows = [1001, 1002, 1003].map((id, i) => photo(id, new Date(Date.parse(params.get('from')) + i * 10000).toISOString(), horse));
+      const ids = params.get('limit') === '360'
+        ? Array.from({ length: 360 }, (_, i) => 1001 + i) : [1001, 1002, 1003];
+      rows = ids.map((id, i) => photo(id, new Date(Date.parse(params.get('from')) + i * 10000).toISOString(), horse));
     } else {
       rows = Array.from({ length: Math.min(horse === thunder ? 7 : 240, Number(params.get('limit'))) }, (_, i) =>
         records.get(`${horse}:${(horse === thunder ? 7 : newest) - i}`)).filter(Boolean);
@@ -142,6 +145,13 @@ try {
   await page.getByRole('button', { name: 'Revisar 08:00', exact: true }).click();
   await page.waitForFunction(() => document.querySelector('img[fetchpriority="high"]')?.src.includes('/1003.jpg?'));
   assert.equal(horseListReads, initialHorseListReads, 'hour review uses known backend without another horses list');
+  assert(!apiQueries.some(query => query.get('limit') === '360'), 'hour selection never fetches timelapse');
+  await assertHourlyTimelapse(page);
+  const timelapseQueries = apiQueries.filter(query => query.get('limit') === '360');
+  assert.equal(timelapseQueries.length, 1);
+  assert(timelapseQueries[0].has('from') && timelapseQueries[0].has('to'));
+  assert.equal(await page.getByRole('button', { name: /^Ver foto / }).count(), 3,
+    'timelapse frames never replace hourly gallery');
   await page.getByRole('button', { name: /^Ver foto / }).nth(1).click();
   await page.waitForFunction(() => document.querySelector('img[fetchpriority="high"]')?.src.includes('/1002.jpg?'));
   const historicalUrl = await main.getAttribute('src');

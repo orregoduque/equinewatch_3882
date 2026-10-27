@@ -13,6 +13,7 @@ import { watchHorseImages } from '../../utils/liveHorseImages';
 import TimelineLiveVideo from './components/TimelineLiveVideo';
 import TimelineThumbnail from './components/TimelineThumbnail';
 import FullscreenPhoto from './components/FullscreenPhoto';
+import HourlyTimelapse from './components/HourlyTimelapse';
 import { useHourlyHorseImages } from '../../hooks/useHourlyHorseImages';
 import { localToday } from '../../utils/hourlyHorseImages';
 
@@ -68,6 +69,9 @@ const HorseTimeline: React.FC = () => {
   const [reviewSelection, setReviewSelection] = useState<{ day: string; hour: number } | null>(null);
   const [reviewDay, setReviewDay] = useState(localToday);
   const [expandedPhoto, setExpandedPhoto] = useState<Observation | null>(null);
+  const [timelapseKey, setTimelapseKey] = useState<string | null>(null);
+  const selectedHourKey = reviewSelection
+    ? JSON.stringify([viewerKey, selectedHorseId, reviewSelection.day, reviewSelection.hour]) : null;
 
   useEffect(() => {
     if (isLoadingHorses) {
@@ -210,12 +214,14 @@ const HorseTimeline: React.FC = () => {
   }, [selectedObservation, expandedPhoto, selectedHorseId, viewerKey, !!reviewSelection]);
   const chooseHour = (hour: number, day = reviewDay) => {
     if (!day) return;
+    setTimelapseKey(null);
     setSelectedObservation(null);
     setExpandedPhoto(null);
     setReviewSelection({ day, hour });
     if (photoStripRef.current) photoStripRef.current.scrollLeft = 0;
   };
   const returnToLive = () => {
+    setTimelapseKey(null);
     setSelectedObservation(null);
     setExpandedPhoto(null);
     setReviewSelection(null);
@@ -307,6 +313,11 @@ const HorseTimeline: React.FC = () => {
                           if (day) chooseHour(reviewSelection.hour, day);
                         }} />
                     </label>
+                    <button type="button" onClick={() => setTimelapseKey(selectedHourKey)}
+                      disabled={!viewer || !selectedHorseId}
+                      className="min-h-[44px] px-4 py-2 rounded-xl bg-[#40352C] text-white font-semibold disabled:opacity-40">
+                      Generar timelapse
+                    </button>
                     <div className="flex gap-2 overflow-x-auto pb-1" aria-label="Horas del día">
                       {Array.from({ length: 24 }, (_, hour) => (
                         <button type="button" key={hour} aria-pressed={reviewSelection.hour === hour}
@@ -489,6 +500,12 @@ const HorseTimeline: React.FC = () => {
         </main>
 
         <MobileNavigation />
+        {timelapseKey && timelapseKey === selectedHourKey && reviewSelection && viewer && selectedHorse && (
+          <HourlyTimelapse key={timelapseKey} horseId={selectedHorseId} horseName={selectedHorse.name}
+            viewer={viewer} day={reviewSelection.day} hour={reviewSelection.hour}
+            photoBackend={records.find(row => row.id === selectedHorseId)?.photo_backend}
+            onClose={() => setTimelapseKey(null)} />
+        )}
         {expandedPhoto && expandedPhoto.horseId === selectedHorseId && selectedHorse && !isLoadingHorses && (
           <FullscreenPhoto
             src={displayedObservations.find(photo => photo.id === expandedPhoto.id)?.imageUrl || expandedPhoto.imageUrl}
