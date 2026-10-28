@@ -42,3 +42,16 @@ an actual authorized JPEG GET or the real user's permission.
 **How to apply:** Distinguish implementation/fixture validation from a verified
 real GET; never claim a HEAD, mocked request, or locally stored user proved it.
 Keep raw credentials and temporary URLs out of logs and persistent data.
+
+Tessa/Casona is approved for photo compatibility preparation only. The user will
+coordinate the uploader cutover and `photo_backend` activation later. Do not
+activate it, alter Casona publishers, replace reader credentials with writer
+credentials, or assign an existing HLS stream to Tessa.
+
+**Why:** The user requires uninterrupted existing photos before the coordinated
+cutover, and Tessa's current camera provides JPEG over TCP, not streaming.
+
+**How to apply:** Keep Supabase active until the user separately authorizes the
+cutover. Add its read scope without removing existing horse grants; distinguish
+simulated migration tests from actual signed GET and real viewer authorization.
+

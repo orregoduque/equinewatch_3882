@@ -1,3 +1,25 @@
+# Tessa / Casona: compatibility before cutover
+
+Tessa (`e47d1da3-9b6b-4433-819c-423d7687b296`) is approved only for
+`stable-eye/9f0cb7e0-8092-5c37-86d7-6e94de0af9ed/node_3/` in the existing
+private bucket. The operator must attach the additional policy
+`stable-eye-replit-casona-tessa-readonly.json` to the reader identity whose
+existing Secrets sign app requests, preserving every other policy.
+No publisher credentials, IAM edits, Casona configuration changes, database
+updates or cutover are performed by this code.
+
+While the database still reports `photo_backend = supabase`, the existing
+Supabase photos remain active and the private endpoint rejects Tessa with 409.
+Once the operator coordinates writer cutover and the backend field, the shared
+Wasabi reader handles the latest 20, ten-second refresh, URL renewal,
+horse-change cancellation, hour search and on-demand hourly timelapse.
+There is no Tessa HLS assignment; JPEG capture does not provide Live video.
+
+Before cutover, verify an authorized real test JPEG with the current signing
+identity if available. A signature or fixture alone is not proof of GET access.
+After cutover, verify real allowed/denied sessions, recent captures and renewal
+in preview and production. Do not print credentials or complete signed URLs.
+
 # Fotos privadas de Lucero, Thunder y soporte preparado para Encantador
 
 ## Encantador / Rancho: selección por photo_backend

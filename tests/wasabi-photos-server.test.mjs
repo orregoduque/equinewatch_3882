@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { EventEmitter } from 'node:events';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
-import { createWasabiPhotosHandler, LUCERO_ID, THUNDER_ID, ENCANTADOR_ID, PHOTO_PREFIXES, WASABI_SCOPE, previewVersion } from '../services/wasabi-photos/handler.mjs';
+import { createWasabiPhotosHandler, LUCERO_ID, THUNDER_ID, ENCANTADOR_ID, TESSA_ID, PHOTO_PREFIXES, WASABI_SCOPE, previewVersion } from '../services/wasabi-photos/handler.mjs';
 
 const ownerId = '00000000-0000-4000-8000-000000000001';
 const captured = '2026-10-26T10:00:00.000Z';
@@ -258,9 +258,9 @@ test('Encantador cannot be viewed using an ingestion identity, local role or ina
   }
 });
 
-test('all three horses reject cross-prefix and cross-horse metadata before any signature', async () => {
-  for (const horse of [LUCERO_ID, THUNDER_ID, ENCANTADOR_ID]) {
-    for (const other of [LUCERO_ID, THUNDER_ID, ENCANTADOR_ID].filter(id => id !== horse)) {
+test('all four horses reject cross-prefix and cross-horse metadata before any signature', async () => {
+  for (const horse of [LUCERO_ID, THUNDER_ID, ENCANTADOR_ID, TESSA_ID]) {
+    for (const other of [LUCERO_ID, THUNDER_ID, ENCANTADOR_ID, TESSA_ID].filter(id => id !== horse)) {
       for (const bad of [
         { ...row, horse_id: horse, storage_path_enhanced: PHOTO_PREFIXES[other] + 'capture.jpg' },
         { ...row, horse_id: other, storage_path_enhanced: PHOTO_PREFIXES[horse] + 'capture.jpg' },
@@ -359,4 +359,48 @@ test('real AWS presigner produces a local 10-minute GET signature restricted to 
     const denied = fixture({ realSigner: true, env: { ...env, ...config } });
     assert.equal((await denied.request()).status, 503);
   }
+});
+
+test('Tessa stays on Supabase until operator cutover and cannot bypass trusted authorization', async () => {
+  for (const options of [
+    { horseBackend: 'supabase' }, { validSession: false }, { horseOwner: 'other' },
+    { horseVisible: false },
+    { horseOwner: 'other', profile: { id: ownerId, role: 'admin', is_active: false } },
+  ]) {
+    const f = fixture(options);
+    assert([401, 403, 409].includes((await f.request('?limit=20&preview=1', 'Bearer fixture-session', TESSA_ID)).status));
+    assert.equal(f.signatures.length, 0);
+    assert(!f.queries.some(q => q.table === 'images_wasabi'));
+  }
+});
+
+test('activated Tessa signs only its own JPEG for owner/staff and preserves photo query contracts', async () => {
+  const key = PHOTO_PREFIXES[TESSA_ID] + 'capture.jpg';
+  const rows = [{ ...row, horse_id: TESSA_ID, storage_path_raw: key, storage_path_enhanced: key }];
+  for (const options of [{}, ...['admin', 'caretaker'].map(role => ({
+    horseOwner: 'other', profile: { id: ownerId, role, is_active: true },
+  }))]) {
+    for (const query of [
+      '?limit=20&preview=1', '?ids=17', '?since=2026-10-26T09:00:00Z&limit=20&preview=1',
+      '?from=2026-10-26T10:00:00Z&to=2026-10-26T11:00:00Z&limit=360&preview=1',
+    ]) {
+      const f = fixture({ ...options, rows });
+      const response = await f.request(query, 'Bearer fixture-session', TESSA_ID);
+      assert.equal(response.status, 200);
+      assert.deepEqual(f.signatures, [key]);
+      assert.equal(response.body.photos[0].photo_url, response.body.photos[0].imageUrl);
+      const q = f.queries.find(q => q.table === 'images_wasabi');
+      assert(q.filters.some(filter => filter[1] === 'horse_id' && filter[2] === TESSA_ID));
+      const ascending = query.includes('from=');
+      assert.deepEqual(q.orders, [['captured_at', { ascending }], ['id', { ascending }]]);
+    }
+  }
+});
+
+test('Tessa additive reader policy grants only its exact prefix and GetObject', () => {
+  const policy = JSON.parse(readFileSync('services/wasabi-photos/stable-eye-replit-casona-tessa-readonly.json', 'utf8'));
+  assert.deepEqual(policy, { Version: '2012-10-17', Statement: [{
+    Sid: 'ReadCasonaTessaPhotosOnly', Effect: 'Allow', Action: 's3:GetObject',
+    Resource: `arn:aws:s3:::${WASABI_SCOPE.bucket}/${PHOTO_PREFIXES[TESSA_ID]}*`,
+  }] });
 });

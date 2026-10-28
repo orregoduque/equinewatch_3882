@@ -4,6 +4,7 @@ import { createHash } from 'node:crypto';
 export const LUCERO_ID = 'a95f853c-e90b-4b6d-a4ea-f25cfa317119';
 export const THUNDER_ID = 'd826a274-58ea-4a55-8fd2-1d4c78222ab1';
 export const ENCANTADOR_ID = '0c8856e1-87eb-4abb-b145-28b070d34cf9';
+export const TESSA_ID = 'e47d1da3-9b6b-4433-819c-423d7687b296';
 export const WASABI_SCOPE = Object.freeze({
   endpoint: 'https://s3.us-east-1.wasabisys.com',
   region: 'us-east-1',
@@ -14,6 +15,7 @@ export const PHOTO_PREFIXES = Object.freeze({
   [LUCERO_ID]: WASABI_SCOPE.prefix,
   [THUNDER_ID]: 'stable-eye/97e3674b-31ab-5373-8a21-aa8187e6a17f/node_109/',
   [ENCANTADOR_ID]: 'stable-eye/bda0c371-2ffc-567c-87d4-168726ebfda4/node_1/',
+  [TESSA_ID]: 'stable-eye/9f0cb7e0-8092-5c37-86d7-6e94de0af9ed/node_3/',
 });
 const SUPABASE_URL = 'https://zmxppbpywizdjlhstfkf.supabase.co';
 const TTL_SECONDS = 600;
@@ -84,7 +86,7 @@ async function productionStorage(env) {
   return { client, GetObjectCommand };
 }
 
-async function productionSigner(env) {
+export async function productionSigner(env) {
   const { client, GetObjectCommand } = await productionStorage(env);
   const { getSignedUrl } = await import('@aws-sdk/s3-request-presigner');
   return key => getSignedUrl(client,

@@ -1,0 +1,9 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Sid": "ReadCasonaTessaPhotosOnly",
+    "Effect": "Allow",
+    "Action": "s3:GetObject",
+    "Resource": "arn:aws:s3:::equinewatch-photos/stable-eye/9f0cb7e0-8092-5c37-86d7-6e94de0af9ed/node_3/*"
+  }]
+}
