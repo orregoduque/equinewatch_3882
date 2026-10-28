@@ -43,15 +43,17 @@ an actual authorized JPEG GET or the real user's permission.
 real GET; never claim a HEAD, mocked request, or locally stored user proved it.
 Keep raw credentials and temporary URLs out of logs and persistent data.
 
-Tessa/Casona is approved for photo compatibility preparation only. The user will
-coordinate the uploader cutover and `photo_backend` activation later. Do not
-activate it, alter Casona publishers, replace reader credentials with writer
-credentials, or assign an existing HLS stream to Tessa.
+The user now confirms Tessa/Casona is active in Wasabi on node 3. Preserve it
+while preparing Velvet Vitalis on the same Raspberry, separate Casona node 1.
+Velvet is approved for compatibility preparation only; the user will coordinate
+its uploader cutover, pending captures and backend activation later. Do not
+activate Velvet, alter Casona publishers, replace reader credentials with writer
+credentials, or assign existing HLS streams to either horse.
 
 **Why:** The user requires uninterrupted existing photos before the coordinated
-cutover, and Tessa's current camera provides JPEG over TCP, not streaming.
+cutover. Both Casona migrations provide ESP32/TCP JPEG photos, not streaming.
 
-**How to apply:** Keep Supabase active until the user separately authorizes the
-cutover. Add its read scope without removing existing horse grants; distinguish
+**How to apply:** Keep Velvet on Supabase until its separately coordinated
+cutover; do not revert Tessa to Supabase. Add read scope without removing existing horse grants; distinguish
 simulated migration tests from actual signed GET and real viewer authorization.
 

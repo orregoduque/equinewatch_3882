@@ -1,4 +1,31 @@
-# Tessa / Casona: compatibility before cutover
+# Velvet Vitalis / Casona: compatibility before cutover
+
+Velvet (`61c46d85-34be-4fa8-a892-9e22211487df`) is approved exclusively for
+`stable-eye/9f0cb7e0-8092-5c37-86d7-6e94de0af9ed/node_1/`. This is not
+Encantador's Rancho node_1, nor Tessa's Casona node_3. Session verification,
+trusted ownership/staff authorization and all prefix checks precede signing.
+The existing generic reader handles 20 latest photos, ten-second metadata
+refresh, URL renewal, cancellation on horse change, hour search and hourly
+timelapse, only when the database backend is Wasabi.
+
+The operator attaches `stable-eye-replit-casona-velvet-readonly.json`, named
+`stable-eye-replit-casona-velvet-readonly` in IAM, as an additional policy to
+the existing reader identity. Never replace existing policies or reader keys.
+This code does not apply IAM changes, update the backend, change the uploader,
+discard pending captures, delete images history or assign HLS to Velvet.
+The user coordinates the future Velvet cutover. Tessa is already active on
+Wasabi according to the operator and must remain on its separate node_3.
+
+Read-only real signed GET readiness check:
+`node scripts/check-tessa-wasabi-read.mjs --velvet`
+The historical script name remains compatible with the Tessa check. This uses
+the same production signer, a bounded ranged GET and sanitized output, never
+HEAD/list/write. A missing row in the anonymous metadata query does not prove
+absence of an object; authenticated viewer tests remain separate. A real
+test JPEG and the additional IAM grant are required to prove object access.
+Fixtures alone are not evidence of production access or a completed cutover.
+
+# Tessa / Casona
 
 Tessa (`e47d1da3-9b6b-4433-819c-423d7687b296`) is approved only for
 `stable-eye/9f0cb7e0-8092-5c37-86d7-6e94de0af9ed/node_3/` in the existing
@@ -8,7 +35,9 @@ existing Secrets sign app requests, preserving every other policy.
 No publisher credentials, IAM edits, Casona configuration changes, database
 updates or cutover are performed by this code.
 
-While the database still reports `photo_backend = supabase`, the existing
+The operator now reports Tessa active in Wasabi. The following backend guard
+remains in place for compatibility: while the database reports
+`photo_backend = supabase`, the existing
 Supabase photos remain active and the private endpoint rejects Tessa with 409.
 Once the operator coordinates writer cutover and the backend field, the shared
 Wasabi reader handles the latest 20, ten-second refresh, URL renewal,
