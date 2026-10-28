@@ -47,6 +47,15 @@ merged config can establish Casona viewing grants. Receiver republish resets
 volatile windows and needs an agreed interruption window. Confirm applied
 config before starting new publishers. Never rotate the shared proxy key.
 
+The user confirmed that the newly integrated live video works in preview after
+the Casona receiver publication.
+
+**Why:** This is user-observed playback, beyond the synthetic integration tests.
+
+**How to apply:** Do not describe preview playback as entirely unverified.
+This does not establish published-app playback, per-camera startup timings,
+real-world latency, or Safari compatibility.
+
 The user confirmed that Live video works for both Lucero and Thunder on
 2026-10-26.
 
