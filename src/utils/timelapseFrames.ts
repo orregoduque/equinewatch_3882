@@ -1,7 +1,7 @@
 export const TIMELAPSE_FPS = 15;
 export const TIMELAPSE_FRAME_MS = 1000 / TIMELAPSE_FPS;
 
-/** Only current + next two frames are retained; eviction cancels pending loads. */
+/** At most eight frames including current; eviction cancels pending loads. */
 export class TimelapseFrames {
   private entries = new Map<number, {
     controller: AbortController; promise: Promise<string>; url?: string;
@@ -17,13 +17,13 @@ export class TimelapseFrames {
     if (this.closed) throw new DOMException('Aborted', 'AbortError');
     if (index < 0 || index >= this.count) throw new Error('Fotograma inválido.');
     for (const [key, entry] of this.entries) {
-      if (key < index || key > index + 2) {
+      if (key < index || key > index + 7) {
         entry.controller.abort();
         if (entry.url) this.release(entry.url);
         this.entries.delete(key);
       }
     }
-    for (let next = index; next < Math.min(this.count, index + 3); next++) {
+    for (let next = index; next < Math.min(this.count, index + 8); next++) {
       if (this.entries.has(next)) continue;
       const controller = new AbortController();
       const entry: { controller: AbortController; promise: Promise<string>; url?: string } = {

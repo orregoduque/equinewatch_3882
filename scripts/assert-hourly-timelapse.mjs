@@ -31,8 +31,8 @@ export async function assertHourlyTimelapse(page) {
   const paused = await modal.getByLabel('Progreso del timelapse').textContent();
   await page.waitForTimeout(200);
   assert.equal(await modal.getByLabel('Progreso del timelapse').textContent(), paused);
-  assert(await page.evaluate(() => window.timelapseBlobs.max <= 3), 'only three preloaded frames retained');
-  assert(await page.evaluate(() => window.timelapseBlobs.total < 10), 'does not eager-load 360 images');
+  assert(await page.evaluate(() => window.timelapseBlobs.max <= 8), 'at most eight preloaded frames retained');
+  assert(await page.evaluate(() => window.timelapseBlobs.total < 20), 'does not eager-load 360 images');
   await modal.locator('img').evaluate(image => {
     window.timelapseTimes = [];
     window.timelapseObserver = new MutationObserver(() => window.timelapseTimes.push(performance.now()));

@@ -138,6 +138,39 @@ test('hour preview signs last/newest row only; malformed preview combinations ar
     assert.equal((await f.request(query)).status, 400);
 });
 
+test('only explicit hourly timelapse previews sign first eight plus last, deduplicating short hours', async () => {
+  for (const count of [0, 1, 5, 8, 9, 360]) {
+    const rows = Array.from({ length: count }, (_, index) => ({
+      ...row, id: index + 1, captured_at: new Date(Date.parse(captured) + index * 10000).toISOString(),
+      storage_path_enhanced: WASABI_SCOPE.prefix + `${index + 1}.jpg`,
+    }));
+    const f = fixture({ rows });
+    const query = '?from=2026-10-26T10:00:00Z&to=2026-10-26T11:00:00Z&limit=360&preview=1';
+    const result = await f.request(query + '&timelapse=1');
+    assert.equal(result.status, 200);
+    const signed = result.body.photos.filter(photo => photo.photo_url);
+    assert.equal(signed.length, Math.min(count, count > 8 ? 9 : 8));
+    assert.equal(f.signatures.length, signed.length);
+    assert(signed.slice(0, Math.min(8, count)).every((photo, index) => photo.id === index + 1));
+    if (count) assert.equal(signed.at(-1).id, count);
+    const legacy = fixture({ rows });
+    assert.equal((await legacy.request(query)).body.photos.filter(photo => photo.photo_url).length, count ? 1 : 0);
+  }
+});
+
+test('timelapse warmup cannot be used for live reads, metadata, arbitrary limits or ID signing', async () => {
+  for (const query of [
+    '?timelapse=1&preview=1&limit=20', '?timelapse=0',
+    '?timelapse=1&preview=1&from=2026-10-26T10:00:00Z&to=2026-10-26T11:00:00Z&limit=400',
+    '?timelapse=1&preview=1&ids=17&limit=360',
+    '?timelapse=1&metadata=1&from=2026-10-26T10:00:00Z&to=2026-10-26T11:00:00Z&limit=360',
+  ]) {
+    const f = fixture();
+    assert.equal((await f.request(query)).status, 400);
+    assert.equal(f.signatures.length, 0);
+  }
+});
+
 test('nonowner cannot gain access using editable auth metadata; only trusted active staff pass', async () => {
   for (const profile of [null, { id: ownerId, role: 'admin', is_active: false },
     { id: 'other-user', role: 'admin', is_active: true },

@@ -186,13 +186,14 @@ export const fetchHorseImagesForHour = async (
   signal?: AbortSignal,
   photoBackend?: string | null,
   limit: 360 | 400 = 400,
+  timelapse = false,
 ): Promise<CameraImage[]> => {
   const { start, end } = localHourRange(day, hour);
   if (photoBackend === 'wasabi')
-    return privateRead(horseId, viewer, { limit, from: start, to: end, signal });
+    return privateRead(horseId, viewer, { limit, from: start, to: end, signal, timelapse });
   const horse = await requireHorseAccess(horseId, viewer);
   if (horse.photo_backend === 'wasabi')
-    return privateRead(horseId, viewer, { limit, from: start, to: end, signal });
+    return privateRead(horseId, viewer, { limit, from: start, to: end, signal, timelapse });
   if (signal?.aborted) throw new DOMException('Aborted', 'AbortError');
   let query = supabase.from('images')
     .select('id, storage_path_enhanced, uploaded_at, created_at, horse_id, image_number, is_processed, notes')

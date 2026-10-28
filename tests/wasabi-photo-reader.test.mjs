@@ -27,10 +27,11 @@ function fixture(urlField = 'imageUrl') {
     if (hold) await hold;
     const selected = params.has('ids') ? rows.filter(row => params.get('ids').split(',').includes(String(row.id))) : rows;
     const preview = params.has('from') ? selected.at(-1) : selected[0];
-    const photos = selected.map(row => ({
+    const photos = selected.map((row, index) => ({
       ...row,
       ...(params.has('ids') || (params.get('preview') === '1'
-        && row === preview && previewVersion(row) !== params.get('cached')) ? {
+        && row === preview && previewVersion(row) !== params.get('cached'))
+        || (params.get('timelapse') === '1' && index < 8) ? {
         [urlField]: `https://s3.us-east-1.wasabisys.com/equinewatch-photos/${row.storage_path_enhanced}?signature=fixture-${++version}`,
         expiresAt: new Date(time + 600000).toISOString(),
         version: previewVersion(row),
@@ -155,6 +156,22 @@ test('240-photo list signs only newest; visible thumbnails batch IDs and reuse s
   assert.equal(f.signingReads()[0].params.get('ids'), '239,238,237,236,235,234');
   await Promise.all(visible.map(image => f.reader.load(image, { id: 'owner' })));
   assert.equal(f.signingReads().length, 1, 'visited URLs are not signed again');
+});
+
+test('explicit timelapse caches initial eight signatures; first frame needs no signing query', async () => {
+  const f = fixture('photo_url');
+  f.rows(Array.from({ length: 360 }, (_, index) => f.photo(index + 1)));
+  const { images } = await f.read({
+    limit: 360, from: '2026-10-26T10:00:00Z', to: '2026-10-26T11:00:00Z', timelapse: true,
+  });
+  assert.equal(f.requests[0].params.get('timelapse'), '1');
+  assert.equal(images.filter(image => image.imageUrl).length, 9);
+  const initial = await Promise.all(images.slice(0, 8).map(image => f.reader.load(image, { id: 'owner' })));
+  assert(initial.every(image => image.photo_url));
+  assert.equal(f.requests.length, 1, 'no extra metadata or ID request for first eight frames');
+  f.reader.clear();
+  await f.reader.load(images[0], { id: 'owner' });
+  assert.equal(f.signingReads().length, 1, 'cleared session cache is not reused');
 });
 
 test('400-photo hour signs latest only and renewal never signs unseen rows', async () => {

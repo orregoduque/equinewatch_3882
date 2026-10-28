@@ -37,7 +37,7 @@ export function validLuceroKey(key, horseId = LUCERO_ID) {
 }
 
 function parseQuery(search, horseId) {
-  const allowed = new Set(['limit', 'cursor', 'since', 'from', 'to', 'ids', 'metadata', 'preview', 'cached', 'probe']);
+  const allowed = new Set(['limit', 'cursor', 'since', 'from', 'to', 'ids', 'metadata', 'preview', 'cached', 'probe', 'timelapse']);
   for (const name of search.keys())
     if (!allowed.has(name) || search.getAll(name).length !== 1) fail(400, 'Consulta de fotos inválida.');
   const limit = Number(search.get('limit') || 240);
@@ -56,6 +56,10 @@ function parseQuery(search, horseId) {
     fail(400, 'Selección de fotos inválida.');
   if (search.has('metadata') && search.get('metadata') !== '1') fail(400, 'Consulta inválida.');
   const preview = search.get('preview') === '1';
+  const timelapse = search.get('timelapse') === '1';
+  if (search.has('timelapse') && (!timelapse || !preview || !from || limit !== 360
+    || ids || since || search.has('cursor') || search.has('metadata') || search.has('probe')))
+    fail(400, 'Timelapse inválido.');
   const cached = search.get('cached');
   if ((search.has('preview') && !preview) || (preview && (ids || search.has('metadata')))
     || (cached !== null && (!preview || !/^[a-f0-9]{64}$/.test(cached)))) fail(400, 'Vista previa inválida.');
@@ -69,7 +73,7 @@ function parseQuery(search, horseId) {
         || cursor.since !== since || !timestamp(cursor.at) || !validId(cursor.id)) throw Error();
     } catch { fail(400, 'Cursor inválido.'); }
   }
-  return { limit, from, to, since, ids, cursor, preview, cached, probe, metadataOnly: search.get('metadata') === '1' };
+  return { limit, from, to, since, ids, cursor, preview, cached, probe, timelapse, metadataOnly: search.get('metadata') === '1' };
 }
 
 /** No S3 requests are made here: GetObjectCommand is signed locally, never sent. */
@@ -201,8 +205,9 @@ export function createWasabiPhotosHandler({
         return true;
       }
       const previewRow = ascending ? rows.at(-1) : rows[0];
+      const initialFrames = new Set(parsed.timelapse ? rows.slice(0, 8) : []);
       const needsSignature = row => !parsed.metadataOnly
-        && (!parsed.preview || (row === previewRow && previewVersion(row) !== parsed.cached));
+        && (!parsed.preview || initialFrames.has(row) || (row === previewRow && previewVersion(row) !== parsed.cached));
       let sign;
       if (rows.some(needsSignature)) {
         signerPromise ??= signerFactory(env).catch(error => { signerPromise = undefined; throw error; });

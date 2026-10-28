@@ -105,7 +105,8 @@ try {
     }
     if (params.get('preview') === '1' && rows.length) {
       const newest = params.has('from') ? rows.at(-1) : rows[0];
-      if (previewVersion(newest) !== params.get('cached')) rows = rows.map(row => row === newest ? {
+      rows = rows.map((row, index) => ((row === newest && previewVersion(newest) !== params.get('cached'))
+        || (params.get('timelapse') === '1' && index < 8)) ? {
         ...row, imageUrl: `https://s3.us-east-1.wasabisys.com/equinewatch-photos/${row.storage_path_enhanced}?X-Amz-Signature=fixture-${++serial}`,
         expiresAt: new Date(Date.now() + offset + 600000).toISOString(),
         version: previewVersion(row),

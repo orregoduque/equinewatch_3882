@@ -4,6 +4,13 @@ import test from 'node:test';
 import vm from 'node:vm';
 
 const html = readFileSync('index.html', 'utf8');
+test('Wasabi preconnect matches native image connections without crossorigin and keeps existing hints', () => {
+  const links = html.match(/<link\b[^>]*rel="preconnect"[^>]*>/g) || [];
+  const wasabi = links.filter(link => link.includes('https://s3.us-east-1.wasabisys.com'));
+  assert.equal(wasabi.length, 1);
+  assert(!/\bcrossorigin\b/i.test(wasabi[0]));
+  assert.equal(links.length, 4);
+});
 const script = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)]
   .map(match => match[1]).find(value => value.includes('heroPreload'));
 

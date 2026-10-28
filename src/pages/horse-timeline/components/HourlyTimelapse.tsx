@@ -71,7 +71,7 @@ export default function HourlyTimelapse({
     const load = async () => {
       try {
         const photos: CameraImage[] = await fetchHorseImagesForHour(
-          horseId, viewer, day, hour, controller.signal, photoBackend, 360,
+          horseId, viewer, day, hour, controller.signal, photoBackend, 360, true,
         );
         if (!active) return;
         setCount(photos.length);

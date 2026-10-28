@@ -62,8 +62,20 @@ do not turn object paths into public URLs to satisfy a display-field name.
 
 An hourly timelapse is the explicit exception: the user requested a separate
 button for the already selected hour, fetching at most 360 chronologically ordered
-photos only on click, playing at 15 fps with current plus two frames preloaded.
+photos only on click, playing at 15 fps. The user subsequently approved an
+eight-frame bounded buffer (including current) for faster startup.
 It must never populate or replace the 20-photo gallery or ordinary hour review.
+
+Timelapse startup warmup must be explicitly opted into by the button's request,
+not inferred from an ordinary hourly range.
+
+**Why:** The user approved first-phase startup optimization but requires
+compatibility with the published app and no changes to ordinary hour search,
+live photos, authentication caching or JPEG caching.
+
+**How to apply:** Keep legacy/default previews signing only their newest photo.
+Warm the first eight and last only for explicit timelapse requests. Reuse the
+session-scoped URL cache and keep bounded cancellation/cleanup on close.
 
 **Why:** The user wants a short review of a specific hour without automatic
 day-wide downloads, MP4 generation, or hundreds of mounted images.

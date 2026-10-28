@@ -17,19 +17,19 @@ test('15 fps gives a full hour of 360 photos a nominal duration of 24 seconds', 
   assert.equal(api.TIMELAPSE_FRAME_MS, 1000 / 15);
 });
 
-test('only three frames load at a time; advancing releases old blobs, close releases all', async () => {
+test('only eight frames load at a time; advancing releases old blobs, close releases all', async () => {
   const loaded = [], released = [], signals = [];
   const buffer = new api.TimelapseFrames(360, async (index, signal) => {
     loaded.push(index); signals.push(signal); return `blob:${index}`;
   }, url => released.push(url));
   assert.equal(await buffer.frame(0), 'blob:0');
-  assert.deepEqual(loaded, [0, 1, 2]);
+  assert.deepEqual(loaded, [0, 1, 2, 3, 4, 5, 6, 7]);
   assert.equal(await buffer.frame(1), 'blob:1');
-  assert.deepEqual(loaded, [0, 1, 2, 3]);
+  assert.deepEqual(loaded, [0, 1, 2, 3, 4, 5, 6, 7, 8]);
   assert.deepEqual(released, ['blob:0']);
   for (let i = 2; i < 360; i++) {
     await buffer.frame(i);
-    assert(loaded.length - released.length <= 3);
+    assert(loaded.length - released.length <= 8);
   }
   buffer.close();
   assert.equal(released.length, 360);
@@ -45,12 +45,12 @@ test('closing aborts pending preloads and revokes blobs that resolve after close
   }, url => released.push(url));
   const first = buffer.frame(0);
   buffer.close();
-  assert.equal(signals.length, 3);
+  assert.equal(signals.length, 8);
   assert(signals.every(signal => signal.aborted));
   resolves.forEach(resolve => resolve());
   await assert.rejects(first, { name: 'AbortError' });
   await new Promise(resolve => setImmediate(resolve));
-  assert.deepEqual(released.sort(), ['blob:0', 'blob:1', 'blob:2']);
+  assert.deepEqual(released.sort(), Array.from({ length: 8 }, (_, i) => `blob:${i}`));
 });
 
 test('a short hour preloads only its actual photos; replay reuses metadata', async () => {

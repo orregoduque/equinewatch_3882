@@ -184,10 +184,11 @@ export function createWasabiPhotoReader(
       }),
     read: (
       horseId: string, viewer: HorseViewer, options: {
-        limit: number; since?: string; from?: string; to?: string; cursor?: string; signal?: AbortSignal;
+        limit: number; since?: string; from?: string; to?: string; cursor?: string; signal?: AbortSignal; timelapse?: boolean;
       },
     ) => run(viewer, options.signal, async request => {
       const params = new URLSearchParams({ limit: String(options.limit), preview: '1' });
+      if (options.timelapse) params.set('timelapse', '1');
       const queryKey = JSON.stringify([horseId, options.from || '', options.to || '', options.cursor || '']);
       const cached = cache.get(previews.get(queryKey) || '');
       if (valid(cached) && cached!.version) params.set('cached', cached!.version);

@@ -1,5 +1,15 @@
 # Velvet Vitalis / Casona: compatibility before cutover
 
+## Optional hourly timelapse startup
+
+Only the explicit timelapse button requests `timelapse=1` with `preview=1`,
+`from/to` and `limit=360`. That opt-in signs the first eight rows and the last
+row (deduplicated for short hours). The client reuses those session-memory
+signatures and retains at most eight decoded frames including the current one.
+Ordinary hour review, live previews, legacy ID requests, auth checks and response
+fields remain unchanged. Neither server auth caching nor JPEG cache-control
+overrides are introduced. No additional query is made just by selecting an hour.
+
 Velvet (`61c46d85-34be-4fa8-a892-9e22211487df`) is approved exclusively for
 `stable-eye/9f0cb7e0-8092-5c37-86d7-6e94de0af9ed/node_1/`. This is not
 Encantador's Rancho node_1, nor Tessa's Casona node_3. Session verification,
