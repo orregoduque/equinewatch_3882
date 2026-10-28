@@ -32,6 +32,21 @@ authorization and real UUIDs before adding other viewers. Separate real camera
 acceptance from synthetic multi-camera tests; preparing a player is not evidence
 that the Raspberry is publishing its stream.
 
+The user separately authorized Casona live-video integration for Tessa and
+Velvet, keeping their Wasabi photo associations and Bacatá unchanged. The
+operator reports both real PoE cameras connected; this supersedes the earlier
+JPEG-only camera assumption but does not prove receiver ingestion or playback.
+
+**Why:** Photos and video are independently operated. The user requires a safe
+merge of the existing receiver configuration, not replacement or new secrets.
+
+**How to apply:** Preserve all existing grants and publisher hashes. Validate
+capacity in the actual receiver project before adding both cameras; do not
+increase limits or delete entries to make room. Only the operator's secure
+merged config can establish Casona viewing grants. Receiver republish resets
+volatile windows and needs an agreed interruption window. Confirm applied
+config before starting new publishers. Never rotate the shared proxy key.
+
 The user confirmed that Live video works for both Lucero and Thunder on
 2026-10-26.
 

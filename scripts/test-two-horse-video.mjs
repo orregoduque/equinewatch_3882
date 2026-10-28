@@ -9,11 +9,17 @@ const assignments = [
     uid: '00000000-0000-4000-8000-000000000001' },
   { horseId: 'd826a274-58ea-4a55-8fd2-1d4c78222ab1', id: 'bacata-thunder', name: 'Thunder',
     uid: '00000000-0000-4000-8000-000000000002' },
+  { horseId: 'e47d1da3-9b6b-4433-819c-423d7687b296', id: 'casona-tessa', name: 'Tessa',
+    uid: '00000000-0000-4000-8000-000000000003' },
+  { horseId: '61c46d85-34be-4fa8-a892-9e22211487df', id: 'casona-velvet', name: 'Velvet Vitalis',
+    uid: '00000000-0000-4000-8000-000000000004' },
 ];
 const browser = await chromium.launch({ executablePath: '/repl/tools/bin/chromium', args: ['--no-sandbox'] });
 const contexts = [];
 try {
   async function setup(assignment, mobile) {
+    const permitted = assignment.id.startsWith('casona-')
+      ? assignments.filter(item => item.id.startsWith('casona-')) : [assignment];
     const context = await browser.newContext({ viewport: mobile ? { width: 390, height: 844 } : { width: 1280, height: 900 } });
     contexts.push(context);
     const page = await context.newPage(), errors = [], media = [], sessions = [];
@@ -33,20 +39,21 @@ try {
       return route.fulfill({ contentType: 'application/json', body: JSON.stringify(body) });
     });
     await page.route('**/api/hls-pilot/cameras', route => route.fulfill({
-      contentType: 'application/json', body: JSON.stringify({ cameras: [{
-        ...assignment, ready: true, segments: 12, bufferedBytes: 100000, lastReceivedAt: new Date().toISOString(),
-      }] }),
+      contentType: 'application/json', body: JSON.stringify({ cameras: permitted.map(item => ({
+        ...item, ready: true, segments: 12, bufferedBytes: 100000, lastReceivedAt: new Date().toISOString(),
+      })) }),
     }));
     await page.route('**/api/hls-pilot/horses/*/session', route => {
       const horse = new URL(route.request().url()).pathname.split('/')[4];
+      const selected = permitted.find(item => item.horseId === horse);
       assert.equal(route.request().method(), 'POST');
       const jwt = route.request().headers().authorization.slice(7);
       assert.equal(JSON.parse(Buffer.from(jwt.split('.')[1], 'base64url').toString()).sub, assignment.uid);
       sessions.push(horse);
-      return route.fulfill({ status: horse === assignment.horseId ? 200 : 403, contentType: 'application/json',
-        body: JSON.stringify(horse === assignment.horseId ? {
-          ready: true, cameraId: assignment.id, horseId: horse, expiresAt: Date.now() + 90000,
-          playbackUrl: `/api/hls-pilot/media/${assignment.id}/index.m3u8`,
+      return route.fulfill({ status: selected ? 200 : 403, contentType: 'application/json',
+        body: JSON.stringify(selected ? {
+          ready: true, cameraId: selected.id, horseId: horse, expiresAt: Date.now() + 90000,
+          playbackUrl: `/api/hls-pilot/media/${selected.id}/index.m3u8`,
         } : { error: 'no access for now' }) });
     });
     await page.goto(`${base}/horse-timeline?horseId=${assignment.horseId}`);
@@ -57,7 +64,7 @@ try {
     }, undefined, { timeout: 18000 });
     return { page, media, sessions, errors, assignment, photoReads: () => photoReads };
   }
-  const viewers = await Promise.all([setup(assignments[0], false), setup(assignments[1], true)]);
+  const viewers = await Promise.all(assignments.map((assignment, index) => setup(assignment, index % 2 === 1)));
   const initialPhotoReads = viewers.map(viewer => viewer.photoReads());
   await viewers[0].page.waitForTimeout(10500);
   for (const [index, viewer] of viewers.entries()) {
@@ -77,7 +84,23 @@ try {
   await lucero.page.waitForFunction(() => document.querySelector('[data-testid="timeline-live-video"]')?.currentTime > 0.15);
   assert(lucero.media.every(path => path.includes('/media/bacata-mock/')));
   assert(await viewers[1].page.getByTestId('timeline-live-video').evaluate(video => !video.paused && video.currentTime > 0.15));
+  const tessa = viewers[2];
+  const oldCasonaVideo = await tessa.page.getByTestId('timeline-live-video').elementHandle();
+  await tessa.page.getByRole('button', { name: 'Cerrar vídeo', exact: true }).click();
+  assert(await oldCasonaVideo.evaluate(video => video.paused && !video.getAttribute('src')));
+  await tessa.page.getByRole('button', { name: /^Velvet Vitalis/ }).click();
+  await tessa.page.getByRole('button', { name: /^Tessa/ }).click();
+  await tessa.page.getByRole('button', { name: /^Velvet Vitalis/ }).click();
+  const switchRequests = tessa.media.length;
+  await tessa.page.getByRole('button', { name: 'Live video', exact: true }).click();
+  await tessa.page.waitForFunction(() => document.querySelector('[data-testid="timeline-live-video"]')?.currentTime > 0.15);
+  assert(tessa.sessions.at(-1) === assignments[3].horseId);
+  assert(tessa.media.slice(switchRequests).some(path => path.includes('/media/casona-velvet/')));
+  assert(tessa.media.every(path => /\/media\/casona-(tessa|velvet)\//.test(path)));
+  assert(await viewers[3].page.getByTestId('timeline-live-video').evaluate(video => !video.paused && video.currentTime > 0.15),
+    'second authorized Casona viewer continues while the first switches horses');
   console.log(JSON.stringify({ passed: true, syntheticOnly: true, physicalThunderStreamVerified: false,
+    physicalCasonaStreamsVerified: false, fourCameraMappings: true, twoCasonaViewers: true,
     simultaneousDistinctUsers: true, desktopAndMobile: true, rapidSwitch: true, independentMediaPaths: true,
     photoPollingDuringBothVideos: true }));
 } finally {

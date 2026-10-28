@@ -3,13 +3,16 @@ name: Camera pilot authorization
 description: Why pilot camera access uses explicit trusted grants instead of inheriting current app role labels.
 ---
 
-Keep the pilot founder-only for now. An unauthorized Live video click must show
+Keep the existing Bacatá pilot grants unchanged. An unauthorized Live video click must show
 the exact message “no access for now” and an X to close it.
 
 **Why:** The user explicitly requested this pilot restriction and message.
+The later Casona request authorizes its separately verified owner and existing
+legitimate server-side administrators; it does not expand Bacatá permissions.
 
-**How to apply:** Preserve the receiver's trusted grants. Show the denial without
-a playable video or demo; do not expand access based on client-side roles.
+**How to apply:** Preserve the receiver's trusted grants. New Casona grants must
+be merged privately in the receiver, not copied from Bacatá or inferred from
+client roles. Show the denial without a playable video or demo.
 
 Do not silently migrate customer login or inherit client-side role labels when
 extending the camera pilot. Treat its manually assigned real Auth identities as

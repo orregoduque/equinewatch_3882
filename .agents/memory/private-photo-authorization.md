@@ -51,7 +51,8 @@ activate Velvet, alter Casona publishers, replace reader credentials with writer
 credentials, or assign existing HLS streams to either horse.
 
 **Why:** The user requires uninterrupted existing photos before the coordinated
-cutover. Both Casona migrations provide ESP32/TCP JPEG photos, not streaming.
+cutover. Photo migration alone does not create a video stream; a later request
+separately authorizes real PoE HLS cameras for Tessa and Velvet.
 
 **How to apply:** Keep Velvet on Supabase until its separately coordinated
 cutover; do not revert Tessa to Supabase. Add read scope without removing existing horse grants; distinguish

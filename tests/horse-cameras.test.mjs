@@ -11,13 +11,21 @@ import { createReceiver } from '../services/hls-pilot/receiver.mjs';
 import { PilotError } from '../services/hls-pilot/stream-window.mjs';
 import { createHash, randomUUID } from 'node:crypto';
 
-const [lucero, thunder] = Object.keys(EXPECTED_CAMERAS);
+const [lucero, thunder, tessa, velvet] = Object.keys(EXPECTED_CAMERAS);
 const cameras = Object.entries(EXPECTED_CAMERAS).map(([horseId, id]) => ({ horseId, id, ready: true }));
 const token = 'Bearer synthetic-real-session-shaped-token';
 
 test('trusted horse mapping refuses duplicates, wrong physical camera assignment and another horse', () => {
   assert.equal(resolveHorseCamera(cameras, lucero).id, 'bacata-mock');
   assert.equal(resolveHorseCamera(cameras, thunder).id, 'bacata-thunder');
+  assert.equal(resolveHorseCamera(cameras, tessa).id, 'casona-tessa');
+  assert.equal(resolveHorseCamera(cameras, velvet).id, 'casona-velvet');
+  for (const horseId of [tessa, velvet]) {
+    for (const other of cameras.filter(camera => camera.horseId !== horseId)) {
+      assert.equal(resolveHorseCamera([{ horseId, id: other.id }], horseId), null);
+    }
+    assert.equal(resolveHorseCamera([...cameras, cameras.find(camera => camera.horseId === horseId)], horseId), null);
+  }
   assert.equal(resolveHorseCamera([cameras[1]], lucero), null);
   assert.equal(resolveHorseCamera([...cameras, cameras[0]], lucero), null);
   assert.equal(resolveHorseCamera([{ ...cameras[0], id: 'bacata-thunder' }], lucero), null);
@@ -61,6 +69,11 @@ test('proxy resolves by verified horse; concurrent sessions, denial, legacy comp
   assert.equal((await b.json()).cameraId, 'bacata-thunder');
   assert(a.headers.get('set-cookie').includes('hls_bacata-mock='));
   assert(b.headers.get('set-cookie').includes('hls_bacata-thunder='));
+  const casona = await Promise.all([session(tessa), session(velvet)]);
+  assert.deepEqual(await Promise.all(casona.map(async response => {
+    assert.equal(response.status, 200);
+    return (await response.json()).cameraId;
+  })), ['casona-tessa', 'casona-velvet']);
   const malicious = await session(lucero, token, '?cameraId=bacata-thunder');
   assert.equal((await malicious.json()).cameraId, 'bacata-mock');
   assert.equal((await session(lucero, '')).status, 401);
@@ -98,7 +111,7 @@ test('two publishers and two permitted viewers keep bytes, sequences, grants and
   const users = ['00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000002'];
   const keys = ['synthetic-lucero-publisher-0000000000', 'synthetic-thunder-publisher-000000000'];
   const epochs = [randomUUID(), randomUUID()];
-  const streams = cameras.map((camera, i) => ({
+  const streams = cameras.slice(0, 2).map((camera, i) => ({
     ...camera, name: camera.id, ownerUserIds: [users[i]], stableOwnerUserIds: [],
     publisherKeySha256: createHash('sha256').update(keys[i]).digest('hex'),
   }));
@@ -144,5 +157,75 @@ test('two publishers and two permitted viewers keep bytes, sequences, grants and
     assert.deepEqual(Buffer.from(await segment.arrayBuffer()), bytes(i));
     assert.equal((await fetch(path + 'index.m3u8', { headers: { Cookie: cookies[1 - i] } })).status, 401);
     assert.equal((await fetch(path + `${epochs[i]}-0.ts`)).status, 401);
+  }
+});
+
+test('four cameras preserve Bacata grants and give only verified Casona owner/admin isolated temporary media access', async t => {
+  const owners = [
+    '00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000002',
+    '00000000-0000-4000-8000-000000000003', '00000000-0000-4000-8000-000000000003',
+  ];
+  const admin = '00000000-0000-4000-8000-000000000004';
+  const keys = cameras.map((_, i) => `synthetic-independent-publisher-key-${i}`);
+  const epochs = cameras.map(() => randomUUID());
+  const streams = cameras.map((camera, i) => ({
+    ...camera, name: camera.id, ownerUserIds: [owners[i]], stableOwnerUserIds: [],
+    publisherKeySha256: createHash('sha256').update(keys[i]).digest('hex'),
+  }));
+  const config = { supabaseUrl: 'https://auth.example.test', supabaseAnonKey: 'public-fixture',
+    adminUserIds: [admin], cameras: streams };
+  validateConfig(config);
+  assert.throws(() => validateConfig({ ...config, cameras: [...streams, { ...streams[0], id: 'extra' }] }));
+  const receiver = createReceiver(config, { authenticate: async request => {
+    const uid = request.headers.authorization?.replace(/^Bearer /, '');
+    if (![...owners, admin].includes(uid)) throw new PilotError(401, 'Synthetic session denied');
+    return uid;
+  } });
+  const server = createServer(receiver.handler);
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  t.after(async () => { receiver.close(); server.closeAllConnections(); await new Promise(resolve => server.close(resolve)); });
+  const base = `http://127.0.0.1:${server.address().port}`;
+  const media = streams.map((_, i) => {
+    const bytes = Buffer.alloc(188 * 3, i + 1);
+    for (let offset = 0; offset < bytes.length; offset += 188) bytes[offset] = 0x47;
+    return bytes;
+  });
+  for (let seq = 0; seq < 3; seq++) {
+    const responses = await Promise.all(streams.map((stream, i) => fetch(`${base}/ingest/${stream.id}/${epochs[i]}/${seq}`, {
+      method: 'PUT', headers: { Authorization: `Bearer ${keys[i]}`, 'Content-Type': 'video/mp2t',
+        'X-Segment-Duration': '1', 'X-Segment-Start': new Date().toISOString() }, body: media[i],
+    })));
+    assert(responses.every(response => response.status === 204));
+  }
+  const issue = (i, uid) => fetch(`${base}/api/hls-pilot/session/${streams[i].id}`, {
+    method: 'POST', headers: { Authorization: `Bearer ${uid}`, 'Content-Type': 'application/json' },
+  });
+  for (let i = 0; i < streams.length; i++) {
+    const ownerTicket = await issue(i, owners[i]), adminTicket = await issue(i, admin);
+    assert.equal(ownerTicket.status, 200);
+    assert.equal(adminTicket.status, 200);
+    const path = `${base}/api/hls-pilot/media/${streams[i].id}/`;
+    const cookies = [ownerTicket, adminTicket].map(response => response.headers.get('set-cookie').split(';')[0]);
+    assert(ownerTicket.headers.get('set-cookie').includes('Max-Age=90'));
+    for (const cookie of cookies) {
+      const playlist = await fetch(path + 'index.m3u8', { headers: { Cookie: cookie } });
+      assert.equal(playlist.status, 200);
+      const text = await playlist.text();
+      assert(text.includes(epochs[i]));
+      assert(epochs.filter((_, index) => index !== i).every(epoch => !text.includes(epoch)));
+      const segment = await fetch(path + `${epochs[i]}-0.ts`, { headers: { Cookie: cookie } });
+      assert.deepEqual(Buffer.from(await segment.arrayBuffer()), media[i]);
+    }
+    assert.equal((await fetch(path + 'index.m3u8')).status, 401);
+    assert.equal((await fetch(path + `${epochs[i]}-0.ts`)).status, 401);
+    const otherOwner = i < 2 ? owners[2] : owners[0];
+    assert.equal((await issue(i, otherOwner)).status, 403);
+    assert.equal((await issue(i, 'unverified-client-admin')).status, 401);
+    if (i >= 2) {
+      const otherTicket = await issue(i === 2 ? 3 : 2, owners[i]);
+      const otherCookie = otherTicket.headers.get('set-cookie').split(';')[0];
+      assert.equal((await fetch(path + 'index.m3u8', { headers: { Cookie: otherCookie } })).status, 401);
+      assert.equal((await fetch(path + `${epochs[i]}-0.ts`, { headers: { Cookie: otherCookie } })).status, 401);
+    }
   }
 });
