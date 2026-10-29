@@ -22,8 +22,11 @@ asociación de fotos; los prefijos anteriores permanecen sin cambios. Se reutili
 el mismo lector para galería de 20, refresco, selección histórica, búsqueda por
 hora, timelapse y renovación de firmas al expirar o recuperar foco.
 
-No se añade vídeo: Golden Girl no está asociada a ninguna cámara HLS.
-No modificar receptor, Raspberry, Secret compartido HLS, tablas, RLS ni datos.
+La incorporación inicial fue solo de fotos. Una solicitud posterior autoriza
+preparar su directo separado `bacata-golden-girl`; consultar
+`docs/golden-girl-live-handoff.md` para capacidad y coordinación.
+La integración de fotos por sí sola no requiere modificar receptor, Raspberry,
+Secret compartido HLS, tablas, RLS ni datos.
 
 ## Permiso mínimo si el lector actual no tiene acceso
 

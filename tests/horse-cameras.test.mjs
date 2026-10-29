@@ -11,8 +11,11 @@ import { createReceiver } from '../services/hls-pilot/receiver.mjs';
 import { PilotError } from '../services/hls-pilot/stream-window.mjs';
 import { createHash, randomUUID } from 'node:crypto';
 
-const [lucero, thunder, tessa, velvet] = Object.keys(EXPECTED_CAMERAS);
-const cameras = Object.entries(EXPECTED_CAMERAS).map(([horseId, id]) => ({ horseId, id, ready: true }));
+const [lucero, thunder, tessa, velvet, golden] = Object.keys(EXPECTED_CAMERAS);
+// Keep existing receiver capacity tests at four: preparing a fifth app mapping
+// must not silently change the separately deployed receiver's capacity.
+const cameras = Object.entries(EXPECTED_CAMERAS).slice(0, 4).map(([horseId, id]) => ({ horseId, id, ready: true }));
+const goldenCamera = { horseId: golden, id: 'bacata-golden-girl', ready: true };
 const token = 'Bearer synthetic-real-session-shaped-token';
 
 test('trusted horse mapping refuses duplicates, wrong physical camera assignment and another horse', () => {
@@ -30,11 +33,17 @@ test('trusted horse mapping refuses duplicates, wrong physical camera assignment
   assert.equal(resolveHorseCamera([...cameras, cameras[0]], lucero), null);
   assert.equal(resolveHorseCamera([{ ...cameras[0], id: 'bacata-thunder' }], lucero), null);
   assert.equal(resolveHorseCamera(cameras, 'unassigned'), null);
+  assert.equal(resolveHorseCamera([...cameras, goldenCamera], golden).id, 'bacata-golden-girl');
+  assert.equal(resolveHorseCamera(cameras, golden), null, 'pending capacity cannot fall back to an existing stream');
+  assert.equal(resolveHorseCamera([goldenCamera, goldenCamera], golden), null);
+  for (const camera of cameras) {
+    assert.equal(resolveHorseCamera([{ ...camera, horseId: golden }], golden), null);
+  }
 });
 
 test('proxy resolves by verified horse; concurrent sessions, denial, legacy compatibility and mismatch fail closed', async t => {
   const dir = await mkdtemp(join(tmpdir(), 'horse-proxy-'));
-  let discovered = cameras, discoveryStatus = 200, wrongPlayback = false;
+  let discovered = [...cameras, goldenCamera], discoveryStatus = 200, wrongPlayback = false;
   const sessions = [];
   const receiver = createServer((req, res) => {
     const json = (status, body, headers = {}) => {
@@ -74,6 +83,17 @@ test('proxy resolves by verified horse; concurrent sessions, denial, legacy comp
     assert.equal(response.status, 200);
     return (await response.json()).cameraId;
   })), ['casona-tessa', 'casona-velvet']);
+  const goldenSession = await session(golden);
+  assert.equal(goldenSession.status, 200);
+  assert.equal((await goldenSession.json()).cameraId, 'bacata-golden-girl');
+  assert(goldenSession.headers.get('set-cookie').includes('hls_bacata-golden-girl='));
+  discovered = cameras;
+  const beforePending = sessions.length;
+  assert.equal((await session(golden)).status, 409);
+  assert.equal(sessions.length, beforePending, 'no session for a different horse while Golden Girl is pending');
+  discovered = [{ ...goldenCamera, id: 'bacata-mock' }];
+  assert.equal((await session(golden)).status, 409);
+  discovered = [...cameras, goldenCamera];
   const malicious = await session(lucero, token, '?cameraId=bacata-thunder');
   assert.equal((await malicious.json()).cameraId, 'bacata-mock');
   assert.equal((await session(lucero, '')).status, 401);

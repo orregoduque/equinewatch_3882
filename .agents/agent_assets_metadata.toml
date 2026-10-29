@@ -98,3 +98,17 @@ mtime_ms = 1793235118352
 storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:3cd14c48-b7f3-4b26-917e-adc412cfbcce/c9715cd2-609e-482c-8c28-fc183cdca45b/87d00577-116d-4180-9069-19d868e7113d"
 storage_version_token = "1793235146925873"
 content_type = "text/markdown"
+
+[[outputs]]
+id = "OeY8eFEEK-_jwp7B5G11H"
+uri = "file://docs/golden-girl-live-handoff.md"
+type = "text"
+title = "Golden Girl: coordinación de Live video"
+description = "Pasos separados para ampliar el receptor HLS, arrancar el publicador en Bacatá y verificar/publicar la app principal sin afectar los cuatro directos existentes."
+logical_id = "38b3e8cb-8d52-4e78-9eda-dc52be99f133"
+content_hash = "sha256:0bd9af776f9668c9b234933f7a60dbbac997846ee987d4ee541bcafd7e1a89c6"
+size = 5308
+mtime_ms = 1793287745364
+storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:3cd14c48-b7f3-4b26-917e-adc412cfbcce/38b3e8cb-8d52-4e78-9eda-dc52be99f133/a24de69f-ca3e-4418-bca1-4490b9c7db5b"
+storage_version_token = "1793287759927219"
+content_type = "text/markdown"

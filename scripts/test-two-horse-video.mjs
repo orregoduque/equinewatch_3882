@@ -13,6 +13,8 @@ const assignments = [
     uid: '00000000-0000-4000-8000-000000000003' },
   { horseId: '61c46d85-34be-4fa8-a892-9e22211487df', id: 'casona-velvet', name: 'Velvet Vitalis',
     uid: '00000000-0000-4000-8000-000000000004' },
+  { horseId: 'a264b293-2d23-497f-b47f-5f7e68a81ea9', id: 'bacata-golden-girl', name: 'Golden Girl',
+    uid: '00000000-0000-4000-8000-000000000005' },
 ];
 const browser = await chromium.launch({ executablePath: '/repl/tools/bin/chromium', args: ['--no-sandbox'] });
 const contexts = [];
@@ -24,6 +26,7 @@ try {
     contexts.push(context);
     const page = await context.newPage(), errors = [], media = [], sessions = [];
     let photoReads = 0;
+    let goldenReady = assignment.id !== 'bacata-golden-girl';
     page.on('pageerror', error => errors.push(error.message));
     page.on('request', request => {
       if (request.url().includes('/media/')) media.push(new URL(request.url()).pathname);
@@ -40,7 +43,8 @@ try {
     });
     await page.route('**/api/hls-pilot/cameras', route => route.fulfill({
       contentType: 'application/json', body: JSON.stringify({ cameras: permitted.map(item => ({
-        ...item, ready: true, segments: 12, bufferedBytes: 100000, lastReceivedAt: new Date().toISOString(),
+        ...item, ready: item.id === 'bacata-golden-girl' ? goldenReady : true,
+        segments: 12, bufferedBytes: 100000, lastReceivedAt: new Date().toISOString(),
       })) }),
     }));
     await page.route('**/api/hls-pilot/horses/*/session', route => {
@@ -58,6 +62,14 @@ try {
     });
     await page.goto(`${base}/horse-timeline?horseId=${assignment.horseId}`);
     await page.getByRole('button', { name: 'Live video', exact: true }).click();
+    if (assignment.id === 'bacata-golden-girl') {
+      await page.getByText('La cámara de este caballo aún no está publicando vídeo. Las fotos funcionan de forma independiente.', { exact: true }).waitFor();
+      assert.equal(media.length, 0, 'pending publisher never requests a mock or another horse');
+      assert.equal(sessions.length, 0);
+      await page.getByRole('button', { name: 'Cerrar vídeo', exact: true }).click();
+      goldenReady = true; // Simulates receiver capacity/ACL + publisher becoming ready.
+      await page.getByRole('button', { name: 'Live video', exact: true }).click();
+    }
     await page.waitForFunction(() => {
       const video = document.querySelector('[data-testid="timeline-live-video"]');
       return video?.videoWidth > 0 && video.currentTime > 0.15;
@@ -99,8 +111,22 @@ try {
   assert(tessa.media.every(path => /\/media\/casona-(tessa|velvet)\//.test(path)));
   assert(await viewers[3].page.getByTestId('timeline-live-video').evaluate(video => !video.paused && video.currentTime > 0.15),
     'second authorized Casona viewer continues while the first switches horses');
+  const golden = viewers[4];
+  const goldenElement = await golden.page.getByTestId('timeline-live-video').elementHandle();
+  await golden.page.getByRole('button', { name: 'Cerrar vídeo', exact: true }).click();
+  assert(await goldenElement.evaluate(video => video.paused && !video.getAttribute('src')));
+  await golden.page.getByRole('button', { name: /^Lucero/ }).click();
+  await golden.page.getByRole('button', { name: 'Live video', exact: true }).click();
+  await golden.page.getByText('No hay un streaming publicado y autorizado para este caballo todavía.', { exact: true }).waitFor();
+  assert(golden.media.every(path => path.includes('/media/bacata-golden-girl/')));
+  await golden.page.getByRole('button', { name: 'Cerrar vídeo', exact: true }).click();
+  await golden.page.getByRole('button', { name: /^Golden Girl/ }).click();
+  await golden.page.getByRole('button', { name: 'Live video', exact: true }).click();
+  await golden.page.waitForFunction(() => document.querySelector('[data-testid="timeline-live-video"]')?.currentTime > 0.15);
   console.log(JSON.stringify({ passed: true, syntheticOnly: true, physicalThunderStreamVerified: false,
     physicalCasonaStreamsVerified: false, fourCameraMappings: true, twoCasonaViewers: true,
+    goldenGirlMapping: true, goldenPublisherPendingNoFallback: true, goldenPlayerDisposed: true,
+    physicalGoldenStreamVerified: false, realSafariVerified: false,
     simultaneousDistinctUsers: true, desktopAndMobile: true, rapidSwitch: true, independentMediaPaths: true,
     photoPollingDuringBothVideos: true }));
 } finally {

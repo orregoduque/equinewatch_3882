@@ -84,6 +84,10 @@ el dominio de producción; no deducirlo del dominio del preview.
 | Thunder | d826a274-58ea-4a55-8fd2-1d4c78222ab1 | bacata-thunder | Bacatá, node_109 |
 | Tessa | e47d1da3-9b6b-4433-819c-423d7687b296 | casona-tessa | Casona, node_3 |
 | Velvet Vitalis | 61c46d85-34be-4fa8-a892-9e22211487df | casona-velvet | Casona, node_1 |
+| Golden Girl (preparada; disponibilidad por confirmar) | a264b293-2d23-497f-b47f-5f7e68a81ea9 | bacata-golden-girl | Bacatá, node_110 |
+
+La quinta asociación está preparada en la app, no certificada como activa en
+el receptor ni en la Raspberry. Consultar `docs/golden-girl-live-handoff.md`.
 
 **`bacata-mock` es el identificador del vídeo real de Lucero. No renombrarlo.**
 El nombre histórico no implica que deba sustituirse por una demostración.
@@ -99,7 +103,8 @@ tiempos de apertura, ni la revisión publicada de la app principal.
 ### 3.2 Bloqueo antes de añadir una quinta cámara
 
 El código de referencia del receptor valida **entre una y cuatro cámaras**.
-Ya existen cuatro asociaciones. Antes de añadir otra:
+Los cuatro directos anteriores ocupan la capacidad de referencia; una quinta
+asociación preparada en la app no la amplía. Antes de añadir otra al receptor:
 
 1. El agente del receptor debe verificar el número y límite realmente publicados.
 2. Si está completo, detener el alta y presentar una decisión de capacidad.
