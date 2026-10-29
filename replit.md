@@ -3,6 +3,14 @@
 ## Overview
 Premium equine health monitoring application through continuous photographic observation. Built with React, TypeScript, and Vite.
 
+## Operational guide: new horses and cameras
+Before adding a horse, photo backend or live camera, read
+[`docs/GUIA-AGREGAR-CABALLOS-Y-CAMARAS.md`](docs/GUIA-AGREGAR-CABALLOS-Y-CAMARAS.md).
+It covers handoffs between this app, the separate HLS receiver and Codex on the
+Raspberry, with security, capacity, regression and publication checks. Verify
+current state before applying it; the reference receiver already has four camera
+assignments and its four-camera limit must not be raised without a capacity review.
+
 ## Project Architecture
 - **Frontend Framework**: React 18 with TypeScript
 - **Build Tool**: Vite 5

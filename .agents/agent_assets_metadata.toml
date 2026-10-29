@@ -84,3 +84,17 @@ mtime_ms = 1793042855473
 storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:3cd14c48-b7f3-4b26-917e-adc412cfbcce/f50d6b35-b507-44ca-9d1a-283f8a51b18e/4624e09a-60c8-4ad2-a135-8499451ac6fa"
 storage_version_token = "1793042873531325"
 content_type = "application/octet-stream"
+
+[[outputs]]
+id = "NOPP8tj3gAUZQT76aescR"
+uri = "file://docs/GUIA-AGREGAR-CABALLOS-Y-CAMARAS.md"
+type = "text"
+title = "Guía de incorporación de caballos y cámaras"
+description = "Procedimiento detallado para la app principal, el receptor HLS y Codex/Raspberry: diagnóstico, autorización, fotos, pruebas, publicación y reversión."
+logical_id = "c9715cd2-609e-482c-8c28-fc183cdca45b"
+content_hash = "sha256:f2f5efed97fc4787fa61268d2291462dac20ffe39cbda74ee9e3e2428c8bad82"
+size = 38240
+mtime_ms = 1793235118352
+storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:3cd14c48-b7f3-4b26-917e-adc412cfbcce/c9715cd2-609e-482c-8c28-fc183cdca45b/87d00577-116d-4180-9069-19d868e7113d"
+storage_version_token = "1793235146925873"
+content_type = "text/markdown"
