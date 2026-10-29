@@ -64,3 +64,13 @@ The user confirmed that Live video works for both Lucero and Thunder on
 **How to apply:** Do not continue describing Thunder as never verified to play.
 This confirmation does not provide click-to-motion measurements, real-world
 latency, concurrent-viewer results or long-running reliability evidence.
+
+The user confirmed moving Golden Girl live video in the app preview on
+2026-10-29 after reporting the receiver republished and its publisher generating video.
+
+**Why:** This is operator-observed end-to-end playback, not just a fixture,
+successful health check or publisher process.
+
+**How to apply:** Treat Golden Girl preview playback as confirmed for that
+session. Do not infer published-app acceptance, Safari/iPhone support, startup
+timings, real-world latency or expanded viewer permissions from this confirmation.
