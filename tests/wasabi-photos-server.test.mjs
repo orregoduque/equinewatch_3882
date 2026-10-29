@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { EventEmitter } from 'node:events';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
-import { createWasabiPhotosHandler, LUCERO_ID, THUNDER_ID, ENCANTADOR_ID, TESSA_ID, VELVET_ID, PHOTO_PREFIXES, WASABI_SCOPE, previewVersion } from '../services/wasabi-photos/handler.mjs';
+import { createWasabiPhotosHandler, LUCERO_ID, THUNDER_ID, ENCANTADOR_ID, TESSA_ID, VELVET_ID, GOLDEN_GIRL_ID, PHOTO_PREFIXES, WASABI_SCOPE, previewVersion } from '../services/wasabi-photos/handler.mjs';
 
 const ownerId = '00000000-0000-4000-8000-000000000001';
 const captured = '2026-10-26T10:00:00.000Z';
@@ -394,7 +394,7 @@ test('real AWS presigner produces a local 10-minute GET signature restricted to 
   }
 });
 
-for (const [name, horseId] of [['Tessa', TESSA_ID], ['Velvet', VELVET_ID]]) {
+for (const [name, horseId] of [['Tessa', TESSA_ID], ['Velvet', VELVET_ID], ['GoldenGirl', GOLDEN_GIRL_ID]]) {
 test(`${name} stays on Supabase until operator cutover and cannot bypass trusted authorization`, async () => {
   for (const options of [
     { horseBackend: 'supabase' }, { validSession: false }, { horseOwner: 'other' },
@@ -432,10 +432,27 @@ test(`activated ${name} signs only its own JPEG for owner/staff and preserves ph
 });
 
 test(`${name} additive reader policy grants only its exact prefix and GetObject`, () => {
-  const policy = JSON.parse(readFileSync(`services/wasabi-photos/stable-eye-replit-casona-${name.toLowerCase()}-readonly.json`, 'utf8'));
+  const file = horseId === GOLDEN_GIRL_ID ? 'stable-eye-replit-golden-girl-readonly.json'
+    : `stable-eye-replit-casona-${name.toLowerCase()}-readonly.json`;
+  const policy = JSON.parse(readFileSync(`services/wasabi-photos/${file}`, 'utf8'));
   assert.deepEqual(policy, { Version: '2012-10-17', Statement: [{
-    Sid: `ReadCasona${name}PhotosOnly`, Effect: 'Allow', Action: 's3:GetObject',
+    Sid: horseId === GOLDEN_GIRL_ID ? 'ReadGoldenGirlPhotosOnly' : `ReadCasona${name}PhotosOnly`,
+    Effect: 'Allow', Action: 's3:GetObject',
     Resource: `arn:aws:s3:::${WASABI_SCOPE.bucket}/${PHOTO_PREFIXES[horseId]}*`,
   }] });
 });
 }
+
+test('Golden Girl rejects cross-horse IDs and every other horse prefix without signing', async () => {
+  for (const [horse, prefix] of Object.entries(PHOTO_PREFIXES)) {
+    if (horse === GOLDEN_GIRL_ID) continue;
+    for (const wrongRow of [
+      { ...row, horse_id: GOLDEN_GIRL_ID, storage_path_enhanced: prefix + 'capture.jpg' },
+      { ...row, horse_id: horse, storage_path_enhanced: PHOTO_PREFIXES[GOLDEN_GIRL_ID] + 'capture.jpg' },
+    ]) {
+      const f = fixture({ rows: [wrongRow] });
+      assert.equal((await f.request('?ids=17', 'Bearer fixture-session', GOLDEN_GIRL_ID)).status, 503);
+      assert.equal(f.signatures.length, 0);
+    }
+  }
+});

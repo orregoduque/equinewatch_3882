@@ -58,3 +58,13 @@ separately authorizes real PoE HLS cameras for Tessa and Velvet.
 cutover; do not revert Tessa to Supabase. Add read scope without removing existing horse grants; distinguish
 simulated migration tests from actual signed GET and real viewer authorization.
 
+Golden Girl's requested incorporation covers private photos only. The operator
+reports that its uploader and Wasabi backend are already active; no new video
+assignment or publisher changes are authorized by that request.
+
+**Why:** The operator explicitly separated the photo integration from a future
+live-video setup and required existing owners and other horses to remain unchanged.
+
+**How to apply:** Preserve the existing photo pipeline and permissions. Do not
+borrow another horse's HLS camera or a mock to fill the missing video assignment.
+

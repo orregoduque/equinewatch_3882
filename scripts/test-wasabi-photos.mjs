@@ -16,6 +16,8 @@ const tessa = 'e47d1da3-9b6b-4433-819c-423d7687b296';
 const tessaPrefix = 'stable-eye/9f0cb7e0-8092-5c37-86d7-6e94de0af9ed/node_3/';
 const velvet = '61c46d85-34be-4fa8-a892-9e22211487df';
 const velvetPrefix = 'stable-eye/9f0cb7e0-8092-5c37-86d7-6e94de0af9ed/node_1/';
+const golden = 'a264b293-2d23-497f-b47f-5f7e68a81ea9';
+const goldenPrefix = 'stable-eye/97e3674b-31ab-5373-8a21-aa8187e6a17f/node_110/';
 const uid = '00000000-0000-4000-8000-000000000001';
 const prefix = 'stable-eye/97e3674b-31ab-5373-8a21-aa8187e6a17f/node_108/';
 const pixel = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=', 'base64');
@@ -30,11 +32,12 @@ try {
   let encantadorBackend = 'supabase', encantadorNewest = 5;
   let tessaBackend = 'supabase';
   let velvetBackend = 'supabase';
+  let goldenNewest = 20;
   let failEncantadorPhoto = false;
   const records = new Map();
   const photo = (id, at = new Date(Date.now() - (240 - id) * 10000).toISOString(), horse = lucero) => {
     const row = { id, horse_id: horse, captured_at: at,
-      storage_path_enhanced: (horse === velvet ? velvetPrefix : horse === tessa ? tessaPrefix : horse === encantador ? ranchoPrefix : horse === thunder ? prefix.replace('node_108/', 'node_109/') : prefix) + id + '.jpg', source: 'wasabi' };
+      storage_path_enhanced: (horse === golden ? goldenPrefix : horse === velvet ? velvetPrefix : horse === tessa ? tessaPrefix : horse === encantador ? ranchoPrefix : horse === thunder ? prefix.replace('node_108/', 'node_109/') : prefix) + id + '.jpg', source: 'wasabi' };
     records.set(`${horse}:${id}`, row);
     return row;
   };
@@ -43,6 +46,7 @@ try {
   Array.from({ length: 5 }, (_, index) => photo(5 - index, new Date(Date.now() - index * 10000).toISOString(), encantador));
   Array.from({ length: 20 }, (_, index) => photo(20 - index, new Date(Date.now() - index * 10000).toISOString(), tessa));
   Array.from({ length: 20 }, (_, index) => photo(20 - index, new Date(Date.now() - index * 10000).toISOString(), velvet));
+  Array.from({ length: 20 }, (_, index) => photo(20 - index, new Date(Date.now() - index * 10000).toISOString(), golden));
   page.on('pageerror', error => errors.push(error.message));
   await installPilotFixture(page);
   await page.addInitScript(() => {
@@ -63,6 +67,7 @@ try {
       { id: legacy, owner_id: uid, name: 'Legacy fixture', photo_backend: 'supabase', is_active: true, created_at: new Date().toISOString() },
       { id: tessa, owner_id: uid, name: 'Tessa fixture', photo_backend: tessaBackend, is_active: true, created_at: new Date().toISOString() },
       { id: velvet, owner_id: uid, name: 'Velvet fixture', photo_backend: velvetBackend, is_active: true, created_at: new Date().toISOString() },
+      { id: golden, owner_id: uid, name: 'Golden Girl fixture', photo_backend: 'wasabi', is_active: true, created_at: new Date().toISOString() },
     ]); }
     if (url.pathname.endsWith('/images')) {
       restImages.push(url.search);
@@ -98,7 +103,7 @@ try {
         ? Array.from({ length: 360 }, (_, i) => 1001 + i) : [1001, 1002, 1003];
       rows = ids.map((id, i) => photo(id, new Date(Date.parse(params.get('from')) + i * 10000).toISOString(), horse));
     } else {
-      const latest = horse === tessa || horse === velvet ? 20 : horse === encantador ? encantadorNewest : horse === thunder ? 7 : newest;
+      const latest = horse === golden ? goldenNewest : horse === tessa || horse === velvet ? 20 : horse === encantador ? encantadorNewest : horse === thunder ? 7 : newest;
       rows = Array.from({ length: Math.min(horse === encantador ? 5 : horse === thunder ? 7 : 240, Number(params.get('limit'))) }, (_, i) =>
         records.get(`${horse}:${latest - i}`)).filter(Boolean);
       if (params.has('since')) rows = rows.filter(row => row.captured_at >= params.get('since'));
@@ -277,6 +282,37 @@ try {
   await page.getByRole('button', { name: /Tessa fixture/ }).click();
   await page.waitForFunction(() => document.querySelector('img[fetchpriority="high"]')?.src.includes('/node_3/20.jpg?'));
   assert.equal(await page.locator('img[src*="/node_1/"]').count(), 0, 'Tessa never retains Velvet or Encantador frames');
+  // page.goto above reset the browser clock while the fixture server retained
+  // its offset. Align them before exercising Golden Girl's URL expiration.
+  await page.evaluate(delta => window.advancePhotoTestClock(delta), offset);
+  const goldenPublicReads = restImages.length;
+  await page.getByRole('button', { name: /Golden Girl fixture/ }).click();
+  await page.waitForFunction(() => document.querySelector('img[fetchpriority="high"]')?.src.includes('/node_110/20.jpg?'));
+  assert.equal(await page.getByRole('button', { name: /^Ver foto / }).count(), 20);
+  goldenNewest = 21;
+  photo(21, new Date(Date.now() + offset + 10000).toISOString(), golden);
+  await page.waitForFunction(() => document.querySelector('img[fetchpriority="high"]')?.src.includes('/node_110/21.jpg?'), { timeout: 15000 });
+  const goldenUrl = await main.getAttribute('src');
+  offset += 650000;
+  await page.evaluate(() => { window.advancePhotoTestClock(650000); window.dispatchEvent(new Event('focus')); });
+  await page.waitForFunction(old => {
+    const image = document.querySelector('img[fetchpriority="high"]');
+    return image?.src.includes('/node_110/21.jpg?') && image.src !== old && image.complete;
+  }, goldenUrl);
+  assert.equal(restImages.length, goldenPublicReads, 'Golden Girl never reads Supabase camera history');
+  // Start an old-horse request that returns only after switching to Golden Girl.
+  let releaseOldHorse;
+  const delayed = new Promise(resolve => { releaseOldHorse = resolve; });
+  await page.route(`**/api/horses/${velvet}/photos?*`, async route => {
+    await delayed;
+    try { await route.fulfill({ contentType: 'application/json', body: JSON.stringify({ photos: [], nextCursor: null }) }); } catch {}
+  });
+  await page.getByRole('button', { name: /Velvet fixture/ }).click();
+  await page.getByRole('button', { name: /Golden Girl fixture/ }).click();
+  releaseOldHorse();
+  await page.waitForFunction(() => document.querySelector('img[fetchpriority="high"]')?.src.includes('/node_110/'));
+  await page.waitForTimeout(200);
+  assert.equal(await page.locator('img[src*="/node_3/"], img[src*="/node_1/"]').count(), 0);
   await page.goto(`${base}/profile`);
   // The shared fixture seeds a session on every full navigation. A 204 prevents
   // logout's location.href reload from creating a brand-new synthetic login.
@@ -291,6 +327,7 @@ try {
     realAuthSessionVerified: false, newCapture: true, selectiveSigning: true, renewal: true, historyRenewal: true,
     signedImageBrowserGets: imageGets.length, threeWasabiHorses: true, encantadorMigrationSimulated: true,
     encantadorPollingAndRenewal: true, tessaCutoverSimulated: true, velvetCutoverSimulated: true,
+    goldenGirl: true, goldenPollingAndRenewal: true, goldenLateResponseIsolation: true,
     rapidHorseSwitch: true, legacyPreserved: true }));
   await context.close();
 } finally { await browser.close(); }

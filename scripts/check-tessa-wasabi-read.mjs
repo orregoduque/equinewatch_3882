@@ -1,11 +1,12 @@
 // Read-only operator check. Does not change photo_backend or assume an anonymous
 // empty metadata result means that the database or bucket is empty.
 import { createClient } from '@supabase/supabase-js';
-import { TESSA_ID, VELVET_ID, validLuceroKey, productionSigner } from '../services/wasabi-photos/handler.mjs';
+import { TESSA_ID, VELVET_ID, GOLDEN_GIRL_ID, validLuceroKey, productionSigner } from '../services/wasabi-photos/handler.mjs';
 
 try {
-  if (process.argv.length > 3 || (process.argv[2] && process.argv[2] !== '--velvet')) throw Error();
-  const horseId = process.argv[2] === '--velvet' ? VELVET_ID : TESSA_ID;
+  if (process.argv.length > 3 || (process.argv[2] && !['--velvet', '--golden'].includes(process.argv[2]))) throw Error();
+  const horseId = process.argv[2] === '--golden' ? GOLDEN_GIRL_ID
+    : process.argv[2] === '--velvet' ? VELVET_ID : TESSA_ID;
   const client = createClient('https://zmxppbpywizdjlhstfkf.supabase.co', process.env.VITE_SUPABASE_ANON_KEY, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
