@@ -120,7 +120,7 @@ try {
   await golden.page.getByText('No hay un streaming publicado y autorizado para este caballo todavía.', { exact: true }).waitFor();
   assert(golden.media.every(path => path.includes('/media/bacata-golden-girl/')));
   await golden.page.getByRole('button', { name: 'Cerrar vídeo', exact: true }).click();
-  await golden.page.getByRole('button', { name: /^Golden Girl/ }).click();
+  await golden.page.getByRole('button', { name: /^Trajano/ }).click();
   await golden.page.getByRole('button', { name: 'Live video', exact: true }).click();
   await golden.page.waitForFunction(() => document.querySelector('[data-testid="timeline-live-video"]')?.currentTime > 0.15);
   console.log(JSON.stringify({ passed: true, syntheticOnly: true, physicalThunderStreamVerified: false,

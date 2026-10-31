@@ -7,6 +7,7 @@ if (!base) throw Error('Provide preview URL');
 const aliases = [
   { horseId: 'd826a274-58ea-4a55-8fd2-1d4c78222ab1', original: 'Thunder', alias: 'Sancho' },
   { horseId: 'a95f853c-e90b-4b6d-a4ea-f25cfa317119', original: 'Lucero', alias: 'Destiny' },
+  { horseId: 'a264b293-2d23-497f-b47f-5f7e68a81ea9', original: 'Golden Girl', alias: 'Trajano' },
 ];
 const uid = '00000000-0000-4000-8000-000000000001';
 const browser = await chromium.launch({ executablePath: '/repl/tools/bin/chromium', args: ['--no-sandbox'] });
@@ -46,7 +47,7 @@ try {
   }
   }
   console.log(JSON.stringify({ passed: true, syntheticOnly: true, desktopAndMobile: true,
-    cardAndDetails: ['Sancho', 'Destiny'], unchangedHorseIds: aliases.map(item => item.horseId), databaseWrites: 0 }));
+    cardAndDetails: aliases.map(item => item.alias), unchangedHorseIds: aliases.map(item => item.horseId), databaseWrites: 0 }));
 } finally {
   await browser.close();
 }

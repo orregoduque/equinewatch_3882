@@ -1,10 +1,11 @@
 ---
 name: Horse display aliases
-description: User-facing aliases for Thunder and Lucero, without renaming integrations.
+description: User-facing aliases for Thunder, Lucero and Golden Girl, without renaming integrations.
 ---
 
-The user wants to see “Sancho” instead of “Thunder” and “Destiny” instead of
-“Lucero” in this app, as visual aliases only. Keep the stored horse names and all database, Wasabi, camera,
+The user wants to see “Sancho” instead of “Thunder”, “Destiny” instead of
+“Lucero” and “Trajano” instead of “Golden Girl” in this app, as visual aliases
+only. Keep the stored horse names and all database, Wasabi, camera,
 receiver and publisher associations unchanged.
 
 **Why:** The user cares about the name shown to customers and explicitly wants

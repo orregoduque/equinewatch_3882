@@ -8,6 +8,8 @@ export function withHorseDisplayName<T extends { id: string; name: string | null
       return { ...horse, name: 'Sancho' };
     case 'a95f853c-e90b-4b6d-a4ea-f25cfa317119':
       return { ...horse, name: 'Destiny' };
+    case 'a264b293-2d23-497f-b47f-5f7e68a81ea9':
+      return { ...horse, name: 'Trajano' };
     default:
       return horse;
   }

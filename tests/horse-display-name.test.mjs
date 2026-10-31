@@ -11,6 +11,22 @@ vm.runInNewContext(ts.transpileModule(readFileSync('src/utils/horseDisplayName.t
 const thunderId = 'd826a274-58ea-4a55-8fd2-1d4c78222ab1';
 const luceroId = 'a95f853c-e90b-4b6d-a4ea-f25cfa317119';
 
+test('Trajano is only the display name of Golden Girl; stored record and integrations are untouched', () => {
+  const id = 'a264b293-2d23-497f-b47f-5f7e68a81ea9';
+  const row = Object.freeze({
+    id, name: 'Golden Girl', owner_id: 'unchanged-owner', photo_backend: 'wasabi',
+    profile_photo_url: 'https://example.test/golden.jpg', camera_id: 'bacata-golden-girl',
+  });
+  const display = api.withHorseDisplayName(row);
+  assert.equal(display.name, 'Trajano');
+  assert.equal(row.name, 'Golden Girl');
+  for (const field of Object.keys(row).filter(field => field !== 'name'))
+    assert.equal(display[field], row[field]);
+  for (const name of ['Golden Girl', 'golden girl', null, 'Another stored name'])
+    assert.equal(api.withHorseDisplayName({ id, name }).name, 'Trajano');
+  assert.equal(api.withHorseDisplayName({ id: id.toUpperCase(), name: 'Golden Girl' }).name, 'Trajano');
+});
+
 test('Destiny is a display-only alias for Lucero, preserving its camera and photo associations', () => {
   const row = Object.freeze({
     id: luceroId, name: 'Lucero', owner_id: 'unchanged-owner', photo_backend: 'wasabi',
@@ -53,5 +69,5 @@ test('both UI entry points use alias while database reads remain unmodified', ()
   for (const file of ['src/hooks/useAccessibleHorses.ts', 'src/features/horse-details/useHorseDetails.ts'])
     assert.match(readFileSync(file, 'utf8'), /withHorseDisplayName/);
   for (const file of ['src/utils/supabase.ts', 'src/features/horse-details/api.ts'])
-    assert.doesNotMatch(readFileSync(file, 'utf8'), /withHorseDisplayName|Sancho|Destiny/);
+    assert.doesNotMatch(readFileSync(file, 'utf8'), /withHorseDisplayName|Sancho|Destiny|Trajano/);
 });
