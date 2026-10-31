@@ -4,14 +4,18 @@ import { installPilotFixture } from '../tests/helpers/hls-browser-fixture.mjs';
 
 const base = process.argv[2];
 if (!base) throw Error('Provide preview URL');
-const horseId = 'd826a274-58ea-4a55-8fd2-1d4c78222ab1';
+const aliases = [
+  { horseId: 'd826a274-58ea-4a55-8fd2-1d4c78222ab1', original: 'Thunder', alias: 'Sancho' },
+  { horseId: 'a95f853c-e90b-4b6d-a4ea-f25cfa317119', original: 'Lucero', alias: 'Destiny' },
+];
 const uid = '00000000-0000-4000-8000-000000000001';
-const row = {
-  id: horseId, name: 'Thunder', owner_id: uid, is_active: true, photo_backend: 'wasabi',
-  profile_photo_url: null, created_at: '2026-01-01T00:00:00Z',
-};
 const browser = await chromium.launch({ executablePath: '/repl/tools/bin/chromium', args: ['--no-sandbox'] });
 try {
+  for (const { horseId, original, alias } of aliases) {
+  const row = {
+    id: horseId, name: original, owner_id: uid, is_active: true, photo_backend: 'wasabi',
+    profile_photo_url: null, created_at: '2026-01-01T00:00:00Z',
+  };
   for (const viewport of [{ width: 1280, height: 900 }, { width: 390, height: 844 }]) {
     const context = await browser.newContext({ viewport });
     const page = await context.newPage();
@@ -26,22 +30,23 @@ try {
       return route.fulfill({ contentType: 'application/json', body: JSON.stringify(body) });
     });
     await page.goto(`${base}/horse-list`);
-    const photo = page.getByRole('link', { name: 'Ver fotos de cámara de Sancho', exact: true });
+    const photo = page.getByRole('link', { name: `Ver fotos de cámara de ${alias}`, exact: true });
     await photo.waitFor();
     assert.equal(await photo.getAttribute('href'), `/horse-timeline?horseId=${horseId}`);
-    const link = page.getByRole('link', { name: 'Ver ficha de Sancho', exact: true });
+    const link = page.getByRole('link', { name: `Ver ficha de ${alias}`, exact: true });
     assert.equal(await link.getAttribute('href'), `/horses/${horseId}`);
     await link.click();
-    await page.getByRole('heading', { name: 'Sancho', exact: true }).waitFor();
-    assert.match(await page.locator('main').innerText(), /Nombre\s+Sancho/i);
-    assert.doesNotMatch(await page.locator('main').innerText(), /Thunder/);
+    await page.getByRole('heading', { name: alias, exact: true }).waitFor();
+    assert.match(await page.locator('main').innerText(), new RegExp(`Nombre\\s+${alias}`, 'i'));
+    assert.doesNotMatch(await page.locator('main').innerText(), new RegExp(original));
     assert.deepEqual(writes, []);
     assert.deepEqual(errors, []);
-    assert.equal(row.name, 'Thunder');
+    assert.equal(row.name, original);
     await context.close();
   }
+  }
   console.log(JSON.stringify({ passed: true, syntheticOnly: true, desktopAndMobile: true,
-    cardAndDetails: 'Sancho', unchangedHorseId: horseId, databaseWrites: 0 }));
+    cardAndDetails: ['Sancho', 'Destiny'], unchangedHorseIds: aliases.map(item => item.horseId), databaseWrites: 0 }));
 } finally {
   await browser.close();
 }

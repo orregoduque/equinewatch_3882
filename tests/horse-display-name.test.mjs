@@ -9,6 +9,22 @@ vm.runInNewContext(ts.transpileModule(readFileSync('src/utils/horseDisplayName.t
   compilerOptions: { module: ts.ModuleKind.CommonJS },
 }).outputText, { exports: api });
 const thunderId = 'd826a274-58ea-4a55-8fd2-1d4c78222ab1';
+const luceroId = 'a95f853c-e90b-4b6d-a4ea-f25cfa317119';
+
+test('Destiny is a display-only alias for Lucero, preserving its camera and photo associations', () => {
+  const row = Object.freeze({
+    id: luceroId, name: 'Lucero', owner_id: 'unchanged-owner', photo_backend: 'wasabi',
+    profile_photo_url: 'https://example.test/lucero.jpg', camera_id: 'bacata-mock',
+  });
+  const display = api.withHorseDisplayName(row);
+  assert.equal(display.name, 'Destiny');
+  assert.equal(row.name, 'Lucero');
+  for (const field of Object.keys(row).filter(field => field !== 'name'))
+    assert.equal(display[field], row[field]);
+  for (const name of ['Lucero', 'LUCERO', null, 'Another stored name'])
+    assert.equal(api.withHorseDisplayName({ id: luceroId, name }).name, 'Destiny');
+  assert.equal(api.withHorseDisplayName({ id: luceroId.toUpperCase(), name: 'Lucero' }).name, 'Destiny');
+});
 
 test('Sancho is a display-only alias by ID; original record and integration fields remain intact', () => {
   const row = Object.freeze({
@@ -37,5 +53,5 @@ test('both UI entry points use alias while database reads remain unmodified', ()
   for (const file of ['src/hooks/useAccessibleHorses.ts', 'src/features/horse-details/useHorseDetails.ts'])
     assert.match(readFileSync(file, 'utf8'), /withHorseDisplayName/);
   for (const file of ['src/utils/supabase.ts', 'src/features/horse-details/api.ts'])
-    assert.doesNotMatch(readFileSync(file, 'utf8'), /withHorseDisplayName|Sancho/);
+    assert.doesNotMatch(readFileSync(file, 'utf8'), /withHorseDisplayName|Sancho|Destiny/);
 });

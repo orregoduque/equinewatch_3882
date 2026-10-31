@@ -1,10 +1,10 @@
 ---
 name: Horse display aliases
-description: Sancho is the user-facing name of the existing Thunder horse, without renaming integrations.
+description: User-facing aliases for Thunder and Lucero, without renaming integrations.
 ---
 
-The user wants to see “Sancho” instead of “Thunder” in this app, as a visual
-alias only. Keep the stored horse name and all database, Wasabi, camera,
+The user wants to see “Sancho” instead of “Thunder” and “Destiny” instead of
+“Lucero” in this app, as visual aliases only. Keep the stored horse names and all database, Wasabi, camera,
 receiver and publisher associations unchanged.
 
 **Why:** The user cares about the name shown to customers and explicitly wants

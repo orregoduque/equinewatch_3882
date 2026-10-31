@@ -91,7 +91,7 @@ try {
   await lucero.page.getByRole('button', { name: 'Cerrar vídeo', exact: true }).click();
   assert(await oldVideo.evaluate(video => video.paused && !video.getAttribute('src')));
   await lucero.page.getByRole('button', { name: /^Sancho/ }).click();
-  await lucero.page.getByRole('button', { name: /^Lucero/ }).click();
+  await lucero.page.getByRole('button', { name: /^Destiny/ }).click();
   await lucero.page.getByRole('button', { name: 'Live video', exact: true }).click();
   await lucero.page.waitForFunction(() => document.querySelector('[data-testid="timeline-live-video"]')?.currentTime > 0.15);
   assert(lucero.media.every(path => path.includes('/media/bacata-mock/')));
@@ -115,7 +115,7 @@ try {
   const goldenElement = await golden.page.getByTestId('timeline-live-video').elementHandle();
   await golden.page.getByRole('button', { name: 'Cerrar vídeo', exact: true }).click();
   assert(await goldenElement.evaluate(video => video.paused && !video.getAttribute('src')));
-  await golden.page.getByRole('button', { name: /^Lucero/ }).click();
+  await golden.page.getByRole('button', { name: /^Destiny/ }).click();
   await golden.page.getByRole('button', { name: 'Live video', exact: true }).click();
   await golden.page.getByText('No hay un streaming publicado y autorizado para este caballo todavía.', { exact: true }).waitFor();
   assert(golden.media.every(path => path.includes('/media/bacata-golden-girl/')));

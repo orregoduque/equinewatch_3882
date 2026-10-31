@@ -14,4 +14,4 @@
 - [Horse list presentation](horse-list-presentation.md) — each entry shows the photo, horse name and “Ver ficha”; details belong in the profile.
 - [Private photo authorization](private-photo-authorization.md) — Wasabi metadata visibility is not authorization; real sessions, readonly scope, and real GET verification are separate requirements.
 - [Multiple camera constraints](multiple-camera-constraints.md) — preserve Lucero’s legacy stream identifier, keep publishers and photos independent, and do not infer new viewer grants.
-- [Horse display aliases](horse-display-aliases.md) — show Sancho for the existing Thunder horse only; keep database names and integration identifiers unchanged.
+- [Horse display aliases](horse-display-aliases.md) — show Sancho for Thunder and Destiny for Lucero; keep database names and integration identifiers unchanged.
