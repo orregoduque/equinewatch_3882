@@ -9,6 +9,10 @@ const compiled = ts.transpileModule(readFileSync('src/hooks/useAccessibleHorses.
 }).outputText;
 const owner = { id: 'owner-one', email: 'fixture@example.test', role: 'horse_owner' };
 const horse = { id: 'horse-one', name: 'Fixture' };
+const displayApi = {};
+vm.runInNewContext(ts.transpileModule(readFileSync('src/utils/horseDisplayName.ts', 'utf8'), {
+  compilerOptions: { module: ts.ModuleKind.CommonJS },
+}).outputText, { exports: displayApi });
 function fixture() {
   let user = owner, effect, cleanup, state, dependencies, revision = 0;
   const requests = [], api = {};
@@ -16,6 +20,7 @@ function fixture() {
     exports: api, Error,
     require(id) {
       if (id === 'react') return {
+        useMemo: fn => fn(),
         useState(initial) {
           state ??= initial;
           return [state, next => { state = typeof next === 'function' ? next(state) : next; }];
@@ -27,6 +32,7 @@ function fixture() {
         },
       };
       if (id.endsWith('/AuthContext')) return { useAuth: () => ({ user }) };
+      if (id.endsWith('/horseDisplayName')) return displayApi;
       if (id.endsWith('/useVisibleRefresh')) return { useVisibleRefresh: () => revision };
       if (id.endsWith('/supabase')) return {
         fetchHorses(viewer) {

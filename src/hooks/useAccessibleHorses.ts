@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { fetchHorses, SupabaseHorse } from '../utils/supabase';
 import { useVisibleRefresh } from './useVisibleRefresh';
+import { withHorseDisplayName } from '../utils/horseDisplayName';
 
 /** Discard prior-account data immediately, even before effects run. */
 export function useAccessibleHorses({ refreshOnFocus = false } = {}) {
@@ -37,10 +38,11 @@ export function useAccessibleHorses({ refreshOnFocus = false } = {}) {
   }, [viewerKey, revision]);
 
   const current = state.viewerKey === viewerKey;
+  const displayHorses = useMemo(() => state.horses.map(withHorseDisplayName), [state.horses]);
   return {
     viewer: user,
     viewerKey,
-    horses: current ? state.horses : [],
+    horses: current ? displayHorses : [],
     isLoading: !!user && (!current || state.isLoading),
     error: current ? state.error : '',
   };

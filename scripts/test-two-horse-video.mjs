@@ -90,7 +90,7 @@ try {
   const oldVideo = await lucero.page.getByTestId('timeline-live-video').elementHandle();
   await lucero.page.getByRole('button', { name: 'Cerrar vídeo', exact: true }).click();
   assert(await oldVideo.evaluate(video => video.paused && !video.getAttribute('src')));
-  await lucero.page.getByRole('button', { name: /^Thunder/ }).click();
+  await lucero.page.getByRole('button', { name: /^Sancho/ }).click();
   await lucero.page.getByRole('button', { name: /^Lucero/ }).click();
   await lucero.page.getByRole('button', { name: 'Live video', exact: true }).click();
   await lucero.page.waitForFunction(() => document.querySelector('[data-testid="timeline-live-video"]')?.currentTime > 0.15);

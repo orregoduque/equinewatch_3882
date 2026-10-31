@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { fetchHorseDetails, HorseDetailsSessionError, type HorseDetails } from './api';
 import { useVisibleRefresh } from '../../hooks/useVisibleRefresh';
+import { withHorseDisplayName } from '../../utils/horseDisplayName';
 
 export function useHorseDetails() {
   const { id = '' } = useParams();
@@ -40,7 +41,7 @@ export function useHorseDetails() {
   // Never expose the previous account's/horse's data, even before effects run.
   const current = state.scope === scope;
   return {
-    horse: current ? state.horse : null,
+    horse: current && state.horse ? withHorseDisplayName(state.horse) : null,
     isLoading: !current || state.isLoading,
     error: current ? state.error : '',
     needsLogin: current && state.needsLogin,
