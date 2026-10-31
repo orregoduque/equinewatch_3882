@@ -6,6 +6,20 @@ description: Why pilot camera access uses explicit trusted grants instead of inh
 Keep the existing Bacatá pilot grants unchanged. An unauthorized Live video click must show
 the exact message “no access for now” and an X to close it.
 
+The user subsequently authorized an additional owner to view exactly the three
+Bacatá horses displayed as Sancho, Destiny and Trajano. This is a scoped,
+additive exception to the former founder-only pilot, not permission for all owners.
+
+**Why:** The user explicitly supplied the real Auth identity and the three horse
+identities when requesting access. Horse ownership alone still does not synchronize
+the receiver's explicit camera grants.
+
+**How to apply:** Apply only the approved per-camera owner grants in the actual
+receiver, preserving existing administrators, viewers and publisher credentials.
+Verify the supplied identity through the operational authorization process;
+do not persist personal account identifiers in project memory or infer grants
+for other cameras.
+
 **Why:** The user explicitly requested this pilot restriction and message.
 The later Casona request authorizes its separately verified owner and existing
 legitimate server-side administrators; it does not expand Bacatá permissions.
