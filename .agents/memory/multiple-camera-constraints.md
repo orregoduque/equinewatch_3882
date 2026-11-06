@@ -74,3 +74,16 @@ successful health check or publisher process.
 **How to apply:** Treat Golden Girl preview playback as confirmed for that
 session. Do not infer published-app acceptance, Safari/iPhone support, startup
 timings, real-world latency or expanded viewer permissions from this confirmation.
+
+Hospital's later request authorizes its own live-video preparation, separately
+from its already confirmed Wasabi photos. Its publisher is prepared but must
+not start until the actual receiver registration is confirmed.
+
+**Why:** The operator explicitly requires preserving the photo cadence,
+all existing cameras and secrets, and avoiding a borrowed stream or mockup
+while registration and publication are pending.
+
+**How to apply:** Keep receiver registration, publisher start and main-app
+publication separate. Require evidence from the actual receiver and real
+moving frames in preview and production before declaring the live operational.
+Do not use the old reference receiver capacity as evidence of deployed capacity.

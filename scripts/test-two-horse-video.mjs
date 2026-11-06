@@ -15,6 +15,8 @@ const assignments = [
     uid: '00000000-0000-4000-8000-000000000004' },
   { horseId: 'a264b293-2d23-497f-b47f-5f7e68a81ea9', id: 'bacata-golden-girl', name: 'Golden Girl',
     uid: '00000000-0000-4000-8000-000000000005' },
+  { horseId: 'bb195109-4409-498f-917c-a55e42649d27', id: 'hospital-cam-01', name: 'Hospital',
+    uid: '00000000-0000-4000-8000-000000000006' },
 ];
 const browser = await chromium.launch({ executablePath: '/repl/tools/bin/chromium', args: ['--no-sandbox'] });
 const contexts = [];
@@ -26,24 +28,45 @@ try {
     contexts.push(context);
     const page = await context.newPage(), errors = [], media = [], sessions = [];
     let photoReads = 0;
-    let goldenReady = assignment.id !== 'bacata-golden-girl';
+    const startsPending = ['bacata-golden-girl', 'hospital-cam-01'].includes(assignment.id);
+    let goldenReady = !startsPending;
     page.on('pageerror', error => errors.push(error.message));
     page.on('request', request => {
       if (request.url().includes('/media/')) media.push(new URL(request.url()).pathname);
     });
     await installPilotFixture(page, { live: true, userId: assignment.uid });
+    if (assignment.id === 'hospital-cam-01') {
+      const key = 'stable-eye/3e392214-0e8f-4472-99ce-0d87561deeeb/node_1/fixture.jpg';
+      const url = `https://s3.us-east-1.wasabisys.com/equinewatch-photos/${key}?fixture=synthetic`;
+      await page.route('https://s3.us-east-1.wasabisys.com/**', route => route.fulfill({
+        contentType: 'image/svg+xml',
+        body: '<svg xmlns="http://www.w3.org/2000/svg" width="2" height="2"><rect width="2" height="2"/></svg>',
+      }));
+      await page.route(`**/api/horses/${assignment.horseId}/photos?*`, route => {
+        photoReads++;
+        assert(route.request().headers().authorization?.startsWith('Bearer '));
+        return route.fulfill({ contentType: 'application/json', body: JSON.stringify({
+          photos: [{
+            id: 1, horse_id: assignment.horseId, captured_at: new Date().toISOString(),
+            storage_path_enhanced: key, photo_url: url, imageUrl: url,
+            expiresAt: new Date(Date.now() + 600000).toISOString(), version: 'a'.repeat(64), source: 'wasabi',
+          }], nextCursor: null,
+        }) });
+      });
+    }
     await context.route('https://*.supabase.co/**', route => {
       const path = new URL(route.request().url()).pathname;
       if (path.endsWith('/images')) photoReads++;
       const body = path.endsWith('/horses') ? assignments.map(item => ({
         id: item.horseId, name: item.name, owner_id: assignment.uid, is_active: true,
+        ...(item.id === 'hospital-cam-01' ? { photo_backend: 'wasabi' } : {}),
         created_at: new Date().toISOString(),
       })) : path.endsWith('/user_profiles') ? [{ id: assignment.uid, email: 'fixture@example.test' }] : [];
       return route.fulfill({ contentType: 'application/json', body: JSON.stringify(body) });
     });
     await page.route('**/api/hls-pilot/cameras', route => route.fulfill({
       contentType: 'application/json', body: JSON.stringify({ cameras: permitted.map(item => ({
-        ...item, ready: item.id === 'bacata-golden-girl' ? goldenReady : true,
+        ...item, ready: item.id === assignment.id && startsPending ? goldenReady : true,
         segments: 12, bufferedBytes: 100000, lastReceivedAt: new Date().toISOString(),
       })) }),
     }));
@@ -62,7 +85,7 @@ try {
     });
     await page.goto(`${base}/horse-timeline?horseId=${assignment.horseId}`);
     await page.getByRole('button', { name: 'Live video', exact: true }).click();
-    if (assignment.id === 'bacata-golden-girl') {
+    if (startsPending) {
       await page.getByText('La cámara de este caballo aún no está publicando vídeo. Las fotos funcionan de forma independiente.', { exact: true }).waitFor();
       assert.equal(media.length, 0, 'pending publisher never requests a mock or another horse');
       assert.equal(sessions.length, 0);
@@ -78,6 +101,8 @@ try {
   }
   const viewers = await Promise.all(assignments.map((assignment, index) => setup(assignment, index % 2 === 1)));
   const initialPhotoReads = viewers.map(viewer => viewer.photoReads());
+  // Hospital uses the private-photo API, never the legacy Supabase images table.
+  // Both photo transports are counted independently of video playback.
   await viewers[0].page.waitForTimeout(10500);
   for (const [index, viewer] of viewers.entries()) {
     assert(viewer.photoReads() > initialPhotoReads[index], 'photo polling continues independently while both videos play');
@@ -123,10 +148,24 @@ try {
   await golden.page.getByRole('button', { name: /^Trajano/ }).click();
   await golden.page.getByRole('button', { name: 'Live video', exact: true }).click();
   await golden.page.waitForFunction(() => document.querySelector('[data-testid="timeline-live-video"]')?.currentTime > 0.15);
+  const hospital = viewers[5];
+  const hospitalElement = await hospital.page.getByTestId('timeline-live-video').elementHandle();
+  await hospital.page.getByRole('button', { name: 'Cerrar vídeo', exact: true }).click();
+  assert(await hospitalElement.evaluate(video => video.paused && !video.getAttribute('src')));
+  await hospital.page.getByRole('button', { name: /^Trajano/ }).click();
+  await hospital.page.getByRole('button', { name: 'Live video', exact: true }).click();
+  await hospital.page.getByText('No hay un streaming publicado y autorizado para este caballo todavía.', { exact: true }).waitFor();
+  assert(hospital.media.every(path => path.includes('/media/hospital-cam-01/')));
+  await hospital.page.getByRole('button', { name: 'Cerrar vídeo', exact: true }).click();
+  await hospital.page.getByRole('button', { name: /^Hospital/ }).click();
+  await hospital.page.getByRole('button', { name: 'Live video', exact: true }).click();
+  await hospital.page.waitForFunction(() => document.querySelector('[data-testid="timeline-live-video"]')?.currentTime > 0.15);
   console.log(JSON.stringify({ passed: true, syntheticOnly: true, physicalThunderStreamVerified: false,
     physicalCasonaStreamsVerified: false, fourCameraMappings: true, twoCasonaViewers: true,
     goldenGirlMapping: true, goldenPublisherPendingNoFallback: true, goldenPlayerDisposed: true,
     physicalGoldenStreamVerified: false, realSafariVerified: false,
+    hospitalMapping: true, hospitalPendingNoFallback: true, hospitalPlayerDisposed: true,
+    physicalHospitalStreamVerified: false,
     simultaneousDistinctUsers: true, desktopAndMobile: true, rapidSwitch: true, independentMediaPaths: true,
     photoPollingDuringBothVideos: true }));
 } finally {

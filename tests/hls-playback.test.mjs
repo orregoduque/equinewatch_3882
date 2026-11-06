@@ -96,26 +96,28 @@ test('native play rejection produces an actionable error, not a 12 second silent
   } finally { dispose(); }
 });
 
-test('Golden Girl native HLS uses only its authorized playlist and releases all frames on disposal', async () => {
+for (const cameraId of ['bacata-golden-girl', 'hospital-cam-01']) {
+test(`${cameraId} native HLS uses only its authorized playlist and releases all frames on disposal`, async () => {
   const video = videoFixture(), requests = [], errors = [];
-  const dispose = startPilotPlayback(video, 'bacata-golden-girl', {
+  const dispose = startPilotPlayback(video, cameraId, {
     request: async path => {
       requests.push(path);
-      return { ready: true, playbackUrl: '/api/hls-pilot/media/bacata-golden-girl/index.m3u8' };
+      return { ready: true, playbackUrl: `/api/hls-pilot/media/${cameraId}/index.m3u8` };
     },
     onStatus() {}, onError: error => errors.push(error),
     onThreshold() {}, onMeasurement() {}, onMoving() {},
   });
   try {
     await new Promise(resolve => setImmediate(resolve));
-    assert.deepEqual(requests, ['session/bacata-golden-girl']);
-    assert.equal(video.src, '/api/hls-pilot/media/bacata-golden-girl/index.m3u8');
+    assert.deepEqual(requests, [`session/${cameraId}`]);
+    assert.equal(video.src, `/api/hls-pilot/media/${cameraId}/index.m3u8`);
     assert(!video.paused);
     assert.equal(errors.length, 0);
   } finally { dispose(); }
   assert(video.paused && video.src === '');
   assert.equal(video.pendingFrames(), 0);
 });
+}
 
 test('authorized preloading stays paused and measures only advancing frames after activation', async () => {
   const video = videoFixture(), results = [], errors = [];

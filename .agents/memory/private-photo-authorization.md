@@ -72,7 +72,8 @@ or a mock while its own camera is pending.
 Hospital's initial request authorized private-photo compatibility preparation
 without advancing its backend. The operator subsequently confirmed Wasabi active
 in Supabase, then confirmed Hospital photos visible in preview on 2026-11-06.
-Its camera remains outside the HLS scope; do not change its owner.
+A subsequent explicit request authorizes Hospital's separate HLS preparation
+while preserving its Wasabi photos and owner.
 
 **Why:** The user explicitly requires preserving all existing horses and reader
 credentials, with a real recent-capture GET before declaring visualization ready.
