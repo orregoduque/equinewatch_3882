@@ -69,14 +69,18 @@ while requiring existing sessions, keys, permissions and other horses to remain 
 capacity and publisher readiness separately; never borrow another horse's stream
 or a mock while its own camera is pending.
 
-Hospital is authorized for private-photo compatibility preparation only.
-Do not advance its photo backend, change its owner or register its camera in
-HLS. Keep its existing Supabase behavior until the separately coordinated cutover.
+Hospital's initial request authorized private-photo compatibility preparation
+without advancing its backend. The operator subsequently confirmed Wasabi active
+in Supabase, then confirmed Hospital photos visible in preview on 2026-11-06.
+Its camera remains outside the HLS scope; do not change its owner.
 
 **Why:** The user explicitly requires preserving all existing horses and reader
 credentials, with a real recent-capture GET before declaring visualization ready.
 
-**How to apply:** Preserve the existing reader identity and permissions; never
+**How to apply:** Treat preview photo display as user-confirmed, not merely a
+fixture result. Do not infer final-domain acceptance, an independently measured
+GET or verified IAM identity/policy attachment from that confirmation.
+Preserve the existing reader identity and permissions; never
 replace Replit's reader keys with Hospital's Pi upload keys. Verify IAM identity
 and policy attachment privately, and distinguish metadata visibility, storage
 GET, real viewer authorization, preview acceptance and published acceptance.
