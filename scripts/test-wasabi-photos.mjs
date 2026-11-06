@@ -18,6 +18,8 @@ const velvet = '61c46d85-34be-4fa8-a892-9e22211487df';
 const velvetPrefix = 'stable-eye/9f0cb7e0-8092-5c37-86d7-6e94de0af9ed/node_1/';
 const golden = 'a264b293-2d23-497f-b47f-5f7e68a81ea9';
 const goldenPrefix = 'stable-eye/97e3674b-31ab-5373-8a21-aa8187e6a17f/node_110/';
+const hospital = 'bb195109-4409-498f-917c-a55e42649d27';
+const hospitalPrefix = 'stable-eye/3e392214-0e8f-4472-99ce-0d87561deeeb/node_1/';
 const uid = '00000000-0000-4000-8000-000000000001';
 const prefix = 'stable-eye/97e3674b-31ab-5373-8a21-aa8187e6a17f/node_108/';
 const pixel = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=', 'base64');
@@ -33,11 +35,13 @@ try {
   let tessaBackend = 'supabase';
   let velvetBackend = 'supabase';
   let goldenNewest = 20;
+  let hospitalBackend = 'supabase', hospitalNewest = 20;
+  const hospitalQueries = [];
   let failEncantadorPhoto = false;
   const records = new Map();
   const photo = (id, at = new Date(Date.now() - (240 - id) * 10000).toISOString(), horse = lucero) => {
     const row = { id, horse_id: horse, captured_at: at,
-      storage_path_enhanced: (horse === golden ? goldenPrefix : horse === velvet ? velvetPrefix : horse === tessa ? tessaPrefix : horse === encantador ? ranchoPrefix : horse === thunder ? prefix.replace('node_108/', 'node_109/') : prefix) + id + '.jpg', source: 'wasabi' };
+      storage_path_enhanced: (horse === hospital ? hospitalPrefix : horse === golden ? goldenPrefix : horse === velvet ? velvetPrefix : horse === tessa ? tessaPrefix : horse === encantador ? ranchoPrefix : horse === thunder ? prefix.replace('node_108/', 'node_109/') : prefix) + id + '.jpg', source: 'wasabi' };
     records.set(`${horse}:${id}`, row);
     return row;
   };
@@ -47,6 +51,7 @@ try {
   Array.from({ length: 20 }, (_, index) => photo(20 - index, new Date(Date.now() - index * 10000).toISOString(), tessa));
   Array.from({ length: 20 }, (_, index) => photo(20 - index, new Date(Date.now() - index * 10000).toISOString(), velvet));
   Array.from({ length: 20 }, (_, index) => photo(20 - index, new Date(Date.now() - index * 10000).toISOString(), golden));
+  Array.from({ length: 20 }, (_, index) => photo(20 - index, new Date(Date.now() - index * 10000).toISOString(), hospital));
   page.on('pageerror', error => errors.push(error.message));
   await installPilotFixture(page);
   await page.addInitScript(() => {
@@ -68,6 +73,7 @@ try {
       { id: tessa, owner_id: uid, name: 'Tessa fixture', photo_backend: tessaBackend, is_active: true, created_at: new Date().toISOString() },
       { id: velvet, owner_id: uid, name: 'Velvet fixture', photo_backend: velvetBackend, is_active: true, created_at: new Date().toISOString() },
       { id: golden, owner_id: uid, name: 'Golden Girl fixture', photo_backend: 'wasabi', is_active: true, created_at: new Date().toISOString() },
+      { id: hospital, owner_id: uid, name: 'Hospital fixture', photo_backend: hospitalBackend, is_active: true, created_at: new Date().toISOString() },
     ]); }
     if (url.pathname.endsWith('/images')) {
       restImages.push(url.search);
@@ -81,6 +87,7 @@ try {
   await page.route('**/api/horses/*/photos?*', async route => {
     const params = new URL(route.request().url()).searchParams;
     const horse = new URL(route.request().url()).pathname.split('/')[3];
+    if (horse === hospital) hospitalQueries.push(params);
     apiQueries.push(params);
     assert(route.request().headers().authorization?.startsWith('Bearer '), 'private API receives a session, never just local role');
     if (params.get('probe') === '1') {
@@ -103,7 +110,7 @@ try {
         ? Array.from({ length: 360 }, (_, i) => 1001 + i) : [1001, 1002, 1003];
       rows = ids.map((id, i) => photo(id, new Date(Date.parse(params.get('from')) + i * 10000).toISOString(), horse));
     } else {
-      const latest = horse === golden ? goldenNewest : horse === tessa || horse === velvet ? 20 : horse === encantador ? encantadorNewest : horse === thunder ? 7 : newest;
+      const latest = horse === hospital ? hospitalNewest : horse === golden ? goldenNewest : horse === tessa || horse === velvet ? 20 : horse === encantador ? encantadorNewest : horse === thunder ? 7 : newest;
       rows = Array.from({ length: Math.min(horse === encantador ? 5 : horse === thunder ? 7 : 240, Number(params.get('limit'))) }, (_, i) =>
         records.get(`${horse}:${latest - i}`)).filter(Boolean);
       if (params.has('since')) rows = rows.filter(row => row.captured_at >= params.get('since'));
@@ -202,11 +209,11 @@ try {
   await page.getByRole('button', { name: 'Ampliar', exact: true }).click();
   assert.equal(await page.getByRole('dialog', { name: 'Foto ampliada' }).locator('img').getAttribute('src'), await main.getAttribute('src'));
   await page.keyboard.press('Escape');
-  await page.getByRole('button', { name: /Thunder fixture/ }).click();
+  await page.getByRole('button', { name: /^Sancho/ }).click();
   await page.waitForFunction(() => document.querySelector('img[fetchpriority="high"]')?.src.includes('/node_109/7.jpg?'));
   assert.equal(await page.locator('img[src*="node_108"]').count(), 0, 'Thunder never displays Lucero JPEGs, including overlapping IDs');
-  await page.getByRole('button', { name: /Lucero fixture/ }).click();
-  await page.getByRole('button', { name: /Thunder fixture/ }).click();
+  await page.getByRole('button', { name: /^Destiny/ }).click();
+  await page.getByRole('button', { name: /^Sancho/ }).click();
   await page.waitForFunction(() => document.querySelector('img[fetchpriority="high"]')?.src.includes('/node_109/7.jpg?'));
   await page.waitForTimeout(300);
   assert.equal(await page.locator('img[src*="node_108"]').count(), 0);
@@ -286,7 +293,7 @@ try {
   // its offset. Align them before exercising Golden Girl's URL expiration.
   await page.evaluate(delta => window.advancePhotoTestClock(delta), offset);
   const goldenPublicReads = restImages.length;
-  await page.getByRole('button', { name: /Golden Girl fixture/ }).click();
+  await page.getByRole('button', { name: /^Trajano/ }).click();
   await page.waitForFunction(() => document.querySelector('img[fetchpriority="high"]')?.src.includes('/node_110/20.jpg?'));
   assert.equal(await page.getByRole('button', { name: /^Ver foto / }).count(), 20);
   goldenNewest = 21;
@@ -308,11 +315,39 @@ try {
     try { await route.fulfill({ contentType: 'application/json', body: JSON.stringify({ photos: [], nextCursor: null }) }); } catch {}
   });
   await page.getByRole('button', { name: /Velvet fixture/ }).click();
-  await page.getByRole('button', { name: /Golden Girl fixture/ }).click();
+  await page.getByRole('button', { name: /^Trajano/ }).click();
   releaseOldHorse();
   await page.waitForFunction(() => document.querySelector('img[fetchpriority="high"]')?.src.includes('/node_110/'));
   await page.waitForTimeout(200);
   assert.equal(await page.locator('img[src*="/node_3/"], img[src*="/node_1/"]').count(), 0);
+  // Preparation must not activate Hospital. Its simulated source changes only here.
+  await page.getByRole('button', { name: /Hospital fixture/ }).click();
+  await page.waitForFunction(() => document.querySelector('img[fetchpriority="high"]')?.src.includes('/storage/'));
+  assert.equal(hospitalQueries.length, 0, 'Supabase Hospital never requests private photos');
+  hospitalBackend = 'wasabi'; // Fixture only; never changes the real database.
+  await page.goto(`${base}/horse-timeline?horseId=${hospital}`);
+  await page.evaluate(delta => window.advancePhotoTestClock(delta), offset);
+  await page.waitForFunction(() => document.querySelector('img[fetchpriority="high"]')?.src.includes('/3e392214-0e8f-4472-99ce-0d87561deeeb/node_1/20.jpg?'));
+  const hospitalPublicReads = restImages.length;
+  assert.equal(hospitalQueries[0].get('limit'), '20');
+  assert.equal(await page.getByRole('button', { name: /^Ver foto / }).count(), 20);
+  hospitalNewest = 21;
+  photo(21, new Date(Date.now() + offset + 10000).toISOString(), hospital);
+  await page.waitForFunction(() => document.querySelector('img[fetchpriority="high"]')?.src.includes('/3e392214-0e8f-4472-99ce-0d87561deeeb/node_1/21.jpg?'), { timeout: 15000 });
+  const hospitalUrl = await main.getAttribute('src');
+  offset += 650000;
+  await page.evaluate(() => { window.advancePhotoTestClock(650000); window.dispatchEvent(new Event('focus')); });
+  await page.waitForFunction(old => {
+    const image = document.querySelector('img[fetchpriority="high"]');
+    return image?.src.includes('/3e392214-0e8f-4472-99ce-0d87561deeeb/node_1/21.jpg?') && image.src !== old && image.complete;
+  }, hospitalUrl);
+  await page.getByRole('button', { name: 'Revisar el día', exact: true }).click();
+  assert(!hospitalQueries.some(params => params.get('limit') === '360'));
+  await page.getByRole('button', { name: 'Revisar 08:00', exact: true }).click();
+  await page.waitForFunction(() => document.querySelector('img[fetchpriority="high"]')?.src.includes('/3e392214-0e8f-4472-99ce-0d87561deeeb/node_1/1003.jpg?'));
+  assert(!hospitalQueries.some(params => params.get('limit') === '360'));
+  await assertHourlyTimelapse(page);
+  assert.equal(restImages.length, hospitalPublicReads, 'Wasabi Hospital never mixes Supabase camera history');
   await page.goto(`${base}/profile`);
   // The shared fixture seeds a session on every full navigation. A 204 prevents
   // logout's location.href reload from creating a brand-new synthetic login.
@@ -328,6 +363,7 @@ try {
     signedImageBrowserGets: imageGets.length, threeWasabiHorses: true, encantadorMigrationSimulated: true,
     encantadorPollingAndRenewal: true, tessaCutoverSimulated: true, velvetCutoverSimulated: true,
     goldenGirl: true, goldenPollingAndRenewal: true, goldenLateResponseIsolation: true,
+    hospitalCutoverSimulated: true, hospitalPollingAndRenewal: true, hospitalHourlyTimelapse: true,
     rapidHorseSwitch: true, legacyPreserved: true }));
   await context.close();
 } finally { await browser.close(); }

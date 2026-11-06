@@ -1,17 +1,17 @@
 // Read-only operator check. Does not change photo_backend or assume an anonymous
 // empty metadata result means that the database or bucket is empty.
 import { createClient } from '@supabase/supabase-js';
-import { TESSA_ID, VELVET_ID, GOLDEN_GIRL_ID, validLuceroKey, productionSigner } from '../services/wasabi-photos/handler.mjs';
+import { TESSA_ID, VELVET_ID, GOLDEN_GIRL_ID, HOSPITAL_ID, validLuceroKey, productionSigner } from '../services/wasabi-photos/handler.mjs';
 
 try {
-  if (process.argv.length > 3 || (process.argv[2] && !['--velvet', '--golden'].includes(process.argv[2]))) throw Error();
-  const horseId = process.argv[2] === '--golden' ? GOLDEN_GIRL_ID
+  if (process.argv.length > 3 || (process.argv[2] && !['--velvet', '--golden', '--hospital'].includes(process.argv[2]))) throw Error();
+  const horseId = process.argv[2] === '--hospital' ? HOSPITAL_ID : process.argv[2] === '--golden' ? GOLDEN_GIRL_ID
     : process.argv[2] === '--velvet' ? VELVET_ID : TESSA_ID;
   const client = createClient('https://zmxppbpywizdjlhstfkf.supabase.co', process.env.VITE_SUPABASE_ANON_KEY, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
   const { data, error } = await client.from('images_wasabi')
-    .select('storage_path_enhanced').eq('horse_id', horseId)
+    .select('storage_path_enhanced,captured_at').eq('horse_id', horseId)
     .not('storage_path_enhanced', 'is', null)
     .order('captured_at', { ascending: false }).order('id', { ascending: false }).limit(1)
     .abortSignal(AbortSignal.timeout(10000));
@@ -37,6 +37,7 @@ try {
     console.log(JSON.stringify({
       realGetVerified: response.ok && jpeg === true, status: response.status,
       jpeg: jpeg === true, realViewerAuthorizationVerified: false,
+      capturedAt: data[0].captured_at,
     }));
     if (!response.ok || !jpeg) process.exitCode = 1;
   }

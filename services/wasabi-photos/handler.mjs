@@ -7,6 +7,7 @@ export const ENCANTADOR_ID = '0c8856e1-87eb-4abb-b145-28b070d34cf9';
 export const TESSA_ID = 'e47d1da3-9b6b-4433-819c-423d7687b296';
 export const VELVET_ID = '61c46d85-34be-4fa8-a892-9e22211487df';
 export const GOLDEN_GIRL_ID = 'a264b293-2d23-497f-b47f-5f7e68a81ea9';
+export const HOSPITAL_ID = 'bb195109-4409-498f-917c-a55e42649d27';
 export const WASABI_SCOPE = Object.freeze({
   endpoint: 'https://s3.us-east-1.wasabisys.com',
   region: 'us-east-1',
@@ -20,6 +21,7 @@ export const PHOTO_PREFIXES = Object.freeze({
   [TESSA_ID]: 'stable-eye/9f0cb7e0-8092-5c37-86d7-6e94de0af9ed/node_3/',
   [VELVET_ID]: 'stable-eye/9f0cb7e0-8092-5c37-86d7-6e94de0af9ed/node_1/',
   [GOLDEN_GIRL_ID]: 'stable-eye/97e3674b-31ab-5373-8a21-aa8187e6a17f/node_110/',
+  [HOSPITAL_ID]: 'stable-eye/3e392214-0e8f-4472-99ce-0d87561deeeb/node_1/',
 });
 const SUPABASE_URL = 'https://zmxppbpywizdjlhstfkf.supabase.co';
 const TTL_SECONDS = 600;

@@ -69,3 +69,15 @@ while requiring existing sessions, keys, permissions and other horses to remain 
 capacity and publisher readiness separately; never borrow another horse's stream
 or a mock while its own camera is pending.
 
+Hospital is authorized for private-photo compatibility preparation only.
+Do not advance its photo backend, change its owner or register its camera in
+HLS. Keep its existing Supabase behavior until the separately coordinated cutover.
+
+**Why:** The user explicitly requires preserving all existing horses and reader
+credentials, with a real recent-capture GET before declaring visualization ready.
+
+**How to apply:** Preserve the existing reader identity and permissions; never
+replace Replit's reader keys with Hospital's Pi upload keys. Verify IAM identity
+and policy attachment privately, and distinguish metadata visibility, storage
+GET, real viewer authorization, preview acceptance and published acceptance.
+

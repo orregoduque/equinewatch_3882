@@ -1,0 +1,11 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ReadHospitalPhotosOnly",
+      "Effect": "Allow",
+      "Action": "s3:GetObject",
+      "Resource": "arn:aws:s3:::equinewatch-photos/stable-eye/3e392214-0e8f-4472-99ce-0d87561deeeb/node_1/*"
+    }
+  ]
+}

@@ -112,3 +112,17 @@ mtime_ms = 1793287745364
 storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:3cd14c48-b7f3-4b26-917e-adc412cfbcce/38b3e8cb-8d52-4e78-9eda-dc52be99f133/a24de69f-ca3e-4418-bca1-4490b9c7db5b"
 storage_version_token = "1793287759927219"
 content_type = "text/markdown"
+
+[[outputs]]
+id = "OvCgqDZK1Q5QBKT07xLEK"
+uri = "file://docs/hospital-wasabi.md"
+type = "text"
+title = "Hospital: preparación Wasabi y comprobaciones pendientes"
+description = "Alcance, evidencia, consultas de solo lectura y procedimiento seguro de publicación y corte."
+logical_id = "5f55253e-284f-489f-bd98-c4824325921f"
+content_hash = "sha256:4779954b86cc797fc798b83f96377dfd36923dd0ab59ad96af8c0ffa2b1f1243"
+size = 7317
+mtime_ms = 1793982770723
+storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:3cd14c48-b7f3-4b26-917e-adc412cfbcce/5f55253e-284f-489f-bd98-c4824325921f/46b06ed5-7856-4cd5-b311-893041007aac"
+storage_version_token = "1793982783007457"
+content_type = "text/markdown"
