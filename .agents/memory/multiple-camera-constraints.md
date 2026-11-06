@@ -78,6 +78,8 @@ timings, real-world latency or expanded viewer permissions from this confirmatio
 Hospital's later request authorizes its own live-video preparation, separately
 from its already confirmed Wasabi photos. Its publisher is prepared but must
 not start until the actual receiver registration is confirmed.
+The user subsequently reports that the HLS project activated Hospital; this
+operator report alone does not confirm moving frames in the main app.
 
 **Why:** The operator explicitly requires preserving the photo cadence,
 all existing cameras and secrets, and avoiding a borrowed stream or mockup

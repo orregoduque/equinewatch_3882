@@ -83,3 +83,25 @@ Con publicador activo, probar por separado:
 
 No declarar directo operativo por metadata, prueba unitaria nativa simulada,
 fixtures Chromium, credencial con forma JWT o un healthcheck.
+
+## Evidencia de esta preparación
+
+- El usuario informa que el proyecto HLS ya activó Hospital. Es una confirmación
+  del operador; desde aquí no se inspeccionó su configuración privada.
+- El receptor responde `/health` HTTP 200. Descubrimiento y playlist de Hospital
+  sin sesión de usuario, con la clave existente del proxy, responden HTTP 401.
+  Eso confirma rechazo sin sesión, no la disponibilidad de segmentos de Hospital.
+- Pruebas de mapping/proxy aprobadas: asociación exacta, cookie por cámara,
+  rechazo sin sesión, cámara duplicada/incorrecta y ausencia sin sustitución.
+- Prueba nativa unitaria aprobada para Hospital: playlist propia y limpieza.
+  No equivale a una prueba en Safari real.
+- Fixture Chromium de seis cámaras aprobado en escritorio y tamaño móvil:
+  Hospital pendiente no solicita medios; cuando está disponible reproduce su
+  ruta propia, cierra y cancela instancia, cambia sin mostrar otro caballo y
+  conserva polling de fotos Wasabi mientras se reproduce vídeo.
+- Compilación de publicación aprobada. Prueba de continuidad contra
+  `https://stableeye.co` aprobada: 64 recursos anteriores conservados,
+  navegación diferida desde pestaña antigua y pestaña nueva con sesión sintética.
+- No se publicó esta preparación desde el agente. No se verificaron todavía
+  imagen real de Hospital con sesión autorizada, Safari/iPhone, tiempo de
+  apertura ni aceptación del dominio final.

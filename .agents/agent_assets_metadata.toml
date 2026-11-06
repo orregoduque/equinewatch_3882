@@ -126,3 +126,17 @@ mtime_ms = 1793982770723
 storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:3cd14c48-b7f3-4b26-917e-adc412cfbcce/5f55253e-284f-489f-bd98-c4824325921f/46b06ed5-7856-4cd5-b311-893041007aac"
 storage_version_token = "1793982783007457"
 content_type = "text/markdown"
+
+[[outputs]]
+id = "rkFrpiJ4uURz4xLwb988q"
+uri = "file://docs/hospital-live-handoff.md"
+type = "text"
+title = "Hospital: integración Live video"
+description = "Asociación, comprobaciones realizadas y aceptación pendiente en preview y producción."
+logical_id = "3a6cfdc6-194c-4e96-abab-6c6762fa5282"
+content_hash = "sha256:5c72ca51b50bc35164068813aa7afe580a494e17f20ef56f52af57a42b8ea53b"
+size = 5968
+mtime_ms = 1793987715328
+storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:3cd14c48-b7f3-4b26-917e-adc412cfbcce/3a6cfdc6-194c-4e96-abab-6c6762fa5282/c6b90be5-80e7-4e1c-8d85-45f26a39bbf7"
+storage_version_token = "1793987730245731"
+content_type = "text/markdown"
