@@ -72,7 +72,7 @@ Con publicador activo, probar por separado:
 | Prueba | Preview | Dominio final |
 | --- | --- | --- |
 | Sesión permitida ve Hospital en descubrimiento | Pendiente | Pendiente |
-| Fotogramas avanzan en Hospital, sin sustitutos | Pendiente | Pendiente |
+| Fotogramas avanzan en Hospital | Confirmado por el usuario | Pendiente |
 | Chrome escritorio/móvil | Pendiente real | Pendiente real |
 | Safari/iPhone físico | Pendiente real | Pendiente real |
 | Clic a movimiento y retraso real medidos por separado | Pendiente | Pendiente |
@@ -102,6 +102,8 @@ fixtures Chromium, credencial con forma JWT o un healthcheck.
 - Compilación de publicación aprobada. Prueba de continuidad contra
   `https://stableeye.co` aprobada: 64 recursos anteriores conservados,
   navegación diferida desde pestaña antigua y pestaña nueva con sesión sintética.
-- No se publicó esta preparación desde el agente. No se verificaron todavía
-  imagen real de Hospital con sesión autorizada, Safari/iPhone, tiempo de
-  apertura ni aceptación del dominio final.
+- El usuario confirmó vídeo en movimiento de Hospital en el preview con su
+  sesión el 2026-11-06. Es aceptación observada por el usuario, distinta de las
+  pruebas con fixtures.
+- No se publicó esta preparación desde el agente. Siguen pendientes
+  Safari/iPhone real, tiempo de apertura y aceptación del dominio final.
