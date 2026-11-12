@@ -6,6 +6,7 @@ export const EXPECTED_CAMERAS = Object.freeze({
   '61c46d85-34be-4fa8-a892-9e22211487df': 'casona-velvet',
   'a264b293-2d23-497f-b47f-5f7e68a81ea9': 'bacata-golden-girl',
   'bb195109-4409-498f-917c-a55e42649d27': 'hospital-cam-01',
+  '0c8856e1-87eb-4abb-b145-28b070d34cf9': 'rancho-encantador',
 });
 
 export function resolveHorseCamera(cameras, horseId) {

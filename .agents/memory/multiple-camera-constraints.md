@@ -91,3 +91,13 @@ moving frames in preview and production before declaring the live operational.
 Do not use the old reference receiver capacity as evidence of deployed capacity.
 Treat Hospital preview playback as user-confirmed for that session, without
 inferring final-domain acceptance, Safari/iPhone support or measured latency.
+
+Encantador's Rancho PoE camera is now explicitly authorized for live-video
+preparation, independently of its existing Wasabi photos.
+
+**Why:** The user requires separate main-app and receiver publications before
+starting the Rancho publisher and testing with the owner's real session.
+
+**How to apply:** Preserve Encantador's photo history and Lucero's legacy
+assignment. Do not declare live playback operational from the server mapping
+alone; require receiver authorization, publisher readiness and real playback.

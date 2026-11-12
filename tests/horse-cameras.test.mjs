@@ -11,12 +11,13 @@ import { createReceiver } from '../services/hls-pilot/receiver.mjs';
 import { PilotError } from '../services/hls-pilot/stream-window.mjs';
 import { createHash, randomUUID } from 'node:crypto';
 
-const [lucero, thunder, tessa, velvet, golden, hospital] = Object.keys(EXPECTED_CAMERAS);
+const [lucero, thunder, tessa, velvet, golden, hospital, encantador] = Object.keys(EXPECTED_CAMERAS);
 // Keep existing receiver capacity tests at four: preparing a fifth app mapping
 // must not silently change the separately deployed receiver's capacity.
 const cameras = Object.entries(EXPECTED_CAMERAS).slice(0, 4).map(([horseId, id]) => ({ horseId, id, ready: true }));
 const goldenCamera = { horseId: golden, id: 'bacata-golden-girl', ready: true };
 const hospitalCamera = { horseId: hospital, id: 'hospital-cam-01', ready: true };
+const encantadorCamera = { horseId: encantador, id: 'rancho-encantador', ready: true };
 const token = 'Bearer synthetic-real-session-shaped-token';
 
 test('trusted horse mapping refuses duplicates, wrong physical camera assignment and another horse', () => {
@@ -50,6 +51,17 @@ test('Hospital has one exact server-owned camera; pending, duplicate and borrowe
   for (const camera of [...cameras, goldenCamera]) {
     assert.equal(resolveHorseCamera([{ ...camera, horseId: hospital }], hospital), null);
     assert.equal(resolveHorseCamera([hospitalCamera], camera.horseId), null);
+  }
+});
+
+test('Encantador requires its exact Rancho camera without borrowing another stream', () => {
+  assert.equal(encantador, '0c8856e1-87eb-4abb-b145-28b070d34cf9');
+  assert.equal(resolveHorseCamera([encantadorCamera], encantador).id, 'rancho-encantador');
+  assert.equal(resolveHorseCamera([encantadorCamera, encantadorCamera], encantador), null);
+  assert.equal(resolveHorseCamera([...cameras, goldenCamera, hospitalCamera], encantador), null);
+  for (const camera of [...cameras, goldenCamera, hospitalCamera]) {
+    assert.equal(resolveHorseCamera([{ ...camera, horseId: encantador }], encantador), null);
+    assert.equal(resolveHorseCamera([encantadorCamera], camera.horseId), null);
   }
 });
 
@@ -110,6 +122,24 @@ test('proxy resolves by verified horse; concurrent sessions, denial, legacy comp
   assert.equal(sessions.length, beforeHospitalPending);
   discovered = [{ ...hospitalCamera, id: 'bacata-mock' }];
   assert.equal((await session(hospital)).status, 409);
+  discovered = [encantadorCamera];
+  const encantadorSession = await session(encantador, token, '?cameraId=bacata-mock');
+  assert.equal(encantadorSession.status, 200);
+  assert.equal((await encantadorSession.json()).cameraId, 'rancho-encantador');
+  assert(encantadorSession.headers.get('set-cookie').includes('hls_rancho-encantador='));
+  assert.equal((await session(encantador, '')).status, 401);
+  const beforeEncantadorDenied = sessions.length;
+  discoveryStatus = 403;
+  const encantadorDenied = await session(encantador);
+  assert.equal(encantadorDenied.status, 403);
+  assert.equal(encantadorDenied.headers.get('set-cookie'), null);
+  assert.equal((await encantadorDenied.json()).playbackUrl, undefined);
+  discoveryStatus = 200;
+  discovered = [...cameras, goldenCamera, hospitalCamera];
+  assert.equal((await session(encantador)).status, 409);
+  discovered = [{ ...encantadorCamera, id: 'bacata-mock' }];
+  assert.equal((await session(encantador)).status, 409);
+  assert.equal(sessions.length, beforeEncantadorDenied, 'denied or missing assignment cannot issue a stream session');
   discovered = cameras;
   const beforePending = sessions.length;
   assert.equal((await session(golden)).status, 409);
