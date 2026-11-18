@@ -471,7 +471,7 @@ test("integridad de contenido detecta cambios fuera del plan", async () => {
 
 test("catálogo pagina 3.600 caballos sin repeticiones, acota respuesta y busca nombre", async (t) => {
   await db.raw.exec(
-    "INSERT INTO public.horses SELECT md5('scale-horse-'||n)::uuid,'Caballo escala '||n,true FROM generate_series(1,3600) n",
+    "INSERT INTO public.horses(id,name,is_active,stall_number) SELECT md5('scale-horse-'||n)::uuid,'Caballo escala '||n,true,'SCALE-'||n FROM generate_series(1,3600) n",
   );
   const ids = new Set(),
     start = performance.now();
@@ -492,6 +492,26 @@ test("catálogo pagina 3.600 caballos sin repeticiones, acota respuesta y busca 
     pages++;
   } while (after);
   assert.equal(ids.size, 3602);
+  const bootstrap = await control.snapshot(ADMIN);
+  assert.equal(bootstrap.horses.length, 100);
+  assert.equal(bootstrap.catalog_counts.horses, 3602);
+  assert.ok(Buffer.byteLength(JSON.stringify(bootstrap)) < 100000);
+  const last = [...ids].at(-1);
+  assert.equal(
+    bootstrap.horses.some((h) => h.id === last),
+    false,
+  );
+  const outsideFirstPage = await control.createGrant(ADMIN, randomUUID(), {
+    user_id: OWNER,
+    horse_id: last,
+    photos: true,
+    live: false,
+    reason: "Alta fuera de la página inicial",
+  });
+  assert.equal(outsideFirstPage.horse_id, last);
+  await db.raw.query("DELETE FROM se_control_v1.grants WHERE id=$1", [
+    outsideFirstPage.id,
+  ]);
   const found = await installations.list(ADMIN, "horses", { q: "escala 3600" });
   assert.equal(found.items.length, 1);
   t.diagnostic(
@@ -553,6 +573,15 @@ test("registro de 300 Raspberry y 3.600 cámaras se consulta en páginas acotada
     } while (after);
     assert.equal(ids.size, expected);
   }
+  const bounded = await control.snapshot(ADMIN);
+  assert.equal(bounded.cameras.length, 100);
+  assert.equal(bounded.devices.length, 100);
+  assert.equal(bounded.catalog_counts.cameras, 3600);
+  assert.equal(
+    (await installations.list(ADMIN, "cameras", { q: "scale-camera-3600" }))
+      .items.length,
+    1,
+  );
   t.diagnostic(
     JSON.stringify({
       devices: 300,
@@ -568,7 +597,7 @@ test("actualizar el esquema inicial conserva datos y no reescribe su migración"
   const old = await PGlite.create("memory://");
   try {
     await old.exec(
-      "CREATE SCHEMA auth; CREATE TABLE auth.users(id uuid PRIMARY KEY); CREATE TABLE public.user_profiles(id uuid PRIMARY KEY,email text,full_name text,is_active boolean); CREATE TABLE public.horses(id uuid PRIMARY KEY,name text,is_active boolean)",
+      "CREATE SCHEMA auth; CREATE TABLE auth.users(id uuid PRIMARY KEY,email text,raw_app_meta_data jsonb); CREATE TABLE auth.sessions(id uuid PRIMARY KEY,user_id uuid,not_after timestamptz); CREATE TABLE public.user_profiles(id uuid PRIMARY KEY,email text,full_name text,is_active boolean,role text); CREATE TABLE public.horses(id uuid PRIMARY KEY,name text,is_active boolean,stall_number text,owner_id uuid,photo_backend text)",
     );
     const sql = (
       await readFile(new URL("../db/001_control.sql", import.meta.url), "utf8")
@@ -605,7 +634,7 @@ test("actualizar el esquema inicial conserva datos y no reescribe su migración"
     assert.equal(
       (await old.query("SELECT count(*) AS n FROM se_control_v1.migrations"))
         .rows[0].n,
-      2,
+      6,
     );
   } finally {
     await old.close();

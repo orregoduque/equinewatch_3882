@@ -469,6 +469,30 @@ footer {
 [hidden] {
   display: none !important;
 }
+body.loading {
+  visibility: hidden;
+}
+.login-panel {
+  width: 100%;
+  min-height: 100vh;
+  padding: 30px;
+  display: grid;
+  place-items: center;
+}
+.login-card {
+  width: 100%;
+  max-width: 490px;
+}
+.login-card h1 {
+  font-size: 28px;
+}
+#login-notice {
+  background: #f7ece6;
+  color: #925135;
+  padding: 14px;
+  border-radius: 7px;
+  font-size: 13px;
+}
 @media (max-width: 1000px) {
   aside {
     width: 190px;

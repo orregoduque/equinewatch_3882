@@ -2,6 +2,8 @@
 
 Fecha: 18 de noviembre de 2026 · Alcance: miles de caballos y cientos de Raspberry.
 
+Actualización 0.3: Auth/MFA, altas y paginación ya se probaron en un contrato Supabase aislado. Ver [AUTH-Y-ALTAS-20261118.md](AUTH-Y-ALTAS-20261118.md). Las brechas iniciales siguientes documentan el punto de partida y el objetivo completo.
+
 ## 1. Decisión y alcance real
 
 La dirección es viable: convertir el panel en el punto de entrada para instalar una sede, incorporar sus cámaras y administrar accesos. No basta con llevar el demo a DigitalOcean. Falta implementar el aprovisionamiento, las integraciones y la operación segura de una flota. El inventario de unos miles de caballos es pequeño para PostgreSQL; el volumen de fotografías y vídeo es un problema distinto y considerablemente mayor.
@@ -28,7 +30,7 @@ Conectar alimentación/PoE y cableado, identificar físicamente una cámara, con
 
 Antes de ejecutar una integración se deben volver a comprobar commits, revisión publicada, esquema, servicios efectivos y recursos de destino. Una configuración histórica no es la fuente de verdad actual.
 
-## 3. Matriz funcional: qué falta
+## 3. Matriz funcional: situación inicial y objetivo
 
 | Área | Situación y brecha | Resultado necesario |
 |---|---|---|
@@ -276,7 +278,7 @@ Duplicados, versiones, miniaturas, sobrecargas y copias se añaden a esas cifras
 
 API de control sin estado de sesión en memoria como única autoridad; pool Postgres acotado; trabajos asíncronos; paginación con cursor; índices; presupuesto de concurrencia por proveedor; backpressure; eventos/outbox; auditoría con retención/archivo. No disparar miles de llamadas de Auth o IAM simultáneamente.
 
-Páginas del panel no deben descargar todos los caballos, grants, bindings y auditorías. Los endpoints nuevos ya limitan a 100 filas y buscan usuarios/caballos. El `bootstrap` y los selectores originales aún cargan conjuntos completos: **deben migrarse antes del uso a escala**. Tampoco existe hoy una división completa por organizaciones con RLS por tenant; el panel es administrativo global. Se necesita esa separación antes de entregar acceso a administradores externos de establos.
+Páginas del panel no deben descargar todos los caballos, grants, bindings y auditorías. Los endpoints nuevos ya limitan a 100 filas y buscan usuarios/caballos. En la versión 0.3, `bootstrap` devuelve hasta cien filas por colección y los selectores usan búsqueda acotada; se añadieron contadores y páginas de grants. Tampoco existe hoy una división completa por organizaciones con RLS por tenant; el panel es administrativo global. Se necesita esa separación antes de entregar acceso a administradores externos de establos.
 
 Pruebas de registro locales: 3.602 caballos paginados y 300 equipos/3.600 cámaras en PostgreSQL embebido. Sirven para detectar respuestas sin límite y duplicaciones; no certifican concurrencia entre conexiones reales, rendimiento cloud, fotos ni vídeo.
 
@@ -345,7 +347,7 @@ Las fases representan dependencias y entregas, no fechas garantizadas.
 | 7 — Operación y escala | Métricas, cuotas, mantenimiento, soporte, carga y reconciliación | Carga objetivo acordada con pruebas cloud/end-to-end y presupuesto medido |
 | 8 — Adopción | Una cámara actual por vez, aceptación, rollback | No regresiones del recurso ni de otros clientes; aprobación antes de ampliar |
 
-### Lo realizado en esta iteración
+### Entrega inicial 0.2
 
 - Se añadió `002_installations.sql`, sin modificar `001_control.sql` ni aplicar migraciones cloud.
 - Planes con huella de contenido, versión y reserva transaccional de cámara/MAC/IP/horse/node.
@@ -358,9 +360,9 @@ Las fases representan dependencias y entregas, no fechas garantizadas.
 
 **Todavía no:** alta real de usuarios/caballos, IAM automático, enrollment, comandos en Raspberry, cambio físico de IP, instalación de servicios, cambios en Secrets Replit, multi-tenant productivo, integración de autoridad o migración de clientes. Estas funciones no deben deducirse del resultado «simulado».
 
-### Próximo bloque concreto
+### Bloque iniciado y probado en 0.3
 
-Preparar staging aislado con autenticación y catálogo real de ensayo, terminar la paginación del bootstrap/selectores, añadir tenant/roles y probar la API real de alta de usuarios/caballos con compensación/idempotencia. Esto precede a desplegar un panel público con capacidad de escritura. Ningún secreto administrativo se necesita en el chat.
+Se probaron Auth/MFA, catálogo de ensayo, paginación y altas de cuentas/caballos con idempotencia y conciliación. Siguen pendientes tenants/delegación externa, invitaciones, staging integral del legado, backups/CI y despliegue público. Ver el informe 0.3; ningún secreto administrativo debe pegarse en el chat.
 
 ## 16. Backlog de ingeniería y aceptación operativa
 

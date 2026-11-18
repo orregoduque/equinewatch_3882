@@ -1,10 +1,10 @@
-# Contrato de planificación y ensayo, versión 0.2
+# Contrato de planificación y ensayo, versión 0.3
 
 Este contrato es **de preparación**. Ninguna ruta aplica IAM, cambia la IP física, crea una cuenta Auth, publica Replit o inicia servicios de las Raspberry. No conectar estas rutas a una autoridad productiva.
 
 ## Seguridad
 
-Todas las rutas exigen administración explícita y perfil activo. En demo se utiliza la sesión local ficticia y CSRF. El modo staging verifica bearer de Supabase y las policies privadas, pero necesita una instalación/autenticación de pruebas real antes de aceptarse. No existe `execute`, `activate` o modo productivo habilitable por variable.
+Todas las rutas exigen administración explícita y perfil activo. En demo se utiliza la sesión local ficticia y CSRF. Staging usa cookie opaca, verificación de Auth/sesión, MFA y policies privadas, probado en un contrato aislado. No existe `execute`, `activate` o modo productivo habilitable por variable.
 
 Las escrituras de preparación y cancelación requieren `Idempotency-Key` (12–100 caracteres alfanuméricos, guion o guion bajo). Misma clave y cuerpo devuelve el resultado anterior; reutilizarla con otro contenido produce 409. Las reservas se insertan en la misma transacción del plan. Una colisión revierte el intento completo.
 
@@ -71,18 +71,18 @@ Los métodos internos de reclamación/fallo no se exponen como endpoints. Una le
 
 `GET /api/installations/{plans,runs,inventory,sites,devices,cameras,horses,users}?limit=20&after=UUID`
 
-Respuesta: `{items:[],next:null,limit:20}`. Máximo 100 filas, cursor por UUID y lookahead de una fila; sin OFFSET. Para `horses` y `users` se admite `q` con búsqueda literal de nombre/correo, hasta 120 caracteres. No es búsqueda de SQL ni patrón libre. Las tablas restantes rechazan `q` no vacío.
+Respuesta: `{items:[],next:null,limit:20}`. Máximo 100 filas, cursor por UUID y lookahead de una fila; sin OFFSET. Para `horses` y `users` se admite `q` con búsqueda literal de nombre/correo, hasta 120 caracteres. No es búsqueda de SQL ni patrón libre. También admiten búsqueda literal las sedes, equipos y cámaras; las restantes rechazan `q` no vacío.
 
 Orden por UUID, no por fecha de inserción. Frente a altas concurrentes, una nueva fila con UUID anterior al cursor se verá al refrescar desde la primera página. Para exportaciones consistentes futuras usar snapshot/versionado, no encadenar páginas y asumir una fotografía inmutable del inventario.
 
-`GET /api/bootstrap` conserva su contrato anterior para el demo. No usarlo para acreditar que toda la interfaz es escalable: aún carga catálogos/listas completos. Sustituir esos selectores por búsqueda y las vistas por paginación es una dependencia del despliegue masivo.
+`GET /api/bootstrap` devuelve hasta cien filas por colección, contadores y `bootstrap_limit`. Los selectores usan búsquedas acotadas y grants tienen paginación. Esto no acredita carga de fotos/vídeo.
 
 ## Migraciones
 
-La apertura del demo aplica `001_control.sql` y `002_installations.sql` con historial/checksum. Si ya existía el esquema inicial, conserva sus datos. Repetir la apertura no reinstala ni sobrescribe sus tablas.
+La apertura del demo aplica las seis migraciones privadas versionadas con historial/checksum. Si ya existía el esquema inicial, conserva sus datos. Repetir la apertura no reinstala ni sobrescribe sus tablas.
 
 El modo staging solo comprueba versiones/huellas y nunca migra al arrancar. El operador deberá instalar las migraciones revisadas en una base aislada mediante el mecanismo aprobado y registrar sus checksums normalizados. No ejecutar estos archivos automáticamente contra el proyecto vivo. Las funciones privadas de catálogo requieren revisión/advisors y pruebas con sesiones reales en staging.
 
 ## Pruebas
 
-`npm test`: 44 pruebas. La verificación opcional de navegador usa `tools/verify-panel.mjs`, con Playwright 1.65.1 instalado aparte en `.qa`, y Chrome existente; no añade dependencia de runtime. Comprueba el demo local en loopback, un plan, avance, recarga/reanudación, descarga y ancho móvil. No navega a Supabase, Replit o Wasabi.
+`npm test`: 76 pruebas. La verificación opcional de navegador usa `tools/verify-panel.mjs`, con Playwright 1.65.1 instalado aparte en `.qa`, y Chrome existente; no añade dependencia de runtime. Comprueba el demo local en loopback, un plan, avance, recarga/reanudación, descarga y ancho móvil. No navega a Supabase, Replit o Wasabi.

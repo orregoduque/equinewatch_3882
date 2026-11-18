@@ -65,6 +65,8 @@ test("RLS y privilegios bloquean lectura cruzada, autoasignación admin y borrad
     "SELECT * FROM auth.users",
     "SELECT * FROM public.horses",
     "SELECT se_control_v1.operator_catalog()",
+    "SELECT se_control_v1.operator_catalog_counts()",
+    "SELECT se_control_v1.operator_identity_active('users','00000000-0000-4000-8000-000000000011')",
   ])
     await assert.rejects(
       db.tx(other, (c) => c.query(query)),

@@ -79,12 +79,23 @@ export class ControlStore {
   async snapshot(actor) {
     return this.db.tx(uuid(actor), async (c) => {
       await this.admin(c);
-      const catalog = await this.catalog(c),
-        result = {
-          ...catalog,
-          simulation: this.simulation,
-          production_authority_enabled: false,
-        };
+      const result = {
+        simulation: this.simulation,
+        production_authority_enabled: false,
+        bootstrap_limit: 100,
+      };
+      for (const kind of ["horses", "users"])
+        result[kind] = (
+          await c.query(
+            "SELECT se_control_v1.operator_catalog_page($1,NULL,100,'') AS items",
+            [kind],
+          )
+        ).rows[0].items;
+      result.catalog_counts = (
+        await c.query(
+          "SELECT se_control_v1.operator_catalog_counts() AS counts",
+        )
+      ).rows[0].counts;
       for (const table of [
         "sites",
         "devices",
@@ -95,7 +106,9 @@ export class ControlStore {
       ])
         result[table] = (
           await c.query(
-            `SELECT * FROM se_control_v1.${table} ORDER BY ${table === "audit" ? "created_at DESC LIMIT 100" : "id"}`,
+            table === "bindings"
+              ? "SELECT * FROM se_control_v1.bindings WHERE ends_at IS NULL AND camera_id IN(SELECT id FROM se_control_v1.cameras ORDER BY id LIMIT 100) ORDER BY id LIMIT 100"
+              : `SELECT * FROM se_control_v1.${table} ORDER BY ${table === "audit" ? "created_at DESC,id" : "id"} LIMIT 100`,
           )
         ).rows;
       return result;
@@ -159,10 +172,13 @@ export class ControlStore {
       horse = uuid(data.horse_id),
       p = permissions(data);
     return this.mutate(actor, key, "grant.create", data, async (c) => {
-      const catalog = await this.catalog(c);
       if (
-        !catalog.users.some((u) => u.id === user && u.is_active === true) ||
-        !catalog.horses.some((h) => h.id === horse && h.is_active === true)
+        !(
+          await c.query(
+            "SELECT se_control_v1.operator_identity_active('users',$1) AND se_control_v1.operator_identity_active('horses',$2) AS active",
+            [user, horse],
+          )
+        ).rows[0].active
       )
         fail(400, "ACTIVE_IDENTITY_REQUIRED");
       const duplicate = await c.query(
@@ -279,8 +295,14 @@ export class ControlStore {
     )
       fail(400, "PRIVATE_IPV4_REQUIRED");
     return this.mutate(actor, key, "camera.prepare", data, async (c) => {
-      const catalog = await this.catalog(c);
-      if (!catalog.horses.some((h) => h.id === horse && h.is_active))
+      if (
+        !(
+          await c.query(
+            "SELECT se_control_v1.current_resource_active($1) AS active",
+            [horse],
+          )
+        ).rows[0].active
+      )
         fail(400, "ACTIVE_HORSE_REQUIRED");
       const camera = (
         await c.query(

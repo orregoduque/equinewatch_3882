@@ -1,11 +1,17 @@
 import { createServer } from "node:http";
 import { readFile, mkdir } from "node:fs/promises";
-import { randomBytes, timingSafeEqual } from "node:crypto";
+import { randomBytes } from "node:crypto";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { resolve } from "node:path";
 import { openDemo, openProduction, DEMO_ADMIN } from "./db.mjs";
 import { ControlStore, ControlError, fail, uuid } from "./store.mjs";
 import { InstallationStore } from "./installations.mjs";
+import { BrowserAuth, stagingConfiguration, safeEqual } from "./auth.mjs";
+import {
+  PeopleStore,
+  SupabaseAccountProvider,
+  StagingFixtureProvider,
+} from "./people.mjs";
 
 const assets = {
   "/": ["index.html", "text/html; charset=utf-8"],
@@ -13,12 +19,7 @@ const assets = {
   "/style.css": ["style.css", "text/css; charset=utf-8"],
 };
 function equal(a, b) {
-  return (
-    typeof a === "string" &&
-    typeof b === "string" &&
-    a.length === b.length &&
-    timingSafeEqual(Buffer.from(a), Buffer.from(b))
-  );
+  return safeEqual(a, b);
 }
 async function jsonBody(req) {
   if (!String(req.headers["content-type"] || "").startsWith("application/json"))
@@ -41,6 +42,8 @@ export function createControlServer({
   mode = "demo",
   origin = "http://127.0.0.1:8899",
   verifyIdentity,
+  browserAuth,
+  peopleProvider,
   env = {},
 }) {
   if (!["demo", "staging"].includes(mode))
@@ -48,6 +51,7 @@ export function createControlServer({
   const sessions = new Map(),
     expectedHost = new URL(origin).host;
   const installations = new InstallationStore(store);
+  const people = new PeopleStore(store, { mode, provider: peopleProvider });
   const verify =
     verifyIdentity ||
     async function (req) {
@@ -82,7 +86,8 @@ export function createControlServer({
     res.end(JSON.stringify(value));
   }
   async function identity(req, res, { bootstrap = false } = {}) {
-    if (mode !== "demo") return verify(req);
+    if (mode !== "demo")
+      return browserAuth ? browserAuth.authenticate(req) : verify(req);
     const cookie = String(req.headers.cookie || "")
       .split(";")
       .map((p) => p.trim())
@@ -143,6 +148,30 @@ export function createControlServer({
         });
         return;
       }
+      if (req.method === "GET" && path === "/api/auth/config") {
+        output(res, 200, {
+          mode,
+          login_required: mode === "staging",
+          mfa_required: mode === "staging",
+          production_authority_enabled: false,
+        });
+        return;
+      }
+      if (
+        req.method === "POST" &&
+        ["/api/auth/login", "/api/auth/mfa", "/api/auth/logout"].includes(path)
+      ) {
+        if (mode !== "staging" || !browserAuth) fail(404, "NOT_FOUND");
+        if (req.headers.origin !== origin) fail(403, "ORIGIN_NOT_ALLOWED");
+        const body = await jsonBody(req);
+        const result = path.endsWith("/login")
+          ? await browserAuth.login(req, res, body)
+          : path.endsWith("/mfa")
+            ? await browserAuth.verifyMfa(req, body)
+            : await browserAuth.logout(req, res);
+        output(res, 200, result);
+        return;
+      }
       const actor = await identity(req, res, {
         bootstrap: path === "/api/bootstrap" && req.method === "GET",
       });
@@ -152,7 +181,12 @@ export function createControlServer({
         const token = /se_control_session=([^;]+)/.exec(cookie)?.[1];
         output(res, 200, {
           ...snapshot,
-          csrf: mode === "demo" ? sessions.get(token)?.csrf : undefined,
+          csrf:
+            mode === "demo"
+              ? sessions.get(token)?.csrf
+              : browserAuth?.csrf(req),
+          mode,
+          people: await people.capabilities(actor),
         });
         return;
       }
@@ -184,18 +218,30 @@ export function createControlServer({
         req.method === "GET" &&
         /^\/api\/cameras\/[a-f0-9-]+\/plan$/.test(path)
       ) {
-        const snapshot = await store.snapshot(actor),
-          id = uuid(path.split("/")[3]),
-          camera = snapshot.cameras.find((c) => c.id === id);
+        const id = uuid(path.split("/")[3]);
+        const { camera, binding } = await store.db.tx(actor, async (c) => {
+          await store.admin(c);
+          return {
+            camera: (
+              await c.query("SELECT * FROM se_control_v1.cameras WHERE id=$1", [
+                id,
+              ])
+            ).rows[0],
+            binding: (
+              await c.query(
+                "SELECT * FROM se_control_v1.bindings WHERE camera_id=$1 AND ends_at IS NULL",
+                [id],
+              )
+            ).rows[0],
+          };
+        });
         if (!camera) fail(404, "CAMERA_NOT_FOUND");
         output(res, 200, {
           version: 1,
           executable: false,
           production_authority_enabled: false,
           camera,
-          binding: snapshot.bindings.find(
-            (b) => b.camera_id === id && !b.ends_at,
-          ),
+          binding,
           pending: [
             "Aislar una cámara nueva por vez",
             "Verificar MAC física",
@@ -209,8 +255,52 @@ export function createControlServer({
         return;
       }
       const key = req.headers["idempotency-key"];
+      if (path === "/api/people/users" && req.method === "GET") {
+        output(
+          res,
+          200,
+          await people.list(actor, {
+            after: url.searchParams.get("after") || null,
+            limit: url.searchParams.has("limit")
+              ? Number(url.searchParams.get("limit"))
+              : 20,
+          }),
+        );
+        return;
+      }
+      if (path === "/api/people/users" && req.method === "POST") {
+        output(
+          res,
+          200,
+          await people.requestUser(actor, key, await jsonBody(req)),
+        );
+        return;
+      }
+      if (path === "/api/people/horses" && req.method === "POST") {
+        output(
+          res,
+          200,
+          await people.createHorse(actor, key, await jsonBody(req)),
+        );
+        return;
+      }
+      const userRun = /^\/api\/people\/users\/([a-f0-9-]+)\/process$/.exec(
+        path,
+      );
+      if (userRun && req.method === "POST") {
+        const body = await jsonBody(req);
+        if (
+          !body ||
+          Array.isArray(body) ||
+          typeof body !== "object" ||
+          Object.keys(body).length
+        )
+          fail(400, "INVALID_FIELDS");
+        output(res, 200, await people.process(actor, userRun[1]));
+        return;
+      }
       const collection =
-        /^\/api\/installations\/(plans|runs|inventory|horses|users|sites|devices|cameras)$/.exec(
+        /^\/api\/installations\/(plans|runs|inventory|horses|users|sites|devices|cameras|grants)$/.exec(
           path,
         );
       if (req.method === "GET" && collection) {
@@ -365,12 +455,47 @@ export async function start(env = process.env) {
   const db =
     mode === "demo" ? await openDemo(folder) : await openProduction(env);
   const store = new ControlStore(db, { simulation: mode === "demo" }),
-    server = createControlServer({
-      store,
-      mode,
-      origin: `http://${host}:${port}`,
-      env,
-    });
+    authConfig = mode === "staging" ? stagingConfiguration(env) : null,
+    origin = env.CONTROL_PUBLIC_ORIGIN || `http://${host}:${port}`;
+  if (mode === "demo" && origin !== `http://${host}:${port}`)
+    throw Error("DEMO_REJECTS_PUBLIC_ORIGIN");
+  const browserAuth =
+    mode === "staging"
+      ? new BrowserAuth({
+          config: authConfig,
+          origin,
+          authorize: (actor, sessionId) =>
+            db.tx(actor, async (c) => {
+              await store.admin(c);
+              if (
+                !(
+                  await c.query(
+                    "SELECT se_control_v1.current_auth_session_active($1) AS active",
+                    [sessionId],
+                  )
+                ).rows[0].active
+              )
+                fail(401, "SESSION_INVALID");
+            }),
+        })
+      : null;
+  const peopleProvider =
+    authConfig && env.CONTROL_SUPABASE_SECRET_KEY
+      ? new SupabaseAccountProvider(authConfig, env.CONTROL_SUPABASE_SECRET_KEY)
+      : authConfig && env.CONTROL_STAGING_FIXTURE_TOKEN
+        ? new StagingFixtureProvider(
+            authConfig,
+            env.CONTROL_STAGING_FIXTURE_TOKEN,
+          )
+        : null;
+  const server = createControlServer({
+    store,
+    mode,
+    origin,
+    browserAuth,
+    peopleProvider,
+    env,
+  });
   await new Promise((resolve, reject) => {
     server.once("error", reject);
     server.listen(port, host, resolve);

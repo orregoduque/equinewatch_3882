@@ -4,6 +4,14 @@ let state,
   planCursor = null,
   nextPlanCursor = null,
   selectedRun = null;
+let authConfig,
+  userCursor = null,
+  nextUserCursor = null;
+let grantCursor = null,
+  nextGrantCursor = null;
+const directoryCache = Object.fromEntries(
+  ["users", "horses", "sites", "devices", "cameras"].map((k) => [k, new Map()]),
+);
 const $ = (s) => document.querySelector(s),
   all = (s) => [...document.querySelectorAll(s)],
   field = (f, n) => f.elements.namedItem(n);
@@ -16,6 +24,10 @@ const escape = (s) =>
       ],
   );
 const titles = {
+  people: [
+    "Personas y caballos, por UUID.",
+    "Crea identidades de prueba y conserva las asociaciones existentes.",
+  ],
   overview: [
     "Todo en su lugar.",
     "Prepara accesos y nuevas instalaciones con un registro de cada cambio.",
@@ -64,6 +76,22 @@ const errors = {
   INVALID_NODE_ID: "Indica un número de nodo positivo.",
   INVALID_BUCKET: "Revisa el nombre del bucket Wasabi.",
   INVALID_REGION: "Revisa la región Wasabi.",
+  LOGIN_FAILED: "No se pudo iniciar sesión con esas credenciales.",
+  SESSION_REQUIRED: "Inicia sesión para continuar.",
+  SESSION_INVALID: "La sesión ya no es válida. Inicia sesión nuevamente.",
+  AUTH_RATE_LIMIT: "Se alcanzó el límite de intentos. Espera un minuto.",
+  MFA_REQUIRED: "Verifica tu segundo factor para continuar.",
+  MFA_INVALID: "El código no es válido. Revisa el autenticador.",
+  INVALID_EMAIL: "Revisa la dirección de correo.",
+  DEMO_EMAIL_REQUIRED: "En el demo utiliza una dirección @example.invalid.",
+  FIXTURE_EMAIL_REQUIRED:
+    "En este staging usa control-nombre@example.invalid. Los clientes se conservan fuera del piloto.",
+  USER_REQUEST_EXISTS:
+    "Ya existe una solicitud para ese correo con otro nombre. Revisa el registro.",
+  AUTH_ADMIN_NOT_CONFIGURED:
+    "El creador de cuentas de este entorno todavía no está configurado.",
+  PEOPLE_NOT_ENABLED: "Las altas aún no están habilitadas en este entorno.",
+  REQUEST_BUSY: "El alta está en proceso. Espera antes de reintentar.",
 };
 function notice(message, error = false) {
   $("#notice").hidden = false;
@@ -85,11 +113,26 @@ async function api(path, { method = "GET", body } = {}) {
       cache: "no-store",
     }),
     data = await response.json();
-  if (!response.ok)
-    throw Error(
+  if (!response.ok) {
+    const error = Error(
       errors[data.error] ||
         "No se pudo completar el cambio. Revisa la conexión y vuelve a intentarlo.",
     );
+    error.code = data.error;
+    error.status = response.status;
+    if (
+      authConfig?.login_required &&
+      ["SESSION_REQUIRED", "SESSION_INVALID", "MFA_REQUIRED"].includes(
+        data.error,
+      )
+    ) {
+      csrf = undefined;
+      $("#mfa-form").hidden = true;
+      $("#login-form").hidden = false;
+      showLogin(error.message);
+    }
+    throw error;
+  }
   return data;
 }
 function page(name) {
@@ -106,16 +149,23 @@ document.addEventListener("click", (e) => {
 });
 function fill(select, items, label) {
   const previous = select.value;
+  const previousLabel = select.selectedOptions[0]?.textContent;
   select.replaceChildren(new Option("Selecciona una opción", ""));
   items.forEach((item) => select.add(new Option(label(item), item.id)));
-  if (items.some((i) => i.id === previous)) select.value = previous;
+  if (previous && !items.some((i) => i.id === previous))
+    select.add(new Option(previousLabel, previous));
+  if (previous) select.value = previous;
 }
 function labelUser(id) {
-  const u = state.users.find((x) => x.id === id);
+  const u =
+    directoryCache.users.get(id) || state.users.find((x) => x.id === id);
   return u?.full_name || "Usuario";
 }
 function labelHorse(id) {
-  return state.horses.find((x) => x.id === id)?.name || "Caballo";
+  return (
+    (directoryCache.horses.get(id) || state.horses.find((x) => x.id === id))
+      ?.name || "Caballo"
+  );
 }
 function date(s) {
   return s
@@ -129,6 +179,16 @@ function date(s) {
 async function refresh() {
   state = await api("/api/bootstrap");
   csrf = state.csrf;
+  for (const kind of Object.keys(directoryCache))
+    for (const item of state[kind] || [])
+      directoryCache[kind].set(item.id, item);
+  const grants = await api(
+    "/api/installations/grants?limit=20" +
+      (grantCursor ? "&after=" + grantCursor : ""),
+  );
+  state.grants = grants.items;
+  nextGrantCursor = grants.next;
+  $("#grants-next").disabled = !grants.next;
   all("select[name=user_id]").forEach((el) =>
     fill(
       el,
@@ -143,6 +203,22 @@ async function refresh() {
       (h) => h.name,
     ),
   );
+  all("select[name=owner_id]").forEach((el) =>
+    fill(
+      el,
+      state.users.filter((u) => u.is_active),
+      (u) => u.full_name + " · " + u.email,
+    ),
+  );
+  $("#user-form button[type=submit]").disabled = !state.people?.create_users;
+  $("#horse-form button[type=submit]").disabled = !state.people?.create_horses;
+  if (state.mode === "staging") {
+    $(".environment b").textContent = "STAGING AISLADO";
+    $(".environment span").textContent =
+      "Supabase de pruebas · Sin cámaras ni clientes de producción";
+    $("#account-label").textContent = "Administrador autenticado";
+    $("#logout-button").hidden = false;
+  }
   all("select[name=site_id]").forEach((el) =>
     fill(el, state.sites, (s) => s.name),
   );
@@ -159,6 +235,7 @@ async function refresh() {
   );
   render();
   await refreshInstallations();
+  await refreshPeople();
 }
 function render() {
   const current = state.grants.filter(
@@ -166,14 +243,21 @@ function render() {
       !g.revoked_at && (!g.expires_at || Date.parse(g.expires_at) > Date.now()),
   );
   $("#stats").innerHTML = [
-    [state.horses.length, "Caballos de prueba"],
-    [current.length, "Accesos preparados"],
-    [state.cameras.length, "Cámaras en borrador"],
+    [state.catalog_counts?.horses ?? state.horses.length, "Caballos de prueba"],
+    [
+      state.catalog_counts?.current_grants ?? current.length,
+      "Accesos preparados",
+    ],
+    [
+      state.catalog_counts?.cameras ?? state.cameras.length,
+      "Cámaras en borrador",
+    ],
     [0, "Cambios en producción"],
   ]
     .map(([n, t]) => `<div class="stat"><b>${n}</b><span>${t}</span></div>`)
     .join("");
   $("#horse-cards").innerHTML = state.horses
+    .slice(0, 20)
     .map(
       (h) =>
         `<div class="horse-card"><span class="horse-icon">♞</span><div><b>${escape(h.name)}</b><small>Catálogo ficticio · Disponible para simulación</small></div></div>`,
@@ -212,6 +296,12 @@ function render() {
     "installation.step.simulated": "Paso simulado",
     "installation.simulation.retry": "Reintento de ensayo preparado",
     "installation.simulation.failed": "Ensayo detenido",
+    "horse.create": "Caballo de prueba creado",
+    "user.request": "Alta de persona solicitada",
+    "user.request.ready": "Cuenta y perfil preparados",
+    "user.request.existing_review": "Cuenta existente conservada",
+    "user.request.reconcile": "Alta pendiente de conciliación",
+    "user.request.failed": "Alta detenida para revisión",
   };
   $("#audit").innerHTML = state.audit.length
     ? state.audit
@@ -308,9 +398,9 @@ submit("#device-form", async (f) => {
   );
 });
 submit("#camera-form", async (f) => {
-  const device = state.devices.find(
-    (d) => d.id === field(f, "device_id").value,
-  );
+  const device =
+    state.devices.find((d) => d.id === field(f, "device_id").value) ||
+    directoryCache.devices.get(field(f, "device_id").value);
   if (!device) throw Error("Selecciona una Raspberry.");
   await api("/api/cameras", {
     method: "POST",
@@ -555,4 +645,260 @@ document.addEventListener("click", async (e) => {
     b.disabled = false;
   }
 });
-refresh().catch((error) => notice(error.message, true));
+async function refreshPeople() {
+  const result = await api(
+    "/api/people/users?limit=20" + (userCursor ? "&after=" + userCursor : ""),
+  );
+  nextUserCursor = result.next;
+  $("#users-next").disabled = !nextUserCursor;
+  const labels = {
+    queued: "Pendiente",
+    processing: "En proceso",
+    reconcile: "Requiere conciliación",
+    ready: "Cuenta y perfil creados; activación pendiente",
+    existing_review: "Cuenta existente; revisar sin reemplazar",
+    failed: "Detenida para revisión",
+  };
+  $("#user-requests").innerHTML = result.items.length
+    ? result.items
+        .map(
+          (u) =>
+            `<div class="installation-item"><b>${escape(u.full_name)}</b><small>${escape(u.email)} · ${escape(labels[u.state] || u.state)}</small>${u.auth_user_id ? `<small>UUID: ${escape(u.auth_user_id)}</small>` : ""}${["queued", "reconcile", "processing"].includes(u.state) ? `<div class="actions"><button data-user-process="${u.id}">Comprobar / retomar alta</button></div>` : ""}</div>`,
+        )
+        .join("")
+    : '<div class="empty">Todavía no hay solicitudes de alta.</div>';
+}
+function installDirectorySearch() {
+  const kinds = {
+    user_id: "users",
+    owner_id: "users",
+    horse_id: "horses",
+    site_id: "sites",
+    device_id: "devices",
+    camera_id: "cameras",
+  };
+  for (const select of all("select")) {
+    const kind = kinds[select.name];
+    if (!kind) continue;
+    const label = document.createElement("label"),
+      input = document.createElement("input");
+    label.textContent =
+      kind === "users"
+        ? "Buscar persona"
+        : kind === "horses"
+          ? "Buscar caballo"
+          : kind === "sites"
+            ? "Buscar establo"
+            : kind === "devices"
+              ? "Buscar Raspberry"
+              : "Buscar cámara";
+    input.type = "search";
+    input.placeholder =
+      kind === "users" ? "Nombre o correo" : "Nombre o identificador";
+    input.maxLength = 120;
+    input.setAttribute("aria-label", label.textContent);
+    label.append(input);
+    select.closest("label").before(label);
+    let timer,
+      generation = 0;
+    input.oninput = () => {
+      clearTimeout(timer);
+      const current = ++generation;
+      timer = setTimeout(async () => {
+        try {
+          const result = await api(
+            `/api/installations/${kind}?limit=20&q=${encodeURIComponent(input.value)}`,
+          );
+          if (current !== generation || select.disabled) return;
+          for (const row of result.items) directoryCache[kind].set(row.id, row);
+          fill(
+            select,
+            result.items.filter((row) => row.is_active !== false),
+            (row) =>
+              row.full_name
+                ? row.full_name + " · " + row.email
+                : row.name || row.technical_id,
+          );
+        } catch (error) {
+          notice(error.message, true);
+        }
+      }, 300);
+    };
+  }
+}
+for (const [selector, cursor] of [
+  ["#grants-first", () => null],
+  ["#grants-next", () => nextGrantCursor],
+])
+  $(selector).onclick = async () => {
+    try {
+      grantCursor = cursor();
+      await refresh();
+    } catch (error) {
+      notice(error.message, true);
+    }
+  };
+submit("#user-form", async (f) => {
+  const request = await api("/api/people/users", {
+    method: "POST",
+    body: {
+      full_name: field(f, "full_name").value,
+      email: field(f, "email").value,
+    },
+  });
+  const result = await api(`/api/people/users/${request.id}/process`, {
+    method: "POST",
+    body: {},
+  });
+  f.reset();
+  notice(
+    result.state === "ready"
+      ? "Cuenta y perfil de prueba creados. No se enviaron invitaciones ni se otorgó acceso a caballos."
+      : result.state === "existing_review"
+        ? "La cuenta ya existe. Se conservó sin cambiar sus datos o permisos."
+        : "El alta quedó registrada para conciliación o revisión.",
+  );
+});
+submit("#horse-form", async (f) => {
+  const horse = await api("/api/people/horses", {
+    method: "POST",
+    body: {
+      name: field(f, "name").value,
+      stall_number: field(f, "stall_number").value,
+      owner_id: field(f, "owner_id").value,
+    },
+  });
+  f.reset();
+  notice(
+    `Caballo de prueba creado: ${horse.name}. La instalación de cámara y almacenamiento sigue pendiente.`,
+  );
+});
+for (const [selector, cursor] of [
+  ["#users-first", () => null],
+  ["#users-next", () => nextUserCursor],
+])
+  $(selector).onclick = async () => {
+    try {
+      userCursor = cursor();
+      await refreshPeople();
+    } catch (e) {
+      notice(e.message, true);
+    }
+  };
+document.addEventListener("click", async (e) => {
+  const b = e.target.closest("[data-user-process]");
+  if (!b) return;
+  b.disabled = true;
+  try {
+    await api(`/api/people/users/${b.dataset.userProcess}/process`, {
+      method: "POST",
+      body: {},
+    });
+    await refresh();
+  } catch (error) {
+    notice(error.message, true);
+  } finally {
+    b.disabled = false;
+  }
+});
+function showLogin(message = "") {
+  $("#control-panel").hidden = true;
+  $("#control-navigation").hidden = true;
+  $("#login-panel").hidden = false;
+  $("#login-notice").hidden = !message;
+  $("#login-notice").textContent = message;
+  document.body.classList.remove("loading");
+}
+function showPanel() {
+  $("#control-panel").hidden = false;
+  $("#control-navigation").hidden = false;
+  $("#login-panel").hidden = true;
+  document.body.classList.remove("loading");
+}
+async function loggedIn() {
+  await refresh();
+  showPanel();
+}
+$("#login-form").onsubmit = async (e) => {
+  e.preventDefault();
+  const f = e.target,
+    b = e.submitter;
+  b.disabled = true;
+  try {
+    const result = await api("/api/auth/login", {
+      method: "POST",
+      body: {
+        email: field(f, "email").value,
+        password: field(f, "password").value,
+      },
+    });
+    csrf = result.csrf;
+    if (result.authenticated) {
+      await loggedIn();
+      return;
+    }
+    if (result.mfa_enrollment_required) {
+      showLogin(
+        "Esta cuenta necesita registrar un autenticador antes de entrar. Solicita la preparación segura de la cuenta de pruebas.",
+      );
+      return;
+    }
+    fill(
+      field($("#mfa-form"), "factor_id"),
+      result.factors,
+      (factor) => factor.name,
+    );
+    if (result.factors.length === 1)
+      field($("#mfa-form"), "factor_id").value = result.factors[0].id;
+    $("#login-form").hidden = true;
+    $("#mfa-form").hidden = false;
+    $("#login-notice").hidden = true;
+  } catch (error) {
+    showLogin(error.message);
+  } finally {
+    field(f, "password").value = "";
+    b.disabled = false;
+  }
+};
+$("#mfa-form").onsubmit = async (e) => {
+  e.preventDefault();
+  const f = e.target,
+    b = e.submitter;
+  b.disabled = true;
+  try {
+    await api("/api/auth/mfa", {
+      method: "POST",
+      body: {
+        factor_id: field(f, "factor_id").value,
+        code: field(f, "code").value,
+      },
+    });
+    await loggedIn();
+  } catch (error) {
+    showLogin(error.message);
+  } finally {
+    field(f, "code").value = "";
+    b.disabled = false;
+  }
+};
+$("#logout-button").onclick = async () => {
+  try {
+    await api("/api/auth/logout", { method: "POST", body: {} });
+  } finally {
+    location.reload();
+  }
+};
+async function initialize() {
+  authConfig = await api("/api/auth/config");
+  try {
+    await loggedIn();
+  } catch (error) {
+    if (authConfig.login_required) showLogin(error.message);
+    else {
+      showPanel();
+      notice(error.message, true);
+    }
+  }
+}
+installDirectorySearch();
+initialize().catch((error) => showLogin(error.message));

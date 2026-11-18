@@ -7,14 +7,57 @@
     <link rel="stylesheet" href="/style.css" />
     <script type="module" src="/app.js"></script>
   </head>
-  <body>
-    <aside>
+  <body class="loading">
+    <section id="login-panel" class="login-panel" hidden>
+      <div class="panel login-card">
+        <p class="eyebrow">STABLE EYE / ADMINISTRACIÓN</p>
+        <h1>Acceso al entorno de pruebas</h1>
+        <p>
+          Usa una cuenta autorizada de este entorno. Los accesos de producción
+          se conservan por separado.
+        </p>
+        <div id="login-notice" role="alert" hidden></div>
+        <form id="login-form">
+          <label
+            >Correo<input
+              name="email"
+              type="email"
+              autocomplete="username"
+              required
+          /></label>
+          <label
+            >Contraseña<input
+              name="password"
+              type="password"
+              autocomplete="current-password"
+              required
+          /></label>
+          <button class="primary" type="submit">Entrar</button>
+        </form>
+        <form id="mfa-form" hidden>
+          <label>Autenticador<select name="factor_id" required></select></label>
+          <label
+            >Código de seis dígitos<input
+              name="code"
+              inputmode="numeric"
+              autocomplete="one-time-code"
+              pattern="[0-9]{6}"
+              required
+          /></label>
+          <button class="primary" type="submit">
+            Verificar segundo factor
+          </button>
+        </form>
+      </div>
+    </section>
+    <aside id="control-navigation">
       <a class="brand" href="/"
         >STABLE <span>EYE</span><small>Administración</small></a
       >
       <nav aria-label="Administración">
         <button data-page="overview" class="selected">Resumen</button
         ><button data-page="permissions">Accesos por caballo</button
+        ><button data-page="people">Usuarios y caballos</button
         ><button data-page="onboarding">Preparar un establo</button
         ><button data-page="installations">Planes de instalación</button
         ><button data-page="history">Historial de cambios</button>
@@ -24,7 +67,7 @@
         lugar.
       </div>
     </aside>
-    <main>
+    <main id="control-panel">
       <div class="environment">
         <b>ENTORNO DE PRUEBAS</b
         ><span
@@ -41,7 +84,8 @@
             cambio.
           </p>
         </div>
-        <span class="account">Administrador de prueba</span>
+        <span class="account" id="account-label">Administrador de prueba</span>
+        <button id="logout-button" hidden>Cerrar sesión</button>
       </header>
       <div id="notice" role="status" aria-live="polite" hidden></div>
       <section id="overview" class="page">
@@ -67,6 +111,10 @@
         </div>
         <div class="panel">
           <h2>Catálogo de prueba</h2>
+          <p class="muted">
+            Vista de hasta veinte caballos. Usa los buscadores de los
+            formularios para encontrar otros registros.
+          </p>
           <div id="horse-cards" class="horse-cards"></div>
         </div>
       </section>
@@ -143,6 +191,69 @@
               </thead>
               <tbody id="grants"></tbody>
             </table>
+          </div>
+          <div class="actions">
+            <button id="grants-first">Primera página</button
+            ><button id="grants-next" disabled>Siguiente página</button>
+          </div>
+        </div>
+      </section>
+      <section id="people" class="page" hidden>
+        <div class="onboarding-notice" id="people-notice">
+          Altas del entorno de pruebas. Crear una cuenta no concede acceso a
+          caballos ni envía invitaciones.
+        </div>
+        <div class="two-columns">
+          <form id="user-form" class="panel">
+            <p class="eyebrow">CUENTA Y PERFIL</p>
+            <h2>Registrar una persona</h2>
+            <label
+              >Nombre completo<input name="full_name" maxlength="120" required
+            /></label>
+            <label
+              >Correo<input
+                name="email"
+                type="email"
+                required
+                placeholder="control-persona@example.invalid"
+            /></label>
+            <button type="submit" class="primary">
+              Crear cuenta de prueba
+            </button>
+            <p class="muted">
+              Las cuentas existentes se dejan para revisión. No se sustituyen
+              nombres, roles ni permisos.
+            </p>
+          </form>
+          <form id="horse-form" class="panel">
+            <p class="eyebrow">IDENTIDAD PERMANENTE</p>
+            <h2>Registrar un caballo</h2>
+            <label
+              >Nombre del caballo<input name="name" required maxlength="120"
+            /></label>
+            <label
+              >Identificador de box<input
+                name="stall_number"
+                required
+                maxlength="120"
+                placeholder="SEDE-PRUEBA:BOX-01"
+            /></label>
+            <label>Propietario<select name="owner_id" required></select></label>
+            <button type="submit" class="primary">
+              Crear caballo de prueba
+            </button>
+            <p class="muted">
+              El box debe ser único según el contrato actual. La instalación de
+              cámara y almacenamiento se prepara después.
+            </p>
+          </form>
+        </div>
+        <div class="panel">
+          <h2>Altas de personas</h2>
+          <div id="user-requests"></div>
+          <div class="actions">
+            <button id="users-first">Primera página</button
+            ><button id="users-next" disabled>Siguiente página</button>
           </div>
         </div>
       </section>

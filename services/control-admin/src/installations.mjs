@@ -393,6 +393,7 @@ export class InstallationStore {
   }
   async list(actor, type, { after = null, limit = 20, q = "" } = {}) {
     const tables = {
+      grants: "grants",
       plans: "installation_plans",
       runs: "installation_runs",
       inventory: "inventory_observations",
@@ -411,7 +412,12 @@ export class InstallationStore {
       q.length > 120
     )
       fail(400, "INVALID_PAGE");
-    if (tables[type] && q) fail(400, "INVALID_PAGE");
+    const searchColumns = {
+      sites: "name",
+      devices: "name",
+      cameras: "technical_id",
+    };
+    if (tables[type] && q && !searchColumns[type]) fail(400, "INVALID_PAGE");
     if (after) uuid(after);
     return this.db.tx(uuid(actor), async (c) => {
       await this.store.admin(c);
@@ -426,10 +432,13 @@ export class InstallationStore {
               : type === "plans"
                 ? "p.*,(SELECT r.id FROM se_control_v1.installation_runs r WHERE r.plan_id=p.id ORDER BY r.created_at DESC,r.id DESC LIMIT 1) AS latest_run_id"
                 : "*";
+        const filter = searchColumns[type]
+          ? ` AND ($3='' OR strpos(lower(${searchColumns[type]}),lower($3))>0)`
+          : "";
         rows = (
           await c.query(
-            `SELECT ${projection} FROM se_control_v1.${tables[type]} p WHERE ($1::uuid IS NULL OR p.id>$1) ORDER BY p.id LIMIT $2`,
-            [after, limit + 1],
+            `SELECT ${projection} FROM se_control_v1.${tables[type]} p WHERE ($1::uuid IS NULL OR p.id>$1)${filter} ORDER BY p.id LIMIT $2`,
+            searchColumns[type] ? [after, limit + 1, q] : [after, limit + 1],
           )
         ).rows;
       } else
