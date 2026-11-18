@@ -16,6 +16,7 @@
         <button data-page="overview" class="selected">Resumen</button
         ><button data-page="permissions">Accesos por caballo</button
         ><button data-page="onboarding">Preparar un establo</button
+        ><button data-page="installations">Planes de instalación</button
         ><button data-page="history">Historial de cambios</button>
       </nav>
       <div class="side-note">
@@ -210,6 +211,111 @@
         <div class="panel">
           <h2>Cámaras preparadas</h2>
           <div id="camera-list" class="camera-list"></div>
+        </div>
+      </section>
+      <section id="installations" class="page" hidden>
+        <div class="onboarding-notice">
+          Ensaya la instalación y conserva su avance. Cada paso queda como
+          simulado hasta que existan pruebas de campo.
+        </div>
+        <div class="two-columns">
+          <form id="installation-form" class="panel">
+            <p class="eyebrow">NUEVA INSTALACIÓN</p>
+            <h2>Preparar un plan</h2>
+            <label
+              >Cámara en borrador<select name="camera_id" required></select
+            ></label>
+            <div class="form-grid">
+              <label
+                >Número de nodo<input
+                  name="node_id"
+                  type="number"
+                  min="1"
+                  max="2147483647"
+                  required
+                  placeholder="101"
+              /></label>
+              <label
+                >Región Wasabi<input
+                  name="wasabi_region"
+                  required
+                  value="us-east-1"
+              /></label>
+            </div>
+            <label
+              >Bucket Wasabi<input
+                name="bucket"
+                required
+                placeholder="nombre-del-bucket"
+            /></label>
+            <label
+              >Origen HTTPS del receptor<input
+                name="receiver_origin"
+                type="url"
+                required
+                placeholder="https://receptor.example.invalid"
+            /></label>
+            <button type="submit" class="primary">Guardar plan</button>
+            <p class="muted">
+              El plan reserva identificadores y prepara políticas. Conserva el
+              flujo principal de la cámara.
+            </p>
+          </form>
+          <form id="inventory-form" class="panel">
+            <p class="eyebrow">PROTEGER LO EXISTENTE</p>
+            <h2>Registrar inventario revisado</h2>
+            <p>
+              Un archivo de identidades permite detectar conflictos con
+              instalaciones manuales. Su registro no adopta ni modifica esos
+              equipos.
+            </p>
+            <label
+              >Referencia del inventario<input
+                name="source"
+                required
+                maxlength="120"
+                placeholder="Inventario revisado del establo"
+            /></label>
+            <label
+              >Archivo JSON sin credenciales<input
+                name="inventory"
+                type="file"
+                accept="application/json,.json"
+                required
+            /></label>
+            <button type="submit">Registrar observación</button>
+            <p class="muted">
+              Hasta 100 cámaras por lote. Campos: site_id, horse_id,
+              technical_id, mac, ip_address y node_id. No adjuntes
+              configuraciones privadas.
+            </p>
+            <div id="inventory-summary" class="result">
+              Todavía no hay inventarios registrados.
+            </div>
+          </form>
+        </div>
+        <div class="panel">
+          <h2>Planes preparados</h2>
+          <div id="installation-list"></div>
+          <div class="actions">
+            <button id="plans-first">Primera página</button
+            ><button id="plans-next" disabled>Siguiente página</button>
+          </div>
+        </div>
+        <div class="panel" id="run-panel" hidden>
+          <p class="eyebrow">ENSAYO PERSISTENTE</p>
+          <h2 id="run-title">Avance de la simulación</h2>
+          <p id="run-state"></p>
+          <ol id="run-steps" class="run-steps"></ol>
+          <div class="actions">
+            <button id="run-advance" class="primary">
+              Simular siguiente paso</button
+            ><button id="run-cancel">Cancelar ensayo</button>
+          </div>
+          <p class="muted">
+            Puedes recargar y retomar. Un ensayo completado no acredita subidas,
+            vídeo ni recuperación reales.
+          </p>
         </div>
       </section>
       <section id="history" class="page" hidden>

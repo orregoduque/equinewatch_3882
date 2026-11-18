@@ -3,32 +3,41 @@ import { createHash } from "node:crypto";
 export const DEMO_ADMIN = "00000000-0000-4000-8000-000000000001";
 export const DEMO_OWNER = "00000000-0000-4000-8000-000000000011";
 export const DEMO_HORSE = "00000000-0000-4000-8000-000000000021";
-const migrationUrl = new URL("../db/001_control.sql", import.meta.url);
+const migrationFiles = ["001_control.sql", "002_installations.sql"];
 
 export async function migrateIsolated(db) {
-  const sql = (await readFile(migrationUrl, "utf8")).replace(/\r\n/g, "\n"),
-    checksum = createHash("sha256").update(sql).digest("hex");
-  const existing = await db.query(
-    "SELECT to_regclass('se_control_v1.migrations') AS name",
-  );
-  if (existing.rows[0].name) {
-    const result = await db.query(
-      "SELECT checksum FROM se_control_v1.migrations WHERE version=1",
+  for (const [index, filename] of migrationFiles.entries()) {
+    const version = index + 1;
+    const sql = (
+      await readFile(new URL("../db/" + filename, import.meta.url), "utf8")
+    ).replace(/\r\n/g, "\n");
+    const checksum = createHash("sha256").update(sql).digest("hex");
+    const existing = await db.query(
+      "SELECT to_regclass('se_control_v1.migrations') AS name",
     );
-    if (result.rows[0]?.checksum !== checksum)
-      throw Error("MIGRATION_CHECKSUM_MISMATCH");
-    return;
-  }
-  await db.exec("BEGIN");
-  try {
-    await db.exec(sql);
-    await db.query("INSERT INTO se_control_v1.migrations VALUES(1,$1)", [
-      checksum,
-    ]);
-    await db.exec("COMMIT");
-  } catch (error) {
-    await db.exec("ROLLBACK");
-    throw error;
+    if (existing.rows[0].name) {
+      const result = await db.query(
+        "SELECT checksum FROM se_control_v1.migrations WHERE version=$1",
+        [version],
+      );
+      if (result.rows.length) {
+        if (result.rows[0].checksum !== checksum)
+          throw Error("MIGRATION_CHECKSUM_MISMATCH");
+        continue;
+      }
+    }
+    await db.exec("BEGIN");
+    try {
+      await db.exec(sql);
+      await db.query("INSERT INTO se_control_v1.migrations VALUES($1,$2)", [
+        version,
+        checksum,
+      ]);
+      await db.exec("COMMIT");
+    } catch (error) {
+      await db.exec("ROLLBACK");
+      throw error;
+    }
   }
 }
 
@@ -110,6 +119,21 @@ export async function openProduction(env) {
   if (!probe.rows[0].name) {
     await pool.end();
     throw Error("PRIVATE_SCHEMA_NOT_INSTALLED");
+  }
+  const installed = await pool.query(
+    "SELECT version,checksum FROM se_control_v1.migrations ORDER BY version",
+  );
+  for (const [index, file] of migrationFiles.entries()) {
+    const sql = (
+      await readFile(new URL("../db/" + file, import.meta.url), "utf8")
+    ).replace(/\r\n/g, "\n");
+    if (
+      installed.rows.find((r) => r.version === index + 1)?.checksum !==
+      createHash("sha256").update(sql).digest("hex")
+    ) {
+      await pool.end();
+      throw Error("PRIVATE_SCHEMA_VERSION_MISMATCH");
+    }
   }
   return {
     kind: "postgres",

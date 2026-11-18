@@ -5,6 +5,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { resolve } from "node:path";
 import { openDemo, openProduction, DEMO_ADMIN } from "./db.mjs";
 import { ControlStore, ControlError, fail, uuid } from "./store.mjs";
+import { InstallationStore } from "./installations.mjs";
 
 const assets = {
   "/": ["index.html", "text/html; charset=utf-8"],
@@ -46,6 +47,7 @@ export function createControlServer({
     throw Error("PRODUCTION_ACTIVATION_NOT_RELEASED");
   const sessions = new Map(),
     expectedHost = new URL(origin).host;
+  const installations = new InstallationStore(store);
   const verify =
     verifyIdentity ||
     async function (req) {
@@ -207,6 +209,82 @@ export function createControlServer({
         return;
       }
       const key = req.headers["idempotency-key"];
+      const collection =
+        /^\/api\/installations\/(plans|runs|inventory|horses|users|sites|devices|cameras)$/.exec(
+          path,
+        );
+      if (req.method === "GET" && collection) {
+        if (
+          [...url.searchParams.keys()].some(
+            (k) => !["after", "limit", "q"].includes(k),
+          )
+        )
+          fail(400, "INVALID_PAGE");
+        output(
+          res,
+          200,
+          await installations.list(actor, collection[1], {
+            after: url.searchParams.get("after") || null,
+            limit: url.searchParams.has("limit")
+              ? Number(url.searchParams.get("limit"))
+              : 20,
+            q: url.searchParams.get("q") || "",
+          }),
+        );
+        return;
+      }
+      if (path === "/api/installations/inventory" && req.method === "POST") {
+        output(
+          res,
+          200,
+          await installations.observe(actor, key, await jsonBody(req)),
+        );
+        return;
+      }
+      if (path === "/api/installations/plans" && req.method === "POST") {
+        output(
+          res,
+          200,
+          await installations.createPlan(actor, key, await jsonBody(req)),
+        );
+        return;
+      }
+      const planRoute =
+        /^\/api\/installations\/plans\/([a-f0-9-]+)(\/simulations)?$/.exec(
+          path,
+        );
+      if (planRoute && req.method === "GET" && !planRoute[2]) {
+        output(res, 200, await installations.detail(actor, planRoute[1]));
+        return;
+      }
+      const runRoute =
+        /^\/api\/installations\/runs\/([a-f0-9-]+)(\/(advance|cancel))?$/.exec(
+          path,
+        );
+      if (runRoute && req.method === "GET" && !runRoute[2]) {
+        output(res, 200, await installations.run(actor, runRoute[1]));
+        return;
+      }
+      if (
+        req.method === "POST" &&
+        ((planRoute && planRoute[2]) || (runRoute && runRoute[2]))
+      ) {
+        const body = await jsonBody(req);
+        if (
+          !body ||
+          Array.isArray(body) ||
+          typeof body !== "object" ||
+          Object.keys(body).length
+        )
+          fail(400, "INVALID_FIELDS");
+        const value = planRoute
+          ? await installations.enqueue(actor, key, planRoute[1])
+          : runRoute[3] === "cancel"
+            ? await installations.cancel(actor, key, runRoute[1])
+            : await installations.advance(actor, runRoute[1]);
+        output(res, 200, value);
+        return;
+      }
       let result;
       if (req.method === "POST" && path === "/api/grants")
         result = await store.createGrant(actor, key, await jsonBody(req));

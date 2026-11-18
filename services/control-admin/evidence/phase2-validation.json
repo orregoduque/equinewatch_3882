@@ -1,0 +1,15 @@
+{
+  "version": "0.2.0",
+  "date": "2026-11-18",
+  "component_tests": { "passed": 44, "failed": 0 },
+  "catalog_fixture": { "horses": 3602, "page_limit": 100 },
+  "registry_fixture": { "devices": 300, "cameras": 3600 },
+  "browser": { "engine": "existing Chrome via separate QA harness", "desktop": true, "mobile_viewport": true, "rehearsal_resumed": true, "policy_download": true },
+  "production_modified": false,
+  "cloud_schema_modified": false,
+  "credentials_generated_or_rotated": false,
+  "external_provisioning_implemented": false,
+  "production_authority_enabled": false,
+  "real_authentication_staging_verified": false,
+  "load_test_of_photos_or_video": false
+}

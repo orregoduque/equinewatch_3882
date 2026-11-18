@@ -411,6 +411,39 @@ td button {
   float: right;
   font-size: 11px;
 }
+.installation-item {
+  padding: 20px 0;
+  border-bottom: 1px solid #e9eee3;
+}
+.installation-item b {
+  display: block;
+  font-size: 14px;
+}
+.installation-item small {
+  display: block;
+  color: #7d8d78;
+  margin-top: 7px;
+  overflow-wrap: anywhere;
+}
+.installation-item .actions {
+  margin-top: 12px;
+}
+.installation-item button {
+  font-size: 12px;
+}
+.run-steps {
+  padding-left: 22px;
+}
+.run-steps li {
+  padding: 11px 5px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.run-steps li small {
+  display: block;
+  color: #7d8d78;
+  font-size: 11px;
+}
 .audit-item b {
   display: block;
   margin-bottom: 7px;

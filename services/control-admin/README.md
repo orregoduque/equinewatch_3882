@@ -1,6 +1,8 @@
 # Stable Eye · Administración complementaria
 
-Primera entrega del registro central de altas y accesos. **No migra cámaras existentes, no modifica permisos actuales y no publica servicios.**
+Versión 0.2: registro central de altas/accesos y preparación de instalaciones. **No migra cámaras existentes, no modifica permisos actuales y no publica servicios.**
+
+El análisis y desarrollo por etapas están en [PLAN-MAESTRO-INSTALACIONES-20261118.md](docs/PLAN-MAESTRO-INSTALACIONES-20261118.md). Distingue el despliegue privado de pruebas de la automatización completa y de la escala de fotos/vídeo.
 
 ## Qué funciona
 
@@ -10,6 +12,10 @@ Primera entrega del registro central de altas y accesos. **No migra cámaras exi
 - PostgreSQL aislado mediante PGlite, persistente en este PC; la migración preparada usa PostgreSQL y un esquema privado para un despliegue de staging posterior.
 - Auditoría y escrituras idempotentes. RLS, privilegios mínimos, validación de sesión de Supabase preparada para staging y protección CSRF del entorno local.
 - Adaptador de compatibilidad `off`/`shadow`. **No incorpora modo de aplicación real de permisos.**
+- Planes de instalación con contenido inmutable y reservas de cámara, MAC, IP, caballo y nodo; documentos IAM limitados a un prefijo para revisión.
+- Inventario observado sin credenciales: lo registrado mantiene administración histórica y bloquea planes con identidades ocupadas. No se descubren automáticamente equipos desconocidos.
+- Ensayo persistente de diez pasos, concesiones temporales, recuperación tras fallo, cancelación y reintentos acotados. Cada resultado indica que la prueba externa sigue pendiente.
+- API de catálogo/inventario/planes/ensayos paginada por cursor. El bootstrap y selectores originales todavía necesitan su transición completa antes de usar miles de registros.
 
 ## Probar en este PC
 
@@ -46,5 +52,7 @@ Las integraciones actuales permanecen fuera de este servicio. Ver [INTEGRACION-S
 `tests/control.test.mjs` comprueba aislamiento RLS, administración, permisos por caballo, vencimiento, revocación, revisiones, idempotencia concurrente, reservas de IP/MAC, rollback, persistencia y compatibilidad del adaptador apagado. El navegador comprobó alta de permiso, autorización simulada, retirada y denegación posterior; también preparación de sede, equipo y cámara ficticios.
 
 El motor local sirve para desarrollo y pruebas, no para certificar carga, alta disponibilidad ni el funcionamiento bajo la infraestructura real de Supabase. Las pruebas con sesiones reales y ramas de staging siguen pendientes de ese despliegue.
+
+La versión 0.2 añade 24 pruebas de instalación para un total de 44. Incluye actualización desde el esquema inicial conservando sus datos, cierre/reapertura con progreso, colisiones, bloqueo de recursos observados, leases vencidos/resultados tardíos, cancelación, límites de reintento y HTTP. Se consultaron 3.602 caballos y un registro de 300 equipos/3.600 cámaras en páginas de hasta 100 filas; no es una prueba de streaming o ingestión a esa escala. Ver [API-INSTALACIONES.md](docs/API-INSTALACIONES.md).
 
 Validación de los repositorios actuales: HLS pasó 7 pruebas originales y 9 después de añadir el módulo no importado. En la webapp, la base original y la candidata tuvieron exactamente 251/253 pruebas aprobadas, con los mismos dos fallos locales (pipeline que necesita OpenSSL en PATH y prueba del presigner AWS que devuelve 503). No aparecieron regresiones nuevas. TypeScript y Vite compilaron mediante sus ejecutables directos; `npm ci` presentó un fallo de finalización de npm en Windows y no dejó enlaces `.bin` completos. No se modificaron dependencias ni scripts del proyecto existente para corregir ese entorno.

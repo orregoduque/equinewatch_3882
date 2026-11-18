@@ -1,0 +1,276 @@
+TAP version 13
+# Subtest: una cuenta normal no administra el catálogo
+ok 1 - una cuenta normal no administra el catálogo
+  ---
+  duration_ms: 1804.6471
+  type: 'test'
+  ...
+# Subtest: RLS y privilegios bloquean lectura cruzada, autoasignación admin y borrado de auditoría
+ok 2 - RLS y privilegios bloquean lectura cruzada, autoasignación admin y borrado de auditoría
+  ---
+  duration_ms: 30.371
+  type: 'test'
+  ...
+# Subtest: permiso por UUID diferencia fotos y vídeo y niega otros caballos
+ok 3 - permiso por UUID diferencia fotos y vídeo y niega otros caballos
+  ---
+  duration_ms: 23.2134
+  type: 'test'
+  ...
+# Subtest: la ruta de autoridad real siempre queda desactivada aunque la simulación permita
+ok 4 - la ruta de autoridad real siempre queda desactivada aunque la simulación permita
+  ---
+  duration_ms: 20.498
+  type: 'test'
+  ...
+# Subtest: doble clic idempotente crea solo un permiso y un evento
+ok 5 - doble clic idempotente crea solo un permiso y un evento
+  ---
+  duration_ms: 30.8292
+  type: 'test'
+  ...
+# Subtest: concurrencia con la misma clave conserva una sola escritura
+ok 6 - concurrencia con la misma clave conserva una sola escritura
+  ---
+  duration_ms: 23.1851
+  type: 'test'
+  ...
+# Subtest: duplicar permiso con otra clave no reemplaza el existente
+ok 7 - duplicar permiso con otra clave no reemplaza el existente
+  ---
+  duration_ms: 22.7317
+  type: 'test'
+  ...
+# Subtest: editar exige revisión vigente; retirar conserva historial y corta la simulación
+ok 8 - editar exige revisión vigente; retirar conserva historial y corta la simulación
+  ---
+  duration_ms: 39.3457
+  type: 'test'
+  ...
+# Subtest: vencimientos y perfiles desactivados niegan acceso
+ok 9 - vencimientos y perfiles desactivados niegan acceso
+  ---
+  duration_ms: 27.8606
+  type: 'test'
+  ...
+# Subtest: se rechazan identidades inexistentes, privilegios extra, claves y fechas inválidas
+ok 10 - se rechazan identidades inexistentes, privilegios extra, claves y fechas inválidas
+  ---
+  duration_ms: 21.4371
+  type: 'test'
+  ...
+# Subtest: alta conserva identidad, cámara y caballo; colisión IP revierte todo el intento
+ok 11 - alta conserva identidad, cámara y caballo; colisión IP revierte todo el intento
+  ---
+  duration_ms: 38.4222
+  type: 'test'
+  ...
+# Subtest: no se aceptan dos cámaras para el mismo caballo ni un dispositivo de otra sede
+ok 12 - no se aceptan dos cámaras para el mismo caballo ni un dispositivo de otra sede
+  ---
+  duration_ms: 34.3274
+  type: 'test'
+  ...
+# Subtest: la migración es repetible y los catálogos existentes no se modifican
+ok 13 - la migración es repetible y los catálogos existentes no se modifican
+  ---
+  duration_ms: 35.5427
+  type: 'test'
+  ...
+# Subtest: persistencia sobrevive al cierre y apertura del proceso
+ok 14 - persistencia sobrevive al cierre y apertura del proceso
+  ---
+  duration_ms: 5506.2617
+  type: 'test'
+  ...
+# Subtest: adaptador apagado conserva exactamente la respuesta anterior y no llama al registro
+ok 15 - adaptador apagado conserva exactamente la respuesta anterior y no llama al registro
+  ---
+  duration_ms: 16.665
+  type: 'test'
+  ...
+# Subtest: shadow no concede ni retira acceso y rechaza habilitar enforcement
+ok 16 - shadow no concede ni retira acceso y rechaza habilitar enforcement
+  ---
+  duration_ms: 14.8856
+  type: 'test'
+  ...
+# Subtest: errores del observador y de su transporte nunca alteran la decisión anterior
+ok 17 - errores del observador y de su transporte nunca alteran la decisión anterior
+  ---
+  duration_ms: 21.5055
+  type: 'test'
+  ...
+# Subtest: el plan legado preserva credenciales y no infiere fotos ni administración
+ok 18 - el plan legado preserva credenciales y no infiere fotos ni administración
+  ---
+  duration_ms: 18.3719
+  type: 'test'
+  ...
+# Subtest: HTTP protege CSRF, origen, sesión y rutas de activación
+ok 19 - HTTP protege CSRF, origen, sesión y rutas de activación
+  ---
+  duration_ms: 72.344
+  type: 'test'
+  ...
+# Subtest: sesión de usuario sin administración no puede usar panel o simulación por otra identidad
+ok 20 - sesión de usuario sin administración no puede usar panel o simulación por otra identidad
+  ---
+  duration_ms: 26.7295
+  type: 'test'
+  ...
+# Subtest: plan, políticas y evidencias no contienen credenciales ni comandos ejecutables
+ok 21 - plan, políticas y evidencias no contienen credenciales ni comandos ejecutables
+  ---
+  duration_ms: 1816.8871
+  type: 'test'
+  ...
+# Subtest: plan doble clic: un plan, cinco reservas y una auditoría adicional
+ok 22 - plan doble clic: un plan, cinco reservas y una auditoría adicional
+  ---
+  duration_ms: 41.1213
+  type: 'test'
+  ...
+# Subtest: rechaza campos de secretos, URLs con credenciales y valores ambiguos
+ok 23 - rechaza campos de secretos, URLs con credenciales y valores ambiguos
+  ---
+  duration_ms: 29.9326
+  type: 'test'
+  ...
+# Subtest: inventario legado es observación inmutable y repetible, no adopción
+ok 24 - inventario legado es observación inmutable y repetible, no adopción
+  ---
+  duration_ms: 51.4055
+  type: 'test'
+  ...
+# Subtest: no permite planificar sobre una cámara, caballo, MAC, IP o nodo observado
+ok 25 - no permite planificar sobre una cámara, caballo, MAC, IP o nodo observado
+  ---
+  duration_ms: 51.5711
+  type: 'test'
+  ...
+# Subtest: importar un lote con colisión revierte todo y preserva sus registros anteriores
+ok 26 - importar un lote con colisión revierte todo y preserva sus registros anteriores
+  ---
+  duration_ms: 61.4602
+  type: 'test'
+  ...
+# Subtest: una IP puede repetirse en sedes aisladas; cameraId y MAC no
+ok 27 - una IP puede repetirse en sedes aisladas; cameraId y MAC no
+  ---
+  duration_ms: 43.9992
+  type: 'test'
+  ...
+# Subtest: identidades de inventario son estrictas y lotes están acotados
+ok 28 - identidades de inventario son estrictas y lotes están acotados
+  ---
+  duration_ms: 23.1458
+  type: 'test'
+  ...
+# Subtest: RLS y permisos niegan inventario, planes y trabajos a un usuario no administrador
+ok 29 - RLS y permisos niegan inventario, planes y trabajos a un usuario no administrador
+  ---
+  duration_ms: 46.6889
+  type: 'test'
+  ...
+# Subtest: un trabajo por plan, cola idempotente y ejecución real prohibida por SQL
+ok 30 - un trabajo por plan, cola idempotente y ejecución real prohibida por SQL
+  ---
+  duration_ms: 50.5439
+  type: 'test'
+  ...
+# Subtest: dos workers no pueden reclamar simultáneamente la misma ejecución
+ok 31 - dos workers no pueden reclamar simultáneamente la misma ejecución
+  ---
+  duration_ms: 61.2352
+  type: 'test'
+  ...
+# Subtest: diez pasos dejan evidencia simulada, sin certificar acciones externas
+ok 32 - diez pasos dejan evidencia simulada, sin certificar acciones externas
+  ---
+  duration_ms: 195.5582
+  type: 'test'
+  ...
+# Subtest: un proceso nuevo recupera la concesión vencida y descarta al worker antiguo
+ok 33 - un proceso nuevo recupera la concesión vencida y descarta al worker antiguo
+  ---
+  duration_ms: 74.7058
+  type: 'test'
+  ...
+# Subtest: tres caídas consecutivas terminan el trabajo y evitan bucles
+ok 34 - tres caídas consecutivas terminan el trabajo y evitan bucles
+  ---
+  duration_ms: 67.8696
+  type: 'test'
+  ...
+# Subtest: errores transitorios tienen espera y 401/403 clasificados no se reintentan
+ok 35 - errores transitorios tienen espera y 401/403 clasificados no se reintentan
+  ---
+  duration_ms: 58.7358
+  type: 'test'
+  ...
+# Subtest: cancelar durante un paso impide aplicar su resultado tardío y conserva reservas
+ok 36 - cancelar durante un paso impide aplicar su resultado tardío y conserva reservas
+  ---
+  duration_ms: 50.8701
+  type: 'test'
+  ...
+# Subtest: cambiar asociación después de aprobar un plan lo invalida
+ok 37 - cambiar asociación después de aprobar un plan lo invalida
+  ---
+  duration_ms: 34.8615
+  type: 'test'
+  ...
+# Subtest: integridad de contenido detecta cambios fuera del plan
+ok 38 - integridad de contenido detecta cambios fuera del plan
+  ---
+  duration_ms: 32.0316
+  type: 'test'
+  ...
+# Subtest: catálogo pagina 3.600 caballos sin repeticiones, acota respuesta y busca nombre
+ok 39 - catálogo pagina 3.600 caballos sin repeticiones, acota respuesta y busca nombre
+  ---
+  duration_ms: 211.9481
+  type: 'test'
+  ...
+# {"catalog_rows":3602,"pages":37,"elapsed_ms":79,"environment":"embedded-postgres-local-not-production-benchmark"}
+# Subtest: paginación rechaza inyección, páginas grandes y cursor inválido
+ok 40 - paginación rechaza inyección, páginas grandes y cursor inválido
+  ---
+  duration_ms: 18.9656
+  type: 'test'
+  ...
+# Subtest: registro de 300 Raspberry y 3.600 cámaras se consulta en páginas acotadas
+ok 41 - registro de 300 Raspberry y 3.600 cámaras se consulta en páginas acotadas
+  ---
+  duration_ms: 253.2485
+  type: 'test'
+  ...
+# {"devices":300,"cameras":3600,"elapsed_ms":241,"scope":"registry-only-not-Pi-or-stream-capacity"}
+# Subtest: actualizar el esquema inicial conserva datos y no reescribe su migración
+ok 42 - actualizar el esquema inicial conserva datos y no reescribe su migración
+  ---
+  duration_ms: 1121.2756
+  type: 'test'
+  ...
+# Subtest: plan y progreso persisten tras cerrar y reabrir completamente la base
+ok 43 - plan y progreso persisten tras cerrar y reabrir completamente la base
+  ---
+  duration_ms: 5469.1781
+  type: 'test'
+  ...
+# Subtest: HTTP no acepta evidencia de éxito ni activación real
+ok 44 - HTTP no acepta evidencia de éxito ni activación real
+  ---
+  duration_ms: 129.0102
+  type: 'test'
+  ...
+1..44
+# tests 44
+# suites 0
+# pass 44
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 18204.0118

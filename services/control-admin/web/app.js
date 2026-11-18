@@ -1,6 +1,9 @@
 let state,
   csrf,
-  editing = null;
+  editing = null,
+  planCursor = null,
+  nextPlanCursor = null,
+  selectedRun = null;
 const $ = (s) => document.querySelector(s),
   all = (s) => [...document.querySelectorAll(s)],
   field = (f, n) => f.elements.namedItem(n);
@@ -25,6 +28,10 @@ const titles = {
     "Una instalación bien preparada.",
     "Registra establo, equipo y cámara antes de conectar el flujo real.",
   ],
+  installations: [
+    "Del plan a la instalación.",
+    "Reserva identidades, protege el inventario y ensaya cada paso.",
+  ],
   history: [
     "Cada cambio, registrado.",
     "Consulta quién preparó o retiró un permiso y por qué.",
@@ -44,6 +51,19 @@ const errors = {
   INVALID_MAC: "Indica la MAC con el formato aa:bb:cc:dd:ee:ff.",
   ADMIN_REQUIRED: "Se necesita acceso de administración.",
   INVALID_FIELDS: "Revisa los campos del formulario.",
+  LEGACY_RESOURCE_PROTECTED:
+    "El plan comparte una identidad con el inventario existente. Revisa la asociación antes de continuar.",
+  INVENTORY_CONFLICT:
+    "El inventario contiene una identidad ya registrada o reservada. Revisa el lote completo.",
+  RESOURCE_RESERVED:
+    "Otra instalación ya reservó ese identificador, nodo, IP o caballo.",
+  PLAN_STALE: "La asociación de esta cámara cambió. El plan necesita revisión.",
+  INVALID_INVENTORY_SIZE: "El archivo debe contener entre 1 y 100 cámaras.",
+  INVALID_RECEIVER_ORIGIN:
+    "Indica solo el origen HTTPS del receptor, sin rutas ni credenciales.",
+  INVALID_NODE_ID: "Indica un número de nodo positivo.",
+  INVALID_BUCKET: "Revisa el nombre del bucket Wasabi.",
+  INVALID_REGION: "Revisa la región Wasabi.",
 };
 function notice(message, error = false) {
   $("#notice").hidden = false;
@@ -134,7 +154,11 @@ async function refresh() {
         `${d.name} · ${state.sites.find((s) => s.id === d.site_id)?.name || ""}`,
     ),
   );
+  all("select[name=camera_id]").forEach((el) =>
+    fill(el, state.cameras, (c) => c.technical_id),
+  );
   render();
+  await refreshInstallations();
 }
 function render() {
   const current = state.grants.filter(
@@ -180,6 +204,14 @@ function render() {
     "site.create": "Establo registrado",
     "device.prepare": "Equipo preparado",
     "camera.prepare": "Cámara asociada en borrador",
+    "inventory.observe": "Inventario existente registrado",
+    "installation.prepare": "Plan de instalación preparado",
+    "installation.simulation.queue": "Ensayo en cola",
+    "installation.simulation.cancel": "Ensayo cancelado",
+    "installation.step.claimed": "Paso reservado para ensayo",
+    "installation.step.simulated": "Paso simulado",
+    "installation.simulation.retry": "Reintento de ensayo preparado",
+    "installation.simulation.failed": "Ensayo detenido",
   };
   $("#audit").innerHTML = state.audit.length
     ? state.audit
@@ -347,6 +379,180 @@ document.addEventListener("click", async (e) => {
     }
   } catch (error) {
     notice(error.message, true);
+  }
+});
+const stepLabels = {
+  identity: "Caballo, propietario y equipo por UUID",
+  network: "Identidad física y dirección IP",
+  media: "JPEG y vídeo H.264",
+  wasabi_writer: "Escritor Wasabi de la Raspberry",
+  wasabi_reader: "Lector Wasabi de la app",
+  photo_ingestion: "Captura y subida de fotografías",
+  hls_receiver: "Capacidad y asociación del receptor HLS",
+  publisher: "Publicador y límites locales",
+  end_to_end: "Fotos, vídeo y permisos de extremo a extremo",
+  recovery: "Recuperación después de cortes",
+};
+async function refreshInstallations() {
+  const [plans, inventory] = await Promise.all([
+    api(
+      "/api/installations/plans?limit=20" +
+        (planCursor ? "&after=" + planCursor : ""),
+    ),
+    api("/api/installations/inventory?limit=20"),
+  ]);
+  nextPlanCursor = plans.next;
+  $("#plans-next").disabled = !nextPlanCursor;
+  $("#inventory-summary").textContent = inventory.items.length
+    ? inventory.items
+        .map(
+          (i) =>
+            `${i.source}: ${i.camera_count} cámara(s) registradas como existentes`,
+        )
+        .join(" · ") + (inventory.next ? " · Hay más inventarios" : "")
+    : "Todavía no hay inventarios registrados. La protección de identidades existentes depende de este registro revisado.";
+  $("#installation-list").innerHTML = plans.items.length
+    ? plans.items
+        .map(
+          (p) =>
+            `<div class="installation-item"><b>${escape(p.spec.technical_id)}</b><small>${escape(labelHorse(p.spec.horse_id))} · ${escape(p.spec.ip_address)} · nodo ${p.spec.node_id}</small><small>${escape(p.spec.bucket)} / stable-eye/${escape(p.spec.site_id)}/node_${p.spec.node_id}/</small><div class="actions"><button data-installation-download="${p.id}">Descargar plan y políticas</button><button data-installation-simulate="${p.id}">Nuevo ensayo</button>${p.latest_run_id ? `<button data-installation-resume="${p.latest_run_id}">Ver / retomar último ensayo</button>` : ""}</div></div>`,
+        )
+        .join("")
+    : '<div class="empty">Prepara una cámara y guarda su primer plan de instalación.</div>';
+}
+submit("#installation-form", async (f) => {
+  await api("/api/installations/plans", {
+    method: "POST",
+    body: {
+      camera_id: field(f, "camera_id").value,
+      node_id: Number(field(f, "node_id").value),
+      bucket: field(f, "bucket").value,
+      wasabi_region: field(f, "wasabi_region").value,
+      receiver_origin: field(f, "receiver_origin").value,
+    },
+  });
+  planCursor = null;
+  notice("Plan guardado con reservas y políticas para revisión.");
+});
+submit("#inventory-form", async (f) => {
+  const file = field(f, "inventory").files[0];
+  if (!file || file.size > 50000)
+    throw Error("Selecciona un JSON de hasta 50 KB sin credenciales.");
+  let content;
+  try {
+    content = JSON.parse(await file.text());
+  } catch {
+    throw Error("El archivo no contiene JSON válido.");
+  }
+  if (!content || Object.keys(content).some((k) => k !== "cameras"))
+    throw Error(
+      "Usa un archivo de inventario que contenga únicamente cameras.",
+    );
+  await api("/api/installations/inventory", {
+    method: "POST",
+    body: { source: field(f, "source").value, cameras: content.cameras },
+  });
+  f.reset();
+  notice(
+    "Inventario registrado como observación. Los equipos conservan su administración actual.",
+  );
+});
+async function showRun(id) {
+  const run = await api("/api/installations/runs/" + id);
+  selectedRun = run.id;
+  $("#run-panel").hidden = false;
+  const done = run.steps.filter((s) => s.state === "simulated").length;
+  const labels = {
+    queued: "Listo para continuar",
+    running: "Paso reservado temporalmente",
+    retry_wait: "Esperando próximo intento",
+    simulated: "Ensayo completado",
+    failed: "Ensayo detenido",
+    cancelled: "Ensayo cancelado",
+  };
+  $("#run-state").textContent =
+    `${labels[run.state] || run.state} · ${done}/${run.steps.length} pasos simulados. Las comprobaciones externas siguen pendientes.`;
+  $("#run-steps").innerHTML = run.steps
+    .map(
+      (s) =>
+        `<li>${escape(stepLabels[s.step_key] || s.step_key)}<small>${s.state === "simulated" ? "Simulado · Requiere comprobación real" : "Pendiente"}</small></li>`,
+    )
+    .join("");
+  const terminal = ["simulated", "failed", "cancelled"].includes(run.state);
+  $("#run-advance").disabled = terminal;
+  $("#run-cancel").disabled = terminal;
+}
+for (const [selector, cursor] of [
+  ["#plans-first", () => null],
+  ["#plans-next", () => nextPlanCursor],
+]) {
+  $(selector).onclick = async () => {
+    try {
+      planCursor = cursor();
+      await refreshInstallations();
+    } catch (error) {
+      notice(error.message, true);
+    }
+  };
+}
+for (const [selector, action] of [
+  ["#run-advance", "advance"],
+  ["#run-cancel", "cancel"],
+]) {
+  $(selector).onclick = async () => {
+    const button = $(selector);
+    button.disabled = true;
+    try {
+      await api(`/api/installations/runs/${selectedRun}/${action}`, {
+        method: "POST",
+        body: {},
+      });
+      await showRun(selectedRun);
+      await refreshInstallations();
+    } catch (error) {
+      notice(error.message, true);
+      button.disabled = false;
+    }
+  };
+}
+document.addEventListener("click", async (e) => {
+  const b = e.target.closest("button");
+  if (!b) return;
+  if (!(
+    b.dataset.installationDownload ||
+    b.dataset.installationSimulate ||
+    b.dataset.installationResume
+  ))
+    return;
+  b.disabled = true;
+  try {
+    if (b.dataset.installationDownload) {
+      const p = await api(
+        "/api/installations/plans/" + b.dataset.installationDownload,
+      );
+      const url = URL.createObjectURL(
+        new Blob([JSON.stringify(p, null, 2)], { type: "application/json" }),
+      );
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `plan-${p.spec.technical_id}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+    if (b.dataset.installationSimulate) {
+      const run = await api(
+        `/api/installations/plans/${b.dataset.installationSimulate}/simulations`,
+        { method: "POST", body: {} },
+      );
+      await showRun(run.id);
+      await refreshInstallations();
+    }
+    if (b.dataset.installationResume)
+      await showRun(b.dataset.installationResume);
+  } catch (error) {
+    notice(error.message, true);
+  } finally {
+    b.disabled = false;
   }
 });
 refresh().catch((error) => notice(error.message, true));
