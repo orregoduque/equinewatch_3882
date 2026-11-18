@@ -1,0 +1,9 @@
+node_modules/
+.qa/
+.sources/
+data/
+private/
+.env
+.env.*
+!.env.example
+*.private.*

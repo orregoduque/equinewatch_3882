@@ -1,0 +1,9 @@
+{
+  "mode": "demo",
+  "production_modified": false,
+  "central_owner_and_quota_forms": true,
+  "lost_response_recovered_same_key": true,
+  "single_horse_and_audit": true,
+  "owner_revocation_form": true,
+  "passed": true
+}

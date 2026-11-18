@@ -1,0 +1,13 @@
+{
+  "passed": true,
+  "real_auth": true,
+  "mfa": true,
+  "real_user_created": true,
+  "real_horse_created": true,
+  "bounded_directory_search": true,
+  "mobile_overflow": false,
+  "logout": true,
+  "browser_errors": [],
+  "production_modified": false,
+  "credentials_printed": false
+}

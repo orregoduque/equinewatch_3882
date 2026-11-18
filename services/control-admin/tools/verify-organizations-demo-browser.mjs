@@ -1,0 +1,44 @@
+import {chromium} from '../.qa/node_modules/playwright/index.mjs';
+import {randomUUID} from 'node:crypto';
+import {writeFile} from 'node:fs/promises';
+import assert from 'node:assert/strict';
+const browser=await chromium.launch({executablePath:'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',headless:true});
+const report={mode:'demo',production_modified:false};
+let phase='open';
+try{
+ const page=await browser.newPage({viewport:{width:1380,height:1050}}),errors=[];
+ page.setDefaultTimeout(10000);page.on('pageerror',e=>errors.push(e.name));
+ await page.goto('http://127.0.0.1:8899/');await page.locator('#control-panel').waitFor();
+ await page.getByRole('button',{name:'Organizaciones y establos',exact:true}).click();
+ const suffix=randomUUID().slice(0,8),name='Organización demo '+suffix;
+ phase='create-organization';
+ await page.locator('#organization-form [name=name]').fill(name);
+ const createdResponse=page.waitForResponse(r=>r.url().endsWith('/api/organizations')&&r.request().method()==='POST');
+ await page.getByRole('button',{name:'Crear organización de prueba',exact:true}).click();
+ const created=await (await createdResponse).json();
+ await page.waitForFunction(()=>!document.querySelector('#organization-form button').disabled);
+ await page.locator('#organization-select').selectOption(created.id);
+ await page.locator('#organization-title').filter({hasText:name}).waitFor();
+ phase='create-site';
+ await page.locator('#organization-site-form [name=name]').fill('Establo demo '+suffix);
+ await page.getByRole('button',{name:'Preparar nuevo establo',exact:true}).click();
+ await page.waitForFunction(()=>!document.querySelector('#organization-site-form button').disabled);
+ await page.locator('[data-org-list=sites]').getByText('Establo demo '+suffix,{exact:true}).waitFor();
+ phase='assign-member';
+ await page.locator('#organization-member-form [name=user_id]').selectOption('00000000-0000-4000-8000-000000000011');
+ await page.getByRole('button',{name:'Asignar responsabilidad',exact:true}).click();
+ await page.waitForFunction(()=>!document.querySelector('#organization-member-form button').disabled);
+ await page.getByRole('button',{name:'Retirar responsabilidad',exact:true}).waitFor();
+ phase='revoke-member';
+ await page.getByRole('button',{name:'Retirar responsabilidad',exact:true}).click();
+ await page.locator('[data-org-list=members]').getByText(/Retirada/).waitFor();
+ phase='suspend-organization';
+ await page.getByRole('button',{name:'Suspender organización',exact:true}).click();
+ await page.getByRole('button',{name:'Reactivar organización',exact:true}).waitFor();
+ await page.waitForFunction(()=>!document.querySelector('#organization-state').disabled);
+ await page.getByRole('button',{name:'Reactivar organización',exact:true}).click();
+ await page.getByRole('button',{name:'Suspender organización',exact:true}).waitFor();
+ assert.deepEqual(errors,[]);
+ report.organization_site_member_forms=true;report.revocation_and_suspension_forms=true;report.javascript_errors=0;report.passed=true;
+}catch(e){report.passed=false;report.failed_phase=phase;report.category=e.name;process.exitCode=1;}
+finally{await browser.close();await writeFile(new URL('../evidence/phase4-demo-browser.json',import.meta.url),JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify(report));}

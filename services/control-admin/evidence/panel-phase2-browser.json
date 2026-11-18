@@ -1,0 +1,9 @@
+{
+  "local_demo": true,
+  "plan_created_or_reused": true,
+  "simulation_resumed_after_reload": true,
+  "policy_download": true,
+  "mobile_overflow": false,
+  "browser_errors": [],
+  "external_actions": false
+}

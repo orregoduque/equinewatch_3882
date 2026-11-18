@@ -1,0 +1,12 @@
+{
+  "project_ref": "xzfwcwfmnypgcunavmlc",
+  "production_modified": false,
+  "installed_migrations": 8,
+  "active_temporary_memberships": 0,
+  "active_temporary_owner_approvals": 0,
+  "production_authority_enabled": false,
+  "public_horses_in_phase5_fixture": 2,
+  "associated_horses_in_phase5_fixture": 2,
+  "no_orphan_horses": true,
+  "production_control_schema_absent": true
+}

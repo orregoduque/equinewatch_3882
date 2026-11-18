@@ -1,0 +1,19 @@
+{
+  "project_ref": "xzfwcwfmnypgcunavmlc",
+  "production_modified": false,
+  "security": [],
+  "performance": [
+    {
+      "name": "unused_index",
+      "level": "INFO",
+      "count": 15,
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index"
+    },
+    {
+      "name": "auth_db_connections_absolute",
+      "level": "INFO",
+      "count": 1,
+      "remediation": "https://supabase.com/docs/guides/deployment/going-into-prod"
+    }
+  ]
+}

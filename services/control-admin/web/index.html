@@ -1,0 +1,614 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Stable Eye · Administración</title>
+    <link rel="stylesheet" href="/style.css" />
+    <script type="module" src="/app.js"></script>
+  </head>
+  <body class="loading">
+    <section id="login-panel" class="login-panel" hidden>
+      <div class="panel login-card">
+        <p class="eyebrow">STABLE EYE / ADMINISTRACIÓN</p>
+        <h1>Acceso al entorno de pruebas</h1>
+        <p>
+          Usa una cuenta autorizada de este entorno. Los accesos de producción
+          se conservan por separado.
+        </p>
+        <div id="login-notice" role="alert" hidden></div>
+        <form id="login-form">
+          <label
+            >Correo<input
+              name="email"
+              type="email"
+              autocomplete="username"
+              required
+          /></label>
+          <label
+            >Contraseña<input
+              name="password"
+              type="password"
+              autocomplete="current-password"
+              required
+          /></label>
+          <button class="primary" type="submit">Entrar</button>
+        </form>
+        <form id="mfa-form" hidden>
+          <label>Autenticador<select name="factor_id" required></select></label>
+          <label
+            >Código de seis dígitos<input
+              name="code"
+              inputmode="numeric"
+              autocomplete="one-time-code"
+              pattern="[0-9]{6}"
+              required
+          /></label>
+          <button class="primary" type="submit">
+            Verificar segundo factor
+          </button>
+        </form>
+      </div>
+    </section>
+    <aside id="control-navigation">
+      <a class="brand" href="/"
+        >STABLE <span>EYE</span><small>Administración</small></a
+      >
+      <nav aria-label="Administración">
+        <button data-page="overview" class="selected">Resumen</button
+        ><button data-page="permissions">Accesos por caballo</button
+        ><button data-page="people">Usuarios y caballos</button
+        ><button data-page="organizations">Organizaciones y establos</button
+        ><button data-page="onboarding">Preparar un establo</button
+        ><button data-page="installations">Planes de instalación</button
+        ><button data-page="history">Historial de cambios</button>
+      </nav>
+      <div class="side-note">
+        Un registro claro.<br />El acceso correcto.<br />Cada caballo en su
+        lugar.
+      </div>
+    </aside>
+    <main id="control-panel">
+      <div class="environment">
+        <b>ENTORNO DE PRUEBAS</b
+        ><span
+          >Datos ficticios · Sin conexión a cámaras ni permisos de
+          producción</span
+        >
+      </div>
+      <header>
+        <div>
+          <p class="eyebrow">STABLE EYE / OPERACIONES</p>
+          <h1 id="page-title">Todo en su lugar.</h1>
+          <p id="page-description">
+            Prepara accesos y nuevas instalaciones con un registro de cada
+            cambio.
+          </p>
+        </div>
+        <span class="account" id="account-label">Administrador de prueba</span>
+        <button id="logout-button" hidden>Cerrar sesión</button>
+      </header>
+      <div id="notice" role="status" aria-live="polite" hidden></div>
+      <section id="organizations" class="page" hidden>
+        <div class="panel">
+          <h2>Espacios de organización</h2>
+          <p>
+            Los registros se asignan expresamente. Preparar una organización no
+            activa acceso a fotos ni vídeo.
+          </p>
+          <form id="organization-form" data-central-only>
+            <label
+              >Nombre de la organización<input
+                name="name"
+                maxlength="120"
+                required
+            /></label>
+            <button class="primary" type="submit">
+              Crear organización de prueba
+            </button>
+          </form>
+          <label
+            >Buscar organización<input
+              id="organization-search"
+              type="search"
+              maxlength="120"
+          /></label>
+          <label>Organización<select id="organization-select"></select></label>
+          <div class="actions">
+            <button id="organizations-first">Primera página</button
+            ><button id="organizations-next">Más organizaciones</button>
+          </div>
+        </div>
+        <div id="organization-workspace" hidden>
+          <div class="panel">
+            <h2 id="organization-title"></h2>
+            <p id="organization-scope"></p>
+            <button id="organization-state" data-central-only>
+              Cambiar estado
+            </button>
+            <form id="organization-site-form">
+              <label
+                >Nombre del nuevo establo<input
+                  name="name"
+                  maxlength="120"
+                  required
+              /></label>
+              <button class="primary" type="submit">
+                Preparar nuevo establo
+              </button>
+            </form>
+          </div>
+          <div class="panel" data-central-only>
+            <h2>Asignar una persona</h2>
+            <p>
+              Solo el administrador central asigna o retira responsabilidades.
+              Un ámbito vacío cubre la organización; un establo limita al
+              instalador o lector.
+            </p>
+            <form id="organization-member-form">
+              <label>Persona<select name="user_id" required></select></label>
+              <label
+                >Responsabilidad<select name="role">
+                  <option value="viewer">Consulta</option>
+                  <option value="installer">Instalador</option>
+                  <option value="org_admin">Responsable de organización</option>
+                </select></label
+              >
+              <label
+                >Ámbito<select name="scope_site">
+                  <option value="">Toda la organización</option>
+                </select></label
+              >
+              <button type="submit">Asignar responsabilidad</button>
+            </form>
+            <h2>Asociar un caballo existente</h2>
+            <p>
+              Conserva su UUID y propietario. Las asociaciones de cámaras y los
+              permisos de medios se revisan por separado.
+            </p>
+            <form id="organization-horse-form">
+              <label>Caballo<select name="horse_id" required></select></label>
+              <label
+                >Establo de esta organización<select
+                  name="org_site"
+                  required
+                ></select
+              ></label>
+              <button type="submit">Asociar al establo</button>
+            </form>
+          </div>
+          <div class="panel" id="organization-registration-panel" hidden>
+            <h2>Registrar un caballo</h2>
+            <p id="organization-horse-capacity"></p>
+            <form id="organization-registration-form">
+              <label
+                >Nombre del caballo<input name="name" maxlength="120" required
+              /></label>
+              <label
+                >Identificador de box<input
+                  name="stall_number"
+                  maxlength="120"
+                  placeholder="Por ejemplo: NORTE:BOX-01"
+                  required
+              /></label>
+              <label
+                >Establo<select name="registration_site" required></select
+              ></label>
+              <label
+                >Buscar propietario autorizado<input
+                  id="organization-owner-search"
+                  type="search"
+                  maxlength="120"
+              /></label>
+              <label
+                >Propietario aprobado<select
+                  name="approved_owner"
+                  required
+                ></select
+              ></label>
+              <div class="actions">
+                <button type="button" id="approved-owners-first">
+                  Primera página de propietarios</button
+                ><button type="button" id="approved-owners-next">
+                  Más propietarios
+                </button>
+              </div>
+              <button type="submit" class="primary">
+                Registrar caballo en este establo
+              </button>
+            </form>
+            <form id="organization-limit-form" data-central-only>
+              <label
+                >Límite operativo de caballos<input
+                  name="horse_limit"
+                  type="number"
+                  min="0"
+                  max="100000"
+                  required
+              /></label>
+              <button type="submit">Actualizar límite de organización</button>
+            </form>
+          </div>
+          <div class="panel" id="organization-owners-panel" data-central-only>
+            <h2>Aprobar un propietario existente</h2>
+            <p>
+              Esta aprobación permite registrar caballos a su nombre. Sus
+              permisos de fotos, vídeo y administración se gestionan por
+              separado.
+            </p>
+            <form id="organization-owner-form">
+              <label>Persona<select name="user_id" required></select></label>
+              <label
+                >Ámbito<select name="owner_scope">
+                  <option value="">Toda la organización</option>
+                </select></label
+              >
+              <button type="submit">Aprobar propietario</button>
+            </form>
+            <div id="organization-owner-records"></div>
+            <div class="actions">
+              <button id="owner-records-first">Primera página</button
+              ><button id="owner-records-next">Más aprobaciones</button>
+            </div>
+          </div>
+          <div id="organization-resources"></div>
+        </div>
+      </section>
+      <section id="overview" class="page">
+        <div class="stats" id="stats"></div>
+        <div class="panel introduction">
+          <div>
+            <p class="eyebrow">UNA TRANSICIÓN CUIDADA</p>
+            <h2>Preparar primero.<br />Activar después.</h2>
+            <p>
+              Las cámaras actuales siguen usando el sistema existente. Los
+              cambios de este panel permanecen en este entorno de pruebas.
+            </p>
+            <button class="primary" data-page="permissions">
+              Preparar un acceso
+            </button>
+          </div>
+          <div class="steps">
+            <p><b>01</b> Elige un usuario y su caballo</p>
+            <p><b>02</b> Define fotos, vídeo y vencimiento</p>
+            <p><b>03</b> Comprueba el acceso simulado</p>
+            <p><b>04</b> Conserva la trazabilidad del cambio</p>
+          </div>
+        </div>
+        <div class="panel">
+          <h2>Catálogo de prueba</h2>
+          <p class="muted">
+            Vista de hasta veinte caballos. Usa los buscadores de los
+            formularios para encontrar otros registros.
+          </p>
+          <div id="horse-cards" class="horse-cards"></div>
+        </div>
+      </section>
+      <section id="permissions" class="page" hidden>
+        <div class="two-columns">
+          <form id="grant-form" class="panel">
+            <h2 id="grant-title">Preparar un acceso</h2>
+            <label>Usuario<select name="user_id" required></select></label
+            ><label>Caballo<select name="horse_id" required></select></label>
+            <fieldset>
+              <legend>Qué puede consultar</legend>
+              <label class="check"
+                ><input type="checkbox" name="photos" checked /> Fotografías e
+                historial</label
+              ><label class="check"
+                ><input type="checkbox" name="live" checked /> Vídeo en
+                vivo</label
+              >
+            </fieldset>
+            <label
+              >Vencimiento <span class="optional">opcional</span
+              ><input type="datetime-local" name="expires_at" /></label
+            ><label
+              >Motivo del cambio<input
+                name="reason"
+                maxlength="500"
+                required
+                placeholder="Por ejemplo: acceso de la propietaria"
+            /></label>
+            <div class="actions">
+              <button class="primary" type="submit">
+                Guardar acceso de prueba</button
+              ><button type="button" id="cancel-edit" hidden>
+                Cancelar edición
+              </button>
+            </div>
+            <p class="muted">No se conceden permisos de administración.</p>
+          </form>
+          <form id="simulation-form" class="panel">
+            <p class="eyebrow">COMPROBACIÓN</p>
+            <h2>¿Podría acceder?</h2>
+            <p>
+              Consulta el resultado de los permisos preparados sin abrir fotos o
+              vídeo reales.
+            </p>
+            <label>Usuario<select name="user_id" required></select></label
+            ><label>Caballo<select name="horse_id" required></select></label
+            ><label
+              >Contenido<select name="action">
+                <option value="photos">Fotografías</option>
+                <option value="live">Vídeo en vivo</option>
+              </select></label
+            ><button type="submit">Comprobar permiso</button>
+            <div
+              id="simulation-result"
+              role="status"
+              class="result"
+              hidden
+            ></div>
+          </form>
+        </div>
+        <div class="panel">
+          <h2>Accesos preparados</h2>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Usuario / caballo</th>
+                  <th>Contenido</th>
+                  <th>Vencimiento</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="grants"></tbody>
+            </table>
+          </div>
+          <div class="actions">
+            <button id="grants-first">Primera página</button
+            ><button id="grants-next" disabled>Siguiente página</button>
+          </div>
+        </div>
+      </section>
+      <section id="people" class="page" hidden>
+        <div class="onboarding-notice" id="people-notice">
+          Altas del entorno de pruebas. Crear una cuenta no concede acceso a
+          caballos ni envía invitaciones.
+        </div>
+        <div class="two-columns">
+          <form id="user-form" class="panel">
+            <p class="eyebrow">CUENTA Y PERFIL</p>
+            <h2>Registrar una persona</h2>
+            <label
+              >Nombre completo<input name="full_name" maxlength="120" required
+            /></label>
+            <label
+              >Correo<input
+                name="email"
+                type="email"
+                required
+                placeholder="control-persona@example.invalid"
+            /></label>
+            <button type="submit" class="primary">
+              Crear cuenta de prueba
+            </button>
+            <p class="muted">
+              Las cuentas existentes se dejan para revisión. No se sustituyen
+              nombres, roles ni permisos.
+            </p>
+          </form>
+          <form id="horse-form" class="panel">
+            <p class="eyebrow">IDENTIDAD PERMANENTE</p>
+            <h2>Registrar un caballo</h2>
+            <label
+              >Nombre del caballo<input name="name" required maxlength="120"
+            /></label>
+            <label
+              >Identificador de box<input
+                name="stall_number"
+                required
+                maxlength="120"
+                placeholder="SEDE-PRUEBA:BOX-01"
+            /></label>
+            <label>Propietario<select name="owner_id" required></select></label>
+            <button type="submit" class="primary">
+              Crear caballo de prueba
+            </button>
+            <p class="muted">
+              El box debe ser único según el contrato actual. La instalación de
+              cámara y almacenamiento se prepara después.
+            </p>
+          </form>
+        </div>
+        <div class="panel">
+          <h2>Altas de personas</h2>
+          <div id="user-requests"></div>
+          <div class="actions">
+            <button id="users-first">Primera página</button
+            ><button id="users-next" disabled>Siguiente página</button>
+          </div>
+        </div>
+      </section>
+      <section id="onboarding" class="page" hidden>
+        <div class="onboarding-notice">
+          Las altas se guardan como borradores. Este asistente no cambia IP, no
+          crea claves ni instala o inicia servicios.
+        </div>
+        <div class="two-columns">
+          <form id="site-form" class="panel">
+            <span class="number">01</span>
+            <h2>Registrar el establo</h2>
+            <label
+              >Nombre<input
+                name="name"
+                required
+                maxlength="120"
+                placeholder="Establo de prueba" /></label
+            ><button class="primary" type="submit">Preparar establo</button>
+          </form>
+          <form id="device-form" class="panel">
+            <span class="number">02</span>
+            <h2>Registrar la Raspberry</h2>
+            <label>Establo<select name="site_id" required></select></label
+            ><label
+              >Nombre del equipo<input
+                name="name"
+                required
+                maxlength="120"
+                placeholder="raspberry-establo-prueba" /></label
+            ><button class="primary" type="submit">Preparar equipo</button>
+          </form>
+        </div>
+        <form id="camera-form" class="panel">
+          <span class="number">03</span>
+          <h2>Asociar una cámara al caballo</h2>
+          <p>
+            Para la instalación física, prepara una sola cámara nueva a la vez y
+            verifica su MAC antes de modificar la IP.
+          </p>
+          <div class="form-grid">
+            <label>Raspberry<select name="device_id" required></select></label
+            ><label>Caballo<select name="horse_id" required></select></label
+            ><label
+              >Identificador de cámara<input
+                name="technical_id"
+                required
+                pattern="[a-z0-9][a-z0-9-]{2,47}"
+                placeholder="establo-caballo-prueba" /></label
+            ><label
+              >MAC de la cámara<input
+                name="mac"
+                required
+                placeholder="aa:bb:cc:dd:ee:ff" /></label
+            ><label
+              >IP local propuesta<input
+                name="ip_address"
+                required
+                placeholder="192.168.50.101"
+            /></label>
+          </div>
+          <button class="primary" type="submit">
+            Guardar borrador de cámara
+          </button>
+        </form>
+        <div class="panel">
+          <h2>Cámaras preparadas</h2>
+          <div id="camera-list" class="camera-list"></div>
+        </div>
+      </section>
+      <section id="installations" class="page" hidden>
+        <div class="onboarding-notice">
+          Ensaya la instalación y conserva su avance. Cada paso queda como
+          simulado hasta que existan pruebas de campo.
+        </div>
+        <div class="two-columns">
+          <form id="installation-form" class="panel">
+            <p class="eyebrow">NUEVA INSTALACIÓN</p>
+            <h2>Preparar un plan</h2>
+            <label
+              >Cámara en borrador<select name="camera_id" required></select
+            ></label>
+            <div class="form-grid">
+              <label
+                >Número de nodo<input
+                  name="node_id"
+                  type="number"
+                  min="1"
+                  max="2147483647"
+                  required
+                  placeholder="101"
+              /></label>
+              <label
+                >Región Wasabi<input
+                  name="wasabi_region"
+                  required
+                  value="us-east-1"
+              /></label>
+            </div>
+            <label
+              >Bucket Wasabi<input
+                name="bucket"
+                required
+                placeholder="nombre-del-bucket"
+            /></label>
+            <label
+              >Origen HTTPS del receptor<input
+                name="receiver_origin"
+                type="url"
+                required
+                placeholder="https://receptor.example.invalid"
+            /></label>
+            <button type="submit" class="primary">Guardar plan</button>
+            <p class="muted">
+              El plan reserva identificadores y prepara políticas. Conserva el
+              flujo principal de la cámara.
+            </p>
+          </form>
+          <form id="inventory-form" class="panel">
+            <p class="eyebrow">PROTEGER LO EXISTENTE</p>
+            <h2>Registrar inventario revisado</h2>
+            <p>
+              Un archivo de identidades permite detectar conflictos con
+              instalaciones manuales. Su registro no adopta ni modifica esos
+              equipos.
+            </p>
+            <label
+              >Referencia del inventario<input
+                name="source"
+                required
+                maxlength="120"
+                placeholder="Inventario revisado del establo"
+            /></label>
+            <label
+              >Archivo JSON sin credenciales<input
+                name="inventory"
+                type="file"
+                accept="application/json,.json"
+                required
+            /></label>
+            <button type="submit">Registrar observación</button>
+            <p class="muted">
+              Hasta 100 cámaras por lote. Campos: site_id, horse_id,
+              technical_id, mac, ip_address y node_id. No adjuntes
+              configuraciones privadas.
+            </p>
+            <div id="inventory-summary" class="result">
+              Todavía no hay inventarios registrados.
+            </div>
+          </form>
+        </div>
+        <div class="panel">
+          <h2>Planes preparados</h2>
+          <div id="installation-list"></div>
+          <div class="actions">
+            <button id="plans-first">Primera página</button
+            ><button id="plans-next" disabled>Siguiente página</button>
+          </div>
+        </div>
+        <div class="panel" id="run-panel" hidden>
+          <p class="eyebrow">ENSAYO PERSISTENTE</p>
+          <h2 id="run-title">Avance de la simulación</h2>
+          <p id="run-state"></p>
+          <ol id="run-steps" class="run-steps"></ol>
+          <div class="actions">
+            <button id="run-advance" class="primary">
+              Simular siguiente paso</button
+            ><button id="run-cancel">Cancelar ensayo</button>
+          </div>
+          <p class="muted">
+            Puedes recargar y retomar. Un ensayo completado no acredita subidas,
+            vídeo ni recuperación reales.
+          </p>
+        </div>
+      </section>
+      <section id="history" class="page" hidden>
+        <div class="panel">
+          <h2>Registro de cambios</h2>
+          <p>
+            Cada cambio conserva su autor, motivo y revisión. Retirar un acceso
+            mantiene su historial.
+          </p>
+          <div id="audit"></div>
+        </div>
+      </section>
+      <footer>
+        Stable Eye · Administración complementaria · Las instalaciones
+        existentes conservan su funcionamiento.
+      </footer>
+    </main>
+  </body>
+</html>
