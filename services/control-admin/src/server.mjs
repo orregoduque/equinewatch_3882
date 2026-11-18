@@ -6,6 +6,7 @@ import { resolve } from "node:path";
 import { openDemo, openProduction, DEMO_ADMIN } from "./db.mjs";
 import { ControlStore, ControlError, fail, uuid } from "./store.mjs";
 import { InstallationStore } from "./installations.mjs";
+import { OrganizationStore } from "./organizations.mjs";
 import { BrowserAuth, stagingConfiguration, safeEqual } from "./auth.mjs";
 import {
   PeopleStore,
@@ -51,6 +52,7 @@ export function createControlServer({
   const sessions = new Map(),
     expectedHost = new URL(origin).host;
   const installations = new InstallationStore(store);
+  const organizations = new OrganizationStore(store);
   const people = new PeopleStore(store, { mode, provider: peopleProvider });
   const verify =
     verifyIdentity ||
@@ -176,18 +178,103 @@ export function createControlServer({
         bootstrap: path === "/api/bootstrap" && req.method === "GET",
       });
       if (req.method === "GET" && path === "/api/bootstrap") {
-        const snapshot = await store.snapshot(actor);
+        const context = await organizations.context(actor);
+        const snapshot = context.global_admin
+          ? await store.snapshot(actor)
+          : {
+              production_authority_enabled: false,
+              simulation: false,
+              users: [],
+              horses: [],
+              sites: [],
+              devices: [],
+              cameras: [],
+              bindings: [],
+              grants: [],
+              audit: [],
+            };
         const cookie = res.getHeader("Set-Cookie") || req.headers.cookie || "";
         const token = /se_control_session=([^;]+)/.exec(cookie)?.[1];
         output(res, 200, {
           ...snapshot,
+          context,
           csrf:
             mode === "demo"
               ? sessions.get(token)?.csrf
               : browserAuth?.csrf(req),
           mode,
-          people: await people.capabilities(actor),
+          people: context.global_admin
+            ? await people.capabilities(actor)
+            : { create_users: false, create_horses: false },
         });
+        return;
+      }
+      const orgRoute =
+        /^\/api\/organizations(?:\/([a-f0-9-]+)(?:\/(sites|horses|members|devices|cameras|events)(?:\/([a-f0-9-]+))?)?)?$/.exec(
+          path,
+        );
+      if (orgRoute) {
+        const [, org, kind, memberId] = orgRoute;
+        const key = req.headers["idempotency-key"];
+        const page = () => {
+          if (
+            [...url.searchParams.keys()].some(
+              (k) => !["after", "limit", "q"].includes(k),
+            )
+          )
+            fail(400, "INVALID_PAGE");
+          return {
+            after: url.searchParams.get("after") || null,
+            limit: url.searchParams.has("limit")
+              ? Number(url.searchParams.get("limit"))
+              : 20,
+            q: url.searchParams.get("q") || "",
+          };
+        };
+        let result;
+        if (req.method === "GET" && !org)
+          result = await organizations.list(actor, page());
+        else if (req.method === "GET" && !kind)
+          result = await organizations.workspace(actor, org);
+        else if (req.method === "GET" && !memberId)
+          result = await organizations.resources(actor, org, kind, page());
+        else if (req.method === "POST" && !org)
+          result = await organizations.create(actor, key, await jsonBody(req));
+        else if (req.method === "PUT" && org && !kind)
+          result = await organizations.update(
+            actor,
+            key,
+            org,
+            await jsonBody(req),
+          );
+        else if (
+          kind === "members" &&
+          ((req.method === "POST" && !memberId) ||
+            (req.method === "PUT" && memberId))
+        )
+          result = await organizations.member(
+            actor,
+            key,
+            org,
+            await jsonBody(req),
+            memberId,
+          );
+        else if (req.method === "POST" && !memberId && kind === "sites")
+          result = await organizations.createSite(
+            actor,
+            key,
+            org,
+            await jsonBody(req),
+          );
+        else if (req.method === "POST" && !memberId && kind === "horses")
+          result = await organizations.assignHorse(
+            actor,
+            key,
+            org,
+            await jsonBody(req),
+          );
+        else fail(404, "NOT_FOUND");
+        output(res, 200, result);
         return;
       }
       if (req.method === "POST" && path === "/api/access/decision") {
@@ -407,8 +494,9 @@ export function createControlServer({
       const status =
         error instanceof ControlError
           ? error.status
-          : { 23505: 409, 23503: 400, 23514: 400, 42501: 403 }[error.code] ||
-            500;
+          : { 23505: 409, 23503: 400, 23514: 400, 22023: 400, 42501: 403 }[
+              error.code
+            ] || 500;
       const code =
         error instanceof ControlError
           ? error.code
@@ -416,6 +504,7 @@ export function createControlServer({
               23505: "RESOURCE_CONFLICT",
               23503: "INVALID_RELATION",
               23514: "INVALID_VALUE",
+              22023: "INVALID_VALUE",
               42501: "FORBIDDEN",
             }[error.code] || "INTERNAL_ERROR";
       if (status === 500)
@@ -466,7 +555,14 @@ export async function start(env = process.env) {
           origin,
           authorize: (actor, sessionId) =>
             db.tx(actor, async (c) => {
-              await store.admin(c);
+              if (
+                !(
+                  await c.query(
+                    "SELECT se_control_v1.panel_member_active() AS active",
+                  )
+                ).rows[0].active
+              )
+                fail(403, "PANEL_ACCESS_REQUIRED");
               if (
                 !(
                   await c.query(

@@ -11,7 +11,10 @@ const published = JSON.parse(
 );
 if (config.project_ref !== "xzfwcwfmnypgcunavmlc")
   throw Error("STAGING_REQUIRED");
-const admin = config.fixtures.admin;
+const kind = process.argv[2] || "admin";
+if (!["admin", "owner", "outside"].includes(kind))
+  throw Error("FIXTURE_REQUIRED");
+const admin = config.fixtures[kind];
 const client = createClient(published.url, published.public_key, {
   auth: { persistSession: false, autoRefreshToken: false },
 });

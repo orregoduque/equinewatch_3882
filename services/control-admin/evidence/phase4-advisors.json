@@ -1,0 +1,257 @@
+{
+  "project_ref": "xzfwcwfmnypgcunavmlc",
+  "production_modified": false,
+  "checks": [
+    {
+      "type": "security",
+      "lints": []
+    },
+    {
+      "type": "performance",
+      "lints": [
+        {
+          "name": "unused_index",
+          "title": "Unused Index",
+          "level": "INFO",
+          "facing": "EXTERNAL",
+          "categories": [
+            "PERFORMANCE"
+          ],
+          "description": "Detects if an index has never been used and may be a candidate for removal.",
+          "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+          "count": 23,
+          "findings": [
+            {
+              "detail": "Index \\`organizations_creator\\` on table \\`se_control_v1.organizations\\` has not been used",
+              "metadata": {
+                "name": "organizations",
+                "type": "table",
+                "schema": "se_control_v1"
+              },
+              "observed_at": "2026-11-18T18:30:45.973Z"
+            },
+            {
+              "detail": "Index \\`organization_memberships_user\\` on table \\`se_control_v1.organization_memberships\\` has not been used",
+              "metadata": {
+                "name": "organization_memberships",
+                "type": "table",
+                "schema": "se_control_v1"
+              },
+              "observed_at": "2026-11-18T18:30:45.973Z"
+            },
+            {
+              "detail": "Index \\`organization_memberships_site\\` on table \\`se_control_v1.organization_memberships\\` has not been used",
+              "metadata": {
+                "name": "organization_memberships",
+                "type": "table",
+                "schema": "se_control_v1"
+              },
+              "observed_at": "2026-11-18T18:30:45.973Z"
+            },
+            {
+              "detail": "Index \\`organization_horses_site\\` on table \\`se_control_v1.organization_horses\\` has not been used",
+              "metadata": {
+                "name": "organization_horses",
+                "type": "table",
+                "schema": "se_control_v1"
+              },
+              "observed_at": "2026-11-18T18:30:45.973Z"
+            },
+            {
+              "detail": "Index \\`organization_events_page\\` on table \\`se_control_v1.organization_events\\` has not been used",
+              "metadata": {
+                "name": "organization_events",
+                "type": "table",
+                "schema": "se_control_v1"
+              },
+              "observed_at": "2026-11-18T18:30:45.973Z"
+            },
+            {
+              "detail": "Index \\`organization_events_site\\` on table \\`se_control_v1.organization_events\\` has not been used",
+              "metadata": {
+                "name": "organization_events",
+                "type": "table",
+                "schema": "se_control_v1"
+              },
+              "observed_at": "2026-11-18T18:30:45.973Z"
+            },
+            {
+              "detail": "Index \\`organization_events_actor\\` on table \\`se_control_v1.organization_events\\` has not been used",
+              "metadata": {
+                "name": "organization_events",
+                "type": "table",
+                "schema": "se_control_v1"
+              },
+              "observed_at": "2026-11-18T18:30:45.973Z"
+            },
+            {
+              "detail": "Index \\`organization_idempotency_actor\\` on table \\`se_control_v1.organization_idempotency\\` has not been used",
+              "metadata": {
+                "name": "organization_idempotency",
+                "type": "table",
+                "schema": "se_control_v1"
+              },
+              "observed_at": "2026-11-18T18:30:45.973Z"
+            },
+            {
+              "detail": "Index \\`device_site_lookup\\` on table \\`se_control_v1.devices\\` has not been used",
+              "metadata": {
+                "name": "devices",
+                "type": "table",
+                "schema": "se_control_v1"
+              },
+              "observed_at": "2026-11-18T18:30:45.973Z"
+            },
+            {
+              "detail": "Index \\`camera_device_site_lookup\\` on table \\`se_control_v1.cameras\\` has not been used",
+              "metadata": {
+                "name": "cameras",
+                "type": "table",
+                "schema": "se_control_v1"
+              },
+              "observed_at": "2026-11-18T18:30:45.973Z"
+            },
+            {
+              "detail": "Index \\`binding_history_lookup\\` on table \\`se_control_v1.bindings\\` has not been used",
+              "metadata": {
+                "name": "bindings",
+                "type": "table",
+                "schema": "se_control_v1"
+              },
+              "observed_at": "2026-11-18T18:30:45.973Z"
+            },
+            {
+              "detail": "Index \\`grants_horse\\` on table \\`se_control_v1.grants\\` has not been used",
+              "metadata": {
+                "name": "grants",
+                "type": "table",
+                "schema": "se_control_v1"
+              },
+              "observed_at": "2026-11-18T18:30:45.973Z"
+            },
+            {
+              "detail": "Index \\`grant_creator_lookup\\` on table \\`se_control_v1.grants\\` has not been used",
+              "metadata": {
+                "name": "grants",
+                "type": "table",
+                "schema": "se_control_v1"
+              },
+              "observed_at": "2026-11-18T18:30:45.973Z"
+            },
+            {
+              "detail": "Index \\`audit_actor_lookup\\` on table \\`se_control_v1.audit\\` has not been used",
+              "metadata": {
+                "name": "audit",
+                "type": "table",
+                "schema": "se_control_v1"
+              },
+              "observed_at": "2026-11-18T18:30:45.973Z"
+            },
+            {
+              "detail": "Index \\`observation_creator_lookup\\` on table \\`se_control_v1.inventory_observations\\` has not been used",
+              "metadata": {
+                "name": "inventory_observations",
+                "type": "table",
+                "schema": "se_control_v1"
+              },
+              "observed_at": "2026-11-18T18:30:45.973Z"
+            },
+            {
+              "detail": "Index \\`plan_creator_lookup\\` on table \\`se_control_v1.installation_plans\\` has not been used",
+              "metadata": {
+                "name": "installation_plans",
+                "type": "table",
+                "schema": "se_control_v1"
+              },
+              "observed_at": "2026-11-18T18:30:45.973Z"
+            },
+            {
+              "detail": "Index \\`resource_claims_plan\\` on table \\`se_control_v1.resource_claims\\` has not been used",
+              "metadata": {
+                "name": "resource_claims",
+                "type": "table",
+                "schema": "se_control_v1"
+              },
+              "observed_at": "2026-11-18T18:30:45.973Z"
+            },
+            {
+              "detail": "Index \\`resource_claims_observation\\` on table \\`se_control_v1.resource_claims\\` has not been used",
+              "metadata": {
+                "name": "resource_claims",
+                "type": "table",
+                "schema": "se_control_v1"
+              },
+              "observed_at": "2026-11-18T18:30:45.973Z"
+            },
+            {
+              "detail": "Index \\`installation_run_queue\\` on table \\`se_control_v1.installation_runs\\` has not been used",
+              "metadata": {
+                "name": "installation_runs",
+                "type": "table",
+                "schema": "se_control_v1"
+              },
+              "observed_at": "2026-11-18T18:30:45.973Z"
+            },
+            {
+              "detail": "Index \\`run_creator_lookup\\` on table \\`se_control_v1.installation_runs\\` has not been used",
+              "metadata": {
+                "name": "installation_runs",
+                "type": "table",
+                "schema": "se_control_v1"
+              },
+              "observed_at": "2026-11-18T18:30:45.973Z"
+            },
+            {
+              "detail": "Index \\`installation_run_plan\\` on table \\`se_control_v1.installation_runs\\` has not been used",
+              "metadata": {
+                "name": "installation_runs",
+                "type": "table",
+                "schema": "se_control_v1"
+              },
+              "observed_at": "2026-11-18T18:30:45.973Z"
+            },
+            {
+              "detail": "Index \\`user_requests_creator\\` on table \\`se_control_v1.user_requests\\` has not been used",
+              "metadata": {
+                "name": "user_requests",
+                "type": "table",
+                "schema": "se_control_v1"
+              },
+              "observed_at": "2026-11-18T18:30:45.973Z"
+            },
+            {
+              "detail": "Index \\`user_requests_auth\\` on table \\`se_control_v1.user_requests\\` has not been used",
+              "metadata": {
+                "name": "user_requests",
+                "type": "table",
+                "schema": "se_control_v1"
+              },
+              "observed_at": "2026-11-18T18:30:45.973Z"
+            }
+          ]
+        },
+        {
+          "name": "auth_db_connections_absolute",
+          "title": "Auth DB Connection Strategy is not Percentage",
+          "level": "INFO",
+          "facing": "EXTERNAL",
+          "categories": [
+            "PERFORMANCE"
+          ],
+          "description": "Using a percentage based allocation connection strategy for Auth can help to improve the server's performance when increasing instance size.",
+          "remediation": "https://supabase.com/docs/guides/deployment/going-into-prod",
+          "count": 1,
+          "findings": [
+            {
+              "detail": "Your project's Auth server is configured to use at most 10 connections. Increasing the instance size without manually adjusting this number will not improve the performance of the Auth server. Switch to a percentage based connection allocation strategy instead.",
+              "metadata": {
+                "type": "auth",
+                "entity": "Auth"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

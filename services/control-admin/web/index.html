@@ -58,6 +58,7 @@
         <button data-page="overview" class="selected">Resumen</button
         ><button data-page="permissions">Accesos por caballo</button
         ><button data-page="people">Usuarios y caballos</button
+        ><button data-page="organizations">Organizaciones y establos</button
         ><button data-page="onboarding">Preparar un establo</button
         ><button data-page="installations">Planes de instalación</button
         ><button data-page="history">Historial de cambios</button>
@@ -88,6 +89,97 @@
         <button id="logout-button" hidden>Cerrar sesión</button>
       </header>
       <div id="notice" role="status" aria-live="polite" hidden></div>
+      <section id="organizations" class="page" hidden>
+        <div class="panel">
+          <h2>Espacios de organización</h2>
+          <p>
+            Los registros se asignan expresamente. Preparar una organización no
+            activa acceso a fotos ni vídeo.
+          </p>
+          <form id="organization-form" data-central-only>
+            <label
+              >Nombre de la organización<input
+                name="name"
+                maxlength="120"
+                required
+            /></label>
+            <button class="primary" type="submit">
+              Crear organización de prueba
+            </button>
+          </form>
+          <label
+            >Buscar organización<input
+              id="organization-search"
+              type="search"
+              maxlength="120"
+          /></label>
+          <label>Organización<select id="organization-select"></select></label>
+          <div class="actions">
+            <button id="organizations-first">Primera página</button
+            ><button id="organizations-next">Más organizaciones</button>
+          </div>
+        </div>
+        <div id="organization-workspace" hidden>
+          <div class="panel">
+            <h2 id="organization-title"></h2>
+            <p id="organization-scope"></p>
+            <button id="organization-state" data-central-only>
+              Cambiar estado
+            </button>
+            <form id="organization-site-form">
+              <label
+                >Nombre del nuevo establo<input
+                  name="name"
+                  maxlength="120"
+                  required
+              /></label>
+              <button class="primary" type="submit">
+                Preparar nuevo establo
+              </button>
+            </form>
+          </div>
+          <div class="panel" data-central-only>
+            <h2>Asignar una persona</h2>
+            <p>
+              Solo el administrador central asigna o retira responsabilidades.
+              Un ámbito vacío cubre la organización; un establo limita al
+              instalador o lector.
+            </p>
+            <form id="organization-member-form">
+              <label>Persona<select name="user_id" required></select></label>
+              <label
+                >Responsabilidad<select name="role">
+                  <option value="viewer">Consulta</option>
+                  <option value="installer">Instalador</option>
+                  <option value="org_admin">Responsable de organización</option>
+                </select></label
+              >
+              <label
+                >Ámbito<select name="scope_site">
+                  <option value="">Toda la organización</option>
+                </select></label
+              >
+              <button type="submit">Asignar responsabilidad</button>
+            </form>
+            <h2>Asociar un caballo existente</h2>
+            <p>
+              Conserva su UUID y propietario. Las asociaciones de cámaras y los
+              permisos de medios se revisan por separado.
+            </p>
+            <form id="organization-horse-form">
+              <label>Caballo<select name="horse_id" required></select></label>
+              <label
+                >Establo de esta organización<select
+                  name="org_site"
+                  required
+                ></select
+              ></label>
+              <button type="submit">Asociar al establo</button>
+            </form>
+          </div>
+          <div id="organization-resources"></div>
+        </div>
+      </section>
       <section id="overview" class="page">
         <div class="stats" id="stats"></div>
         <div class="panel introduction">

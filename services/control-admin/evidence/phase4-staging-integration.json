@@ -1,0 +1,16 @@
+{
+  "project_ref": "xzfwcwfmnypgcunavmlc",
+  "production_modified": false,
+  "credentials_printed": false,
+  "two_organization_isolation": true,
+  "global_routes_denied": true,
+  "viewer_writes_denied": true,
+  "idempotency_and_audit": true,
+  "horse_uuid_scope": true,
+  "real_browser_scoped": true,
+  "mobile_no_overflow": true,
+  "revocation_on_existing_browser_session": true,
+  "suspension_on_existing_session": true,
+  "real_supabase_mfa": true,
+  "passed": true
+}

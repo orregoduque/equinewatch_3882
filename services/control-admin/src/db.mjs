@@ -10,6 +10,7 @@ export const migrationFiles = [
   "004_bounded_catalog.sql",
   "005_private_rls_indexes.sql",
   "006_context_initplans.sql",
+  "007_organizations.sql",
 ];
 
 export async function migrateIsolated(db) {

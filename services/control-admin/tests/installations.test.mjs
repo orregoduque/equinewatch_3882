@@ -634,7 +634,7 @@ test("actualizar el esquema inicial conserva datos y no reescribe su migración"
     assert.equal(
       (await old.query("SELECT count(*) AS n FROM se_control_v1.migrations"))
         .rows[0].n,
-      6,
+      7,
     );
   } finally {
     await old.close();

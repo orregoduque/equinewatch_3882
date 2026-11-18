@@ -1,0 +1,17 @@
+{
+  "project_ref": "xzfwcwfmnypgcunavmlc",
+  "production_modified": false,
+  "invitations_sent": 0,
+  "regular_user_denied": true,
+  "real_supabase_auth": true,
+  "mfa_verified": true,
+  "database_tls_verified": true,
+  "real_account_and_profile_created": true,
+  "user_replay_idempotent": true,
+  "real_horse_created": true,
+  "horse_replay_idempotent": true,
+  "stall_conflict_blocked": true,
+  "cross_user_rls_denied": true,
+  "logout_verified": true,
+  "passed": true
+}

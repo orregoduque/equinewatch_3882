@@ -24,6 +24,10 @@ const escape = (s) =>
       ],
   );
 const titles = {
+  organizations: [
+    "Cada organización, en su espacio.",
+    "Asigna responsables y prepara establos con acceso limitado a su ámbito.",
+  ],
   people: [
     "Personas y caballos, por UUID.",
     "Crea identidades de prueba y conserva las asociaciones existentes.",
@@ -50,6 +54,14 @@ const titles = {
   ],
 };
 const errors = {
+  PANEL_ACCESS_REQUIRED:
+    "Tu cuenta no tiene una responsabilidad activa en este panel.",
+  ORGANIZATION_NOT_FOUND: "La organización no está disponible en tu ámbito.",
+  ORG_WRITE_REQUIRED: "Tu responsabilidad permite consultar este espacio.",
+  INVALID_SCOPE:
+    "El responsable de organización debe tener ámbito de organización.",
+  HORSE_SITE_CONFLICT:
+    "La cámara actual del caballo pertenece a otro establo. Revisa primero esa asociación.",
   RESOURCE_CONFLICT:
     "Ese registro ya existe o comparte una IP, MAC o identificador. Revisa los datos.",
   GRANT_EXISTS:
@@ -145,7 +157,11 @@ function page(name) {
 }
 document.addEventListener("click", (e) => {
   const button = e.target.closest("[data-page]");
-  if (button) page(button.dataset.page);
+  if (button) {
+    page(button.dataset.page);
+    if (button.dataset.page === "organizations" && state)
+      refreshOrganizations().catch((error) => notice(error.message, true));
+  }
 });
 function fill(select, items, label) {
   const previous = select.value;
@@ -179,6 +195,26 @@ function date(s) {
 async function refresh() {
   state = await api("/api/bootstrap");
   csrf = state.csrf;
+  all("[data-central-only]").forEach(
+    (el) => (el.hidden = !state.context.global_admin),
+  );
+  all("nav [data-page]").forEach(
+    (el) =>
+      (el.hidden =
+        !state.context.global_admin && el.dataset.page !== "organizations"),
+  );
+  if (!state.context.global_admin) {
+    $("#account-label").textContent = "Responsabilidad limitada";
+    $("#logout-button").hidden = state.mode !== "staging";
+    if (state.mode === "staging") {
+      $(".environment b").textContent = "STAGING AISLADO";
+      $(".environment span").textContent =
+        "Organizaciones de prueba · Acceso limitado por ámbito";
+    }
+    page("organizations");
+    await refreshOrganizations();
+    return;
+  }
   for (const kind of Object.keys(directoryCache))
     for (const item of state[kind] || [])
       directoryCache[kind].set(item.id, item);
@@ -236,6 +272,7 @@ async function refresh() {
   render();
   await refreshInstallations();
   await refreshPeople();
+  await refreshOrganizations();
 }
 function render() {
   const current = state.grants.filter(
@@ -801,6 +838,285 @@ document.addEventListener("click", async (e) => {
     b.disabled = false;
   }
 });
+let organizationCursor = null,
+  nextOrganizationCursor = null,
+  organizationItems = [],
+  selectedOrganization = null;
+let organizationSearchVersion = 0;
+const organizationResourceCursors = {},
+  organizationResourceNext = {};
+const organizationResourceNames = {
+  sites: "Establos",
+  horses: "Caballos",
+  members: "Responsabilidades",
+  devices: "Raspberry preparadas",
+  cameras: "Cámaras preparadas",
+  events: "Registro de preparación",
+};
+async function refreshOrganizations() {
+  const requestVersion = ++organizationSearchVersion;
+  const result = await api(
+    "/api/organizations?limit=20" +
+      (organizationCursor ? "&after=" + organizationCursor : "") +
+      "&q=" +
+      encodeURIComponent($("#organization-search").value),
+  );
+  if (requestVersion !== organizationSearchVersion) return;
+  organizationItems = result.items;
+  nextOrganizationCursor = result.next;
+  const select = $("#organization-select"),
+    previous = select.value;
+  select.replaceChildren(
+    new Option(
+      result.items.length
+        ? "Selecciona una organización"
+        : "Sin organizaciones en este ámbito",
+      "",
+    ),
+  );
+  for (const o of result.items)
+    select.add(
+      new Option(
+        o.name + (o.state === "suspended" ? " · Suspendida" : ""),
+        o.id,
+      ),
+    );
+  select.value = result.items.some((o) => o.id === previous)
+    ? previous
+    : result.items[0]?.id || "";
+  $("#organizations-next").disabled = !result.next;
+  if (!$("#organizations").hidden) await loadOrganization();
+}
+async function loadOrganization() {
+  const id = $("#organization-select").value;
+  selectedOrganization = null;
+  for (const k of Object.keys(organizationResourceNames))
+    organizationResourceCursors[k] = null;
+  $("#organization-resources").replaceChildren();
+  $("#organization-workspace").hidden = !id;
+  if (!id) return;
+  const row = organizationItems.find((o) => o.id === id);
+  const workspace =
+    row.state === "suspended"
+      ? { organization: row, capabilities: {} }
+      : await api("/api/organizations/" + id);
+  if ($("#organization-select").value !== id) return;
+  selectedOrganization = workspace;
+  $("#organization-title").textContent = row.name;
+  const roles = {
+    control_admin: "Administración central",
+    org_admin: "Responsable de organización",
+    installer: "Instalador",
+    viewer: "Consulta",
+  };
+  $("#organization-scope").textContent =
+    row.state === "suspended"
+      ? "Organización suspendida. Se conserva su historial."
+      : (roles[workspace.organization.role] || "Ámbito asignado") +
+        " · Los medios de producción conservan sus permisos actuales.";
+  $("#organization-state").textContent =
+    row.state === "suspended"
+      ? "Reactivar organización"
+      : "Suspender organización";
+  $("#organization-site-form").hidden = !workspace.capabilities.create_sites;
+  $("#organization-member-form").closest("[data-central-only]").hidden =
+    !state.context.global_admin || row.state === "suspended";
+  if (row.state === "suspended") return;
+  await Promise.all(
+    Object.keys(organizationResourceNames).map(async (kind) => {
+      const panel = document.createElement("div");
+      panel.className = "panel";
+      panel.innerHTML = `<h2>${organizationResourceNames[kind]}</h2><div data-org-list="${kind}"></div><div class="actions"><button data-org-first="${kind}">Primera página</button><button data-org-next="${kind}">Más registros</button></div>`;
+      $("#organization-resources").append(panel);
+      await loadOrganizationResource(kind, id);
+      if ($("#organization-select").value !== id) return;
+    }),
+  );
+}
+async function loadOrganizationResource(
+  kind,
+  id = $("#organization-select").value,
+) {
+  const result = await api(
+    `/api/organizations/${id}/${kind}?limit=20` +
+      (organizationResourceCursors[kind]
+        ? "&after=" + organizationResourceCursors[kind]
+        : ""),
+  );
+  if ($("#organization-select").value !== id) return;
+  organizationResourceNext[kind] = result.next;
+  const container = $(`[data-org-list="${kind}"]`);
+  if (!container) return;
+  container.innerHTML = result.items.length
+    ? result.items
+        .map((item) => {
+          let label =
+            item.name || item.technical_id || item.operation || item.user_id;
+          let detail = item.site_id || item.id;
+          let action = "";
+          if (kind === "members") {
+            label = state.context.global_admin
+              ? labelUser(item.user_id)
+              : "Tu responsabilidad";
+            detail = `${item.role} · ${item.site_id ? "Establo " + item.site_id : "Toda la organización"} · ${item.active ? "Activa" : "Retirada"}`;
+            if (state.context.global_admin && item.active)
+              action = `<button data-org-revoke="${item.id}">Retirar responsabilidad</button>`;
+          }
+          return `<div class="camera-item"><b>${escape(label)}</b><small>${escape(detail)}</small>${action}</div>`;
+        })
+        .join("")
+    : '<p class="empty">Todavía no hay registros en este ámbito.</p>';
+  container._items = result.items;
+  $(`[data-org-next="${kind}"]`).disabled = !result.next;
+  if (kind === "sites") {
+    const scope = $("#organization-member-form [name=scope_site]");
+    scope.replaceChildren(new Option("Toda la organización", ""));
+    const target = $("#organization-horse-form [name=org_site]");
+    target.replaceChildren(
+      new Option("Selecciona un establo de esta página", ""),
+    );
+    for (const site of result.items) {
+      scope.add(new Option(site.name, site.id));
+      target.add(new Option(site.name, site.id));
+    }
+  }
+}
+async function organizationSubmit(e, work) {
+  e.preventDefault();
+  const button = e.submitter;
+  button.disabled = true;
+  try {
+    await work(e.target);
+    await refresh();
+  } catch (error) {
+    notice(error.message, true);
+  } finally {
+    button.disabled = false;
+  }
+}
+$("#organization-form").onsubmit = (e) =>
+  organizationSubmit(e, async (f) => {
+    await api("/api/organizations", {
+      method: "POST",
+      body: { name: field(f, "name").value },
+    });
+    f.reset();
+    notice(
+      "Organización de prueba creada. Las asignaciones se preparan expresamente.",
+    );
+  });
+$("#organization-site-form").onsubmit = (e) =>
+  organizationSubmit(e, async (f) => {
+    await api(`/api/organizations/${$("#organization-select").value}/sites`, {
+      method: "POST",
+      body: { name: field(f, "name").value },
+    });
+    f.reset();
+    notice("Nuevo establo preparado en esta organización.");
+  });
+$("#organization-member-form").onsubmit = (e) =>
+  organizationSubmit(e, async (f) => {
+    await api(`/api/organizations/${$("#organization-select").value}/members`, {
+      method: "POST",
+      body: {
+        user_id: field(f, "user_id").value,
+        role: field(f, "role").value,
+        site_id: field(f, "scope_site").value || null,
+      },
+    });
+    notice("Responsabilidad preparada en el panel de pruebas.");
+  });
+$("#organization-horse-form").onsubmit = (e) =>
+  organizationSubmit(e, async (f) => {
+    await api(`/api/organizations/${$("#organization-select").value}/horses`, {
+      method: "POST",
+      body: {
+        horse_id: field(f, "horse_id").value,
+        site_id: field(f, "org_site").value,
+      },
+    });
+    notice(
+      "Caballo asociado por UUID. Se conserva su propietario y su configuración de medios.",
+    );
+  });
+$("#organization-select").onchange = () =>
+  loadOrganization().catch((e) => notice(e.message, true));
+$("#organizations-next").onclick = () => {
+  organizationCursor = nextOrganizationCursor;
+  refreshOrganizations().catch((e) => notice(e.message, true));
+};
+$("#organizations-first").onclick = () => {
+  organizationCursor = null;
+  refreshOrganizations().catch((e) => notice(e.message, true));
+};
+let organizationSearchTimer;
+$("#organization-search").oninput = () => {
+  clearTimeout(organizationSearchTimer);
+  organizationSearchTimer = setTimeout(() => {
+    organizationCursor = null;
+    refreshOrganizations().catch((e) => notice(e.message, true));
+  }, 250);
+};
+$("#organization-state").onclick = async (e) => {
+  const org = selectedOrganization?.organization;
+  if (!org) return;
+  e.target.disabled = true;
+  try {
+    await api("/api/organizations/" + org.id, {
+      method: "PUT",
+      body: {
+        revision: org.revision,
+        state: org.state === "active" ? "suspended" : "active",
+      },
+    });
+    await refreshOrganizations();
+    notice("Estado de la organización actualizado.");
+  } catch (error) {
+    notice(error.message, true);
+  } finally {
+    e.target.disabled = false;
+  }
+};
+$("#organization-resources").onclick = async (e) => {
+  const button = e.target.closest("button");
+  if (!button) return;
+  button.disabled = true;
+  try {
+    const kind = button.dataset.orgNext || button.dataset.orgFirst;
+    if (kind) {
+      organizationResourceCursors[kind] = button.dataset.orgNext
+        ? organizationResourceNext[kind]
+        : null;
+      await loadOrganizationResource(kind);
+      return;
+    }
+    if (button.dataset.orgRevoke) {
+      const member = $('[data-org-list="members"]')._items.find(
+        (m) => m.id === button.dataset.orgRevoke,
+      );
+      await api(
+        `/api/organizations/${$("#organization-select").value}/members/${member.id}`,
+        {
+          method: "PUT",
+          body: {
+            role: member.role,
+            site_id: member.site_id,
+            active: false,
+            revision: member.revision,
+          },
+        },
+      );
+      await loadOrganizationResource("members");
+      notice(
+        "Responsabilidad retirada. Se comprobará nuevamente en la siguiente petición.",
+      );
+    }
+  } catch (error) {
+    notice(error.message, true);
+  } finally {
+    if (button.isConnected) button.disabled = false;
+  }
+};
 function showLogin(message = "") {
   $("#control-panel").hidden = true;
   $("#control-navigation").hidden = true;

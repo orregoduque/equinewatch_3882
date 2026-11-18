@@ -1,5 +1,7 @@
 # Stable Eye: de instalaciones manuales a una plataforma operativa
 
+Actualización v0.4: registro de organizaciones, roles y ámbitos de establo implementado en el panel aislado. Ver ORGANIZACIONES-Y-ESTABLOS-20261118.md para límites, API y pruebas. No activa permisos productivos ni incorpora instalaciones existentes.
+
 Fecha: 18 de noviembre de 2026 · Alcance: miles de caballos y cientos de Raspberry.
 
 Actualización 0.3: Auth/MFA, altas y paginación ya se probaron en un contrato Supabase aislado. Ver [AUTH-Y-ALTAS-20261118.md](AUTH-Y-ALTAS-20261118.md). Las brechas iniciales siguientes documentan el punto de partida y el objetivo completo.
@@ -278,7 +280,7 @@ Duplicados, versiones, miniaturas, sobrecargas y copias se añaden a esas cifras
 
 API de control sin estado de sesión en memoria como única autoridad; pool Postgres acotado; trabajos asíncronos; paginación con cursor; índices; presupuesto de concurrencia por proveedor; backpressure; eventos/outbox; auditoría con retención/archivo. No disparar miles de llamadas de Auth o IAM simultáneamente.
 
-Páginas del panel no deben descargar todos los caballos, grants, bindings y auditorías. Los endpoints nuevos ya limitan a 100 filas y buscan usuarios/caballos. En la versión 0.3, `bootstrap` devuelve hasta cien filas por colección y los selectores usan búsqueda acotada; se añadieron contadores y páginas de grants. Tampoco existe hoy una división completa por organizaciones con RLS por tenant; el panel es administrativo global. Se necesita esa separación antes de entregar acceso a administradores externos de establos.
+Páginas del panel no deben descargar todos los caballos, grants, bindings y auditorías. Los endpoints nuevos ya limitan a 100 filas y buscan usuarios/caballos. En la versión 0.3, `bootstrap` devuelve hasta cien filas por colección y los selectores usan búsqueda acotada; se añadieron contadores y páginas de grants. La versión 0.4 añade lectura aislada por organización/establo y preparación delegada de nuevos establos con RLS. Las altas de personas/caballos, asignaciones y planes siguen siendo centrales. Falta ampliar y certificar esa delegación antes de incorporar administradores externos reales.
 
 Pruebas de registro locales: 3.602 caballos paginados y 300 equipos/3.600 cámaras en PostgreSQL embebido. Sirven para detectar respuestas sin límite y duplicaciones; no certifican concurrencia entre conexiones reales, rendimiento cloud, fotos ni vídeo.
 
@@ -362,7 +364,7 @@ Las fases representan dependencias y entregas, no fechas garantizadas.
 
 ### Bloque iniciado y probado en 0.3
 
-Se probaron Auth/MFA, catálogo de ensayo, paginación y altas de cuentas/caballos con idempotencia y conciliación. Siguen pendientes tenants/delegación externa, invitaciones, staging integral del legado, backups/CI y despliegue público. Ver el informe 0.3; ningún secreto administrativo debe pegarse en el chat.
+Se probaron Auth/MFA, catálogo de ensayo, paginación y altas de cuentas/caballos con idempotencia y conciliación. En 0.4 se añadió el primer bloque de organizaciones/ámbitos. Siguen pendientes la ampliación de altas delegadas, invitaciones, staging integral del legado, backups/CI y despliegue público. Ver el informe 0.3; ningún secreto administrativo debe pegarse en el chat.
 
 ## 16. Backlog de ingeniería y aceptación operativa
 
