@@ -177,6 +177,80 @@
               <button type="submit">Asociar al establo</button>
             </form>
           </div>
+          <div class="panel" id="organization-registration-panel" hidden>
+            <h2>Registrar un caballo</h2>
+            <p id="organization-horse-capacity"></p>
+            <form id="organization-registration-form">
+              <label
+                >Nombre del caballo<input name="name" maxlength="120" required
+              /></label>
+              <label
+                >Identificador de box<input
+                  name="stall_number"
+                  maxlength="120"
+                  placeholder="Por ejemplo: NORTE:BOX-01"
+                  required
+              /></label>
+              <label
+                >Establo<select name="registration_site" required></select
+              ></label>
+              <label
+                >Buscar propietario autorizado<input
+                  id="organization-owner-search"
+                  type="search"
+                  maxlength="120"
+              /></label>
+              <label
+                >Propietario aprobado<select
+                  name="approved_owner"
+                  required
+                ></select
+              ></label>
+              <div class="actions">
+                <button type="button" id="approved-owners-first">
+                  Primera página de propietarios</button
+                ><button type="button" id="approved-owners-next">
+                  Más propietarios
+                </button>
+              </div>
+              <button type="submit" class="primary">
+                Registrar caballo en este establo
+              </button>
+            </form>
+            <form id="organization-limit-form" data-central-only>
+              <label
+                >Límite operativo de caballos<input
+                  name="horse_limit"
+                  type="number"
+                  min="0"
+                  max="100000"
+                  required
+              /></label>
+              <button type="submit">Actualizar límite de organización</button>
+            </form>
+          </div>
+          <div class="panel" id="organization-owners-panel" data-central-only>
+            <h2>Aprobar un propietario existente</h2>
+            <p>
+              Esta aprobación permite registrar caballos a su nombre. Sus
+              permisos de fotos, vídeo y administración se gestionan por
+              separado.
+            </p>
+            <form id="organization-owner-form">
+              <label>Persona<select name="user_id" required></select></label>
+              <label
+                >Ámbito<select name="owner_scope">
+                  <option value="">Toda la organización</option>
+                </select></label
+              >
+              <button type="submit">Aprobar propietario</button>
+            </form>
+            <div id="organization-owner-records"></div>
+            <div class="actions">
+              <button id="owner-records-first">Primera página</button
+              ><button id="owner-records-next">Más aprobaciones</button>
+            </div>
+          </div>
           <div id="organization-resources"></div>
         </div>
       </section>

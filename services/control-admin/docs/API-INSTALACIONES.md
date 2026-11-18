@@ -1,4 +1,6 @@
-# Contrato de planificación y ensayo, versión 0.4
+# Contrato de planificación y ensayo, versión 0.5
+
+Las nuevas rutas de alta delegada de caballos se documentan en ALTAS-DELEGADAS-20261118.md; no cambian las rutas centrales de planificación.
 
 Las rutas de organizaciones y sus responsabilidades limitadas se documentan en ORGANIZACIONES-Y-ESTABLOS-20261118.md. Estas rutas globales de planificación siguen reservadas al administrador central.
 
@@ -81,10 +83,10 @@ Orden por UUID, no por fecha de inserción. Frente a altas concurrentes, una nue
 
 ## Migraciones
 
-La apertura del demo aplica las siete migraciones privadas versionadas con historial/checksum. Si ya existía el esquema inicial, conserva sus datos. Repetir la apertura no reinstala ni sobrescribe sus tablas.
+La apertura del demo aplica las ocho migraciones privadas versionadas con historial/checksum. Si ya existía el esquema inicial, conserva sus datos. Repetir la apertura no reinstala ni sobrescribe sus tablas.
 
 El modo staging solo comprueba versiones/huellas y nunca migra al arrancar. El operador deberá instalar las migraciones revisadas en una base aislada mediante el mecanismo aprobado y registrar sus checksums normalizados. No ejecutar estos archivos automáticamente contra el proyecto vivo. Las funciones privadas de catálogo requieren revisión/advisors y pruebas con sesiones reales en staging.
 
 ## Pruebas
 
-`npm test`: 89 pruebas. La verificación opcional de navegador usa `tools/verify-panel.mjs`, con Playwright 1.65.1 instalado aparte en `.qa`, y Chrome existente; no añade dependencia de runtime. Comprueba el demo local en loopback, un plan, avance, recarga/reanudación, descarga y ancho móvil. No navega a Supabase, Replit o Wasabi.
+`npm test`: 105 pruebas. La verificación opcional de navegador usa `tools/verify-panel.mjs`, con Playwright 1.65.1 instalado aparte en `.qa`, y Chrome existente; no añade dependencia de runtime. Comprueba el demo local en loopback, un plan, avance, recarga/reanudación, descarga y ancho móvil. No navega a Supabase, Replit o Wasabi.

@@ -1,0 +1,18 @@
+{
+  "project_ref": "xzfwcwfmnypgcunavmlc",
+  "production_modified": false,
+  "credentials_printed": false,
+  "browser_registration": true,
+  "mobile_no_overflow": true,
+  "installation_pending": true,
+  "real_supabase_mfa": true,
+  "approved_owner_scope": true,
+  "owner_self_approval_denied": true,
+  "concurrent_quota_enforced": true,
+  "retry_at_full_capacity": true,
+  "audit_not_duplicated": true,
+  "revoked_owner_denied": true,
+  "quota_reflected_in_ui": true,
+  "degraded_role_replay_denied": true,
+  "passed": true
+}

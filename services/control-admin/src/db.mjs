@@ -11,6 +11,7 @@ export const migrationFiles = [
   "005_private_rls_indexes.sql",
   "006_context_initplans.sql",
   "007_organizations.sql",
+  "008_delegated_horses.sql",
 ];
 
 export async function migrateIsolated(db) {

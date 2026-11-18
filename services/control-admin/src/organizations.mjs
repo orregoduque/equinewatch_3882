@@ -265,14 +265,28 @@ export class OrganizationStore {
           [org, actor],
         )
       ).rows[0];
+      const manager = ["control_admin", "org_admin"].includes(
+        organization.role,
+      );
+      const horseCapacity = manager
+        ? (
+            await c.query(
+              "SELECT se_control_v1.organization_horse_capacity($1) AS item",
+              [org],
+            )
+          ).rows[0].item
+        : null;
       return {
         organization,
+        horse_capacity: horseCapacity,
         capabilities: {
           create_sites:
             organization.role !== "viewer" &&
             (!member?.site_id || organization.role === "control_admin"),
           manage_members: organization.role === "control_admin",
           assign_horses: organization.role === "control_admin",
+          manage_horses: manager,
+          create_horses: manager && horseCapacity?.enabled === true,
         },
         production_authority_enabled: false,
       };

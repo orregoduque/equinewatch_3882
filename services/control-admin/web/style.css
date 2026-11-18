@@ -581,3 +581,6 @@ body.loading {
     padding: 18px;
   }
 }
+#organization-registration-form > .actions {
+  margin-bottom: 12px;
+}

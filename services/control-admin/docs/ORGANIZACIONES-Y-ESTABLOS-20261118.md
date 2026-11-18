@@ -1,5 +1,7 @@
 # Organizaciones y establos · v0.4
 
+Actualización v0.5: el alta de nuevos caballos por responsables, con propietarios aprobados y límites, se detalla en ALTAS-DELEGADAS-20261118.md. Este documento conserva el contrato inicial v0.4 de asignaciones y ámbitos.
+
 Este incremento añade separación administrativa por organización y por establo al panel complementario. Se instala solamente en el entorno aislado. No cambia permisos de fotos/vídeo, propietarios de caballos, buckets, Secrets HLS, cámaras o Raspberry actuales.
 
 ## Modelo y responsabilidades

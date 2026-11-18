@@ -7,6 +7,7 @@ import { openDemo, openProduction, DEMO_ADMIN } from "./db.mjs";
 import { ControlStore, ControlError, fail, uuid } from "./store.mjs";
 import { InstallationStore } from "./installations.mjs";
 import { OrganizationStore } from "./organizations.mjs";
+import { DelegatedHorseStore } from "./delegated-horses.mjs";
 import { BrowserAuth, stagingConfiguration, safeEqual } from "./auth.mjs";
 import {
   PeopleStore,
@@ -53,6 +54,7 @@ export function createControlServer({
     expectedHost = new URL(origin).host;
   const installations = new InstallationStore(store);
   const organizations = new OrganizationStore(store);
+  const delegatedHorses = new DelegatedHorseStore(organizations);
   const people = new PeopleStore(store, { mode, provider: peopleProvider });
   const verify =
     verifyIdentity ||
@@ -207,6 +209,75 @@ export function createControlServer({
             ? await people.capabilities(actor)
             : { create_users: false, create_horses: false },
         });
+        return;
+      }
+      const horseRoute =
+        /^\/api\/organizations\/([a-f0-9-]+)\/(horse-capacity|horse-registrations|owners|owner-records)(?:\/([a-f0-9-]+))?$/.exec(
+          path,
+        );
+      if (horseRoute) {
+        const [, org, kind, id] = horseRoute,
+          key = req.headers["idempotency-key"];
+        const page = () => {
+          if (
+            [...url.searchParams.keys()].some(
+              (k) =>
+                ![
+                  "after",
+                  "limit",
+                  "q",
+                  ...(kind === "owners" ? ["site_id"] : []),
+                ].includes(k),
+            )
+          )
+            fail(400, "INVALID_PAGE");
+          return {
+            after: url.searchParams.get("after") || null,
+            limit: url.searchParams.has("limit")
+              ? Number(url.searchParams.get("limit"))
+              : 20,
+            q: url.searchParams.get("q") || "",
+          };
+        };
+        let result;
+        if (req.method === "GET" && !id && kind === "horse-capacity")
+          result = await delegatedHorses.capacity(actor, org);
+        else if (req.method === "PUT" && !id && kind === "horse-capacity")
+          result = await delegatedHorses.setLimit(
+            actor,
+            key,
+            org,
+            await jsonBody(req),
+          );
+        else if (req.method === "POST" && !id && kind === "horse-registrations")
+          result = await delegatedHorses.create(
+            actor,
+            key,
+            org,
+            await jsonBody(req),
+          );
+        else if (req.method === "GET" && !id && kind === "owners")
+          result = await delegatedHorses.owners(
+            actor,
+            org,
+            url.searchParams.get("site_id"),
+            page(),
+          );
+        else if (req.method === "GET" && !id && kind === "owner-records")
+          result = await delegatedHorses.ownerRecords(actor, org, page());
+        else if (
+          kind === "owners" &&
+          ((req.method === "POST" && !id) || (req.method === "PUT" && id))
+        )
+          result = await delegatedHorses.owner(
+            actor,
+            key,
+            org,
+            await jsonBody(req),
+            id,
+          );
+        else fail(404, "NOT_FOUND");
+        output(res, 200, result);
         return;
       }
       const orgRoute =
@@ -494,9 +565,18 @@ export function createControlServer({
       const status =
         error instanceof ControlError
           ? error.status
-          : { 23505: 409, 23503: 400, 23514: 400, 22023: 400, 42501: 403 }[
-              error.code
-            ] || 500;
+          : {
+              23505: 409,
+              23503: 400,
+              23514: 400,
+              22023: 400,
+              42501: 403,
+              PSE01: 409,
+              PSE02: 400,
+              PSE03: 503,
+              PSE04: 409,
+              PSE05: 409,
+            }[error.code] || 500;
       const code =
         error instanceof ControlError
           ? error.code
@@ -506,6 +586,11 @@ export function createControlServer({
               23514: "INVALID_VALUE",
               22023: "INVALID_VALUE",
               42501: "FORBIDDEN",
+              PSE01: "HORSE_QUOTA_REACHED",
+              PSE02: "OWNER_NOT_AUTHORIZED",
+              PSE03: "PEOPLE_NOT_ENABLED",
+              PSE04: "STALE_REVISION",
+              PSE05: "HORSE_QUOTA_BELOW_USAGE",
             }[error.code] || "INTERNAL_ERROR";
       if (status === 500)
         console.error(

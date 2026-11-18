@@ -1,8 +1,10 @@
 # Stable Eye · Administración complementaria
 
-Versión 0.4: altas/accesos, preparación de instalaciones y autenticación con Supabase aislado. **No migra cámaras existentes ni modifica permisos o servicios productivos.**
+Versión 0.5: altas/accesos, preparación de instalaciones y autenticación con Supabase aislado. **No migra cámaras existentes ni modifica permisos o servicios productivos.**
 
 La separación administrativa por organización/establo se describe en [ORGANIZACIONES-Y-ESTABLOS-20261118.md](docs/ORGANIZACIONES-Y-ESTABLOS-20261118.md). No concede permisos de medios ni adopta instalaciones actuales.
+
+El alta delegada de caballos con propietarios aprobados y límites operativos está en [ALTAS-DELEGADAS-20261118.md](docs/ALTAS-DELEGADAS-20261118.md). Se verificaron transacciones, concurrencia, replay y recuperación del formulario tras perder una respuesta de red.
 
 Auth y altas se probaron contra una rama de integración con MFA y cuentas ficticias. Ver [AUTH-Y-ALTAS-20261118.md](docs/AUTH-Y-ALTAS-20261118.md) para acceso, evidencias y limitaciones.
 
@@ -47,7 +49,7 @@ No hay ejecución de comandos remotos, escritura de IAM, cambio ONVIF de IP, gen
 
 ## Staging futuro
 
-`CONTROL_MODE=staging` usa PostgreSQL con rol restringido, CA verificada, guarda del proyecto y login SDK/MFA. **No instala migraciones ni importa datos al iniciar.** Rechaza producción y requiere siete migraciones privadas y una responsabilidad explícita del panel. No entregar `service_role` al navegador. `Start-Staging.ps1` abre el entorno preparado en localhost 8898.
+`CONTROL_MODE=staging` usa PostgreSQL con rol restringido, CA verificada, guarda del proyecto y login SDK/MFA. **No instala migraciones ni importa datos al iniciar.** Rechaza producción y requiere ocho migraciones privadas y una responsabilidad explícita del panel. No entregar `service_role` al navegador. `Start-Staging.ps1` abre el entorno preparado en localhost 8898.
 
 La migración inicial contiene tres funciones privadas de lectura limitada con `SECURITY DEFINER`: catálogo mínimo para administradores explícitos, estado activo del perfil actual y estado activo del caballo. Son necesarias para reutilizar el catálogo existente sin reescribir su RLS. Tienen `search_path=pg_catalog`, referencias calificadas, `EXECUTE` público revocado y no escriben tablas existentes. Revisar estos privilegios con los advisors antes de cualquier instalación en Supabase. La aplicación actúa con el rol restringido `se_control_runtime`; no se deben entregar sus credenciales al navegador o a las Raspberry.
 
@@ -57,7 +59,7 @@ Las integraciones actuales permanecen fuera de este servicio. Ver [INTEGRACION-S
 
 `tests/control.test.mjs` comprueba aislamiento RLS, administración, permisos por caballo, vencimiento, revocación, revisiones, idempotencia concurrente, reservas de IP/MAC, rollback, persistencia y compatibilidad del adaptador apagado. El navegador comprobó alta de permiso, autorización simulada, retirada y denegación posterior; también preparación de sede, equipo y cámara ficticios.
 
-El motor local sirve para desarrollo y pruebas, no para certificar carga, alta disponibilidad ni el funcionamiento bajo la infraestructura real de Supabase. La versión 0.3 pasó integración real de Auth/MFA, cuentas/perfiles, caballos, idempotencia, RLS y logout en una rama aislada. Hay 89 pruebas locales y verificación de navegador en escritorio/ancho móvil. No se probó carga de fotos/vídeo a escala.
+El motor local sirve para desarrollo y pruebas, no para certificar carga, alta disponibilidad ni el funcionamiento bajo la infraestructura real de Supabase. La versión 0.3 pasó integración real de Auth/MFA, cuentas/perfiles, caballos, idempotencia, RLS y logout en una rama aislada. Hay 105 pruebas locales y verificación de navegador en escritorio/ancho móvil. No se probó carga de fotos/vídeo a escala.
 
 Como antecedente, la versión 0.2 añadió 24 pruebas de instalación para un total de 44. Incluye actualización desde el esquema inicial conservando sus datos, cierre/reapertura con progreso, colisiones, bloqueo de recursos observados, leases vencidos/resultados tardíos, cancelación, límites de reintento y HTTP. Se consultaron 3.602 caballos y un registro de 300 equipos/3.600 cámaras en páginas de hasta 100 filas; no es una prueba de streaming o ingestión a esa escala. Ver [API-INSTALACIONES.md](docs/API-INSTALACIONES.md).
 

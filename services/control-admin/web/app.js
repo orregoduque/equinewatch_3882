@@ -54,6 +54,15 @@ const titles = {
   ],
 };
 const errors = {
+  ORG_MANAGER_REQUIRED:
+    "El registro de caballos requiere una responsabilidad de organización.",
+  OWNER_NOT_AUTHORIZED:
+    "El propietario no está autorizado o activo para este establo. Revisa la selección.",
+  HORSE_QUOTA_REACHED:
+    "Se alcanzó el límite de caballos de esta organización. Solicita una revisión al administrador central.",
+  HORSE_QUOTA_BELOW_USAGE:
+    "El límite no puede ser menor que los caballos ya registrados.",
+  INVALID_LIMIT: "Indica un límite entero entre 0 y 100.000.",
   PANEL_ACCESS_REQUIRED:
     "Tu cuenta no tiene una responsabilidad activa en este panel.",
   ORGANIZATION_NOT_FOUND: "La organización no está disponible en tu ámbito.",
@@ -110,12 +119,12 @@ function notice(message, error = false) {
   $("#notice").className = error ? "error" : "";
   $("#notice").textContent = message;
 }
-async function api(path, { method = "GET", body } = {}) {
+async function api(path, { method = "GET", body, idempotencyKey } = {}) {
   const headers = {};
   if (body) {
     headers["Content-Type"] = "application/json";
     headers["X-CSRF-Token"] = csrf;
-    headers["Idempotency-Key"] = crypto.randomUUID();
+    headers["Idempotency-Key"] = idempotencyKey || crypto.randomUUID();
   }
   const response = await fetch(path, {
       method,
@@ -890,6 +899,12 @@ async function refreshOrganizations() {
 async function loadOrganization() {
   const id = $("#organization-select").value;
   selectedOrganization = null;
+  $("#organization-registration-panel").hidden = true;
+  $("#organization-owners-panel").hidden = true;
+  $("#organization-registration-form").reset();
+  approvedOwnerCursor = null;
+  ownerRecordCursor = null;
+  $("#organization-owner-search").value = "";
   for (const k of Object.keys(organizationResourceNames))
     organizationResourceCursors[k] = null;
   $("#organization-resources").replaceChildren();
@@ -922,6 +937,17 @@ async function loadOrganization() {
   $("#organization-member-form").closest("[data-central-only]").hidden =
     !state.context.global_admin || row.state === "suspended";
   if (row.state === "suspended") return;
+  $("#organization-registration-panel").hidden =
+    !workspace.capabilities.manage_horses;
+  $("#organization-owners-panel").hidden = !state.context.global_admin;
+  if (workspace.horse_capacity) {
+    const cap = workspace.horse_capacity;
+    $("#organization-horse-capacity").textContent =
+      `${cap.used} de ${cap.horse_limit} caballos registrados · ${cap.remaining} cupos disponibles. La instalación de cámara y almacenamiento se prepara después del alta.`;
+    field($("#organization-limit-form"), "horse_limit").value = cap.horse_limit;
+    $("#organization-registration-form button[type=submit]").disabled =
+      !workspace.capabilities.create_horses || cap.remaining < 1;
+  }
   await Promise.all(
     Object.keys(organizationResourceNames).map(async (kind) => {
       const panel = document.createElement("div");
@@ -932,6 +958,8 @@ async function loadOrganization() {
       if ($("#organization-select").value !== id) return;
     }),
   );
+  if (state.context.global_admin && $("#organization-select").value === id)
+    await loadOwnerRecords(id);
 }
 async function loadOrganizationResource(
   kind,
@@ -979,6 +1007,20 @@ async function loadOrganizationResource(
       scope.add(new Option(site.name, site.id));
       target.add(new Option(site.name, site.id));
     }
+    const ownerScope = field($("#organization-owner-form"), "owner_scope"),
+      registrationSite = field(
+        $("#organization-registration-form"),
+        "registration_site",
+      );
+    ownerScope.replaceChildren(new Option("Toda la organización", ""));
+    registrationSite.replaceChildren(
+      new Option("Selecciona un establo de esta página", ""),
+    );
+    for (const site of result.items) {
+      ownerScope.add(new Option(site.name, site.id));
+      registrationSite.add(new Option(site.name, site.id));
+    }
+    await loadApprovedOwners();
   }
 }
 async function organizationSubmit(e, work) {
@@ -1115,6 +1157,193 @@ $("#organization-resources").onclick = async (e) => {
     notice(error.message, true);
   } finally {
     if (button.isConnected) button.disabled = false;
+  }
+};
+let approvedOwnerCursor = null,
+  nextApprovedOwnerCursor = null,
+  ownerRecordCursor = null,
+  nextOwnerRecordCursor = null,
+  approvedOwnerGeneration = 0,
+  pendingHorseRegistration = null;
+async function loadApprovedOwners() {
+  const org = $("#organization-select").value,
+    site = field(
+      $("#organization-registration-form"),
+      "registration_site",
+    ).value;
+  const select = field($("#organization-registration-form"), "approved_owner"),
+    generation = ++approvedOwnerGeneration;
+  select.replaceChildren(
+    new Option(
+      site
+        ? "Buscando propietarios aprobados…"
+        : "Selecciona primero un establo",
+      "",
+    ),
+  );
+  select.disabled = true;
+  $("#approved-owners-next").disabled = true;
+  if (!site || !selectedOrganization?.capabilities.manage_horses) return;
+  const result = await api(
+    `/api/organizations/${org}/owners?site_id=${site}&limit=20&q=${encodeURIComponent($("#organization-owner-search").value)}` +
+      (approvedOwnerCursor ? "&after=" + approvedOwnerCursor : ""),
+  );
+  if (
+    generation !== approvedOwnerGeneration ||
+    $("#organization-select").value !== org ||
+    field($("#organization-registration-form"), "registration_site").value !==
+      site
+  )
+    return;
+  select.replaceChildren(
+    new Option(
+      result.items.length
+        ? "Selecciona un propietario aprobado"
+        : "No hay propietarios aprobados en este ámbito",
+      "",
+    ),
+  );
+  for (const owner of result.items)
+    select.add(new Option(owner.full_name, owner.id));
+  select.disabled = !result.items.length;
+  nextApprovedOwnerCursor = result.next;
+  $("#approved-owners-next").disabled = !result.next;
+}
+async function loadOwnerRecords(org = $("#organization-select").value) {
+  const result = await api(
+    `/api/organizations/${org}/owner-records?limit=20` +
+      (ownerRecordCursor ? "&after=" + ownerRecordCursor : ""),
+  );
+  if ($("#organization-select").value !== org) return;
+  $("#organization-owner-records")._items = result.items;
+  nextOwnerRecordCursor = result.next;
+  $("#owner-records-next").disabled = !result.next;
+  $("#organization-owner-records").innerHTML = result.items.length
+    ? result.items
+        .map(
+          (item) =>
+            `<div class="camera-item"><b>${escape(labelUser(item.user_id))}</b><small>${escape(item.site_id ? "Establo " + item.site_id : "Toda la organización")} · ${item.active ? "Aprobación activa" : "Aprobación retirada"}</small><button data-owner-toggle="${item.id}">${item.active ? "Retirar aprobación" : "Reactivar aprobación"}</button></div>`,
+        )
+        .join("")
+    : '<p class="empty">Todavía no hay propietarios aprobados.</p>';
+}
+field($("#organization-registration-form"), "registration_site").onchange =
+  () => {
+    approvedOwnerCursor = null;
+    loadApprovedOwners().catch((e) => notice(e.message, true));
+  };
+let approvedOwnerTimer;
+$("#organization-owner-search").oninput = () => {
+  clearTimeout(approvedOwnerTimer);
+  approvedOwnerTimer = setTimeout(() => {
+    approvedOwnerCursor = null;
+    loadApprovedOwners().catch((e) => notice(e.message, true));
+  }, 250);
+};
+$("#approved-owners-first").onclick = () => {
+  approvedOwnerCursor = null;
+  loadApprovedOwners().catch((e) => notice(e.message, true));
+};
+$("#approved-owners-next").onclick = () => {
+  approvedOwnerCursor = nextApprovedOwnerCursor;
+  loadApprovedOwners().catch((e) => notice(e.message, true));
+};
+$("#owner-records-first").onclick = () => {
+  ownerRecordCursor = null;
+  loadOwnerRecords().catch((e) => notice(e.message, true));
+};
+$("#owner-records-next").onclick = () => {
+  ownerRecordCursor = nextOwnerRecordCursor;
+  loadOwnerRecords().catch((e) => notice(e.message, true));
+};
+$("#organization-owner-form").onsubmit = (e) =>
+  organizationSubmit(e, async (f) => {
+    await api(`/api/organizations/${$("#organization-select").value}/owners`, {
+      method: "POST",
+      body: {
+        user_id: field(f, "user_id").value,
+        site_id: field(f, "owner_scope").value || null,
+      },
+    });
+    notice("Propietario aprobado para registrar caballos en su ámbito.");
+  });
+$("#organization-limit-form").onsubmit = (e) =>
+  organizationSubmit(e, async (f) => {
+    await api(
+      `/api/organizations/${$("#organization-select").value}/horse-capacity`,
+      {
+        method: "PUT",
+        body: {
+          horse_limit: Number(field(f, "horse_limit").value),
+          revision: selectedOrganization.horse_capacity.revision,
+        },
+      },
+    );
+    notice("Límite operativo actualizado.");
+  });
+$("#organization-owner-records").onclick = async (e) => {
+  const b = e.target.closest("[data-owner-toggle]");
+  if (!b) return;
+  b.disabled = true;
+  try {
+    const record = $("#organization-owner-records")._items.find(
+      (x) => x.id === b.dataset.ownerToggle,
+    );
+    await api(
+      `/api/organizations/${$("#organization-select").value}/owners/${record.id}`,
+      {
+        method: "PUT",
+        body: {
+          site_id: record.site_id,
+          active: !record.active,
+          revision: record.revision,
+        },
+      },
+    );
+    await loadOwnerRecords();
+    await loadApprovedOwners();
+    notice(
+      "Aprobación de propietario actualizada. Se conservan sus caballos existentes.",
+    );
+  } catch (error) {
+    notice(error.message, true);
+  } finally {
+    if (b.isConnected) b.disabled = false;
+  }
+};
+$("#organization-registration-form").onsubmit = async (e) => {
+  e.preventDefault();
+  const f = e.target,
+    b = e.submitter,
+    org = $("#organization-select").value;
+  const body = {
+    name: field(f, "name").value,
+    stall_number: field(f, "stall_number").value,
+    site_id: field(f, "registration_site").value,
+    owner_id: field(f, "approved_owner").value,
+  };
+  const signature = JSON.stringify([org, body]);
+  if (pendingHorseRegistration?.signature !== signature)
+    pendingHorseRegistration = { signature, key: crypto.randomUUID() };
+  b.disabled = true;
+  try {
+    const result = await api(`/api/organizations/${org}/horse-registrations`, {
+      method: "POST",
+      body,
+      idempotencyKey: pendingHorseRegistration.key,
+    });
+    pendingHorseRegistration = null;
+    f.reset();
+    notice(
+      `Caballo registrado: ${result.name}. La instalación de cámara y almacenamiento está pendiente.`,
+    );
+    await refresh();
+  } catch (error) {
+    notice(error.message, true);
+  } finally {
+    b.disabled =
+      !selectedOrganization?.capabilities.create_horses ||
+      selectedOrganization.horse_capacity?.remaining < 1;
   }
 };
 function showLogin(message = "") {
